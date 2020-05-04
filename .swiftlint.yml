@@ -1,0 +1,15 @@
+disabled_rules:
+  - trailing_comma
+  - identifier_name
+  - void_return
+  - operator_whitespace
+  - nesting
+  - cyclomatic_complexity
+
+line_length: 100
+
+function_body_length: 50
+
+included:
+  - Sources
+  - Tests
