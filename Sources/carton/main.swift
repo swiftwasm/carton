@@ -1,1 +1,1 @@
-print("Hello, world!")
+Carton.main()

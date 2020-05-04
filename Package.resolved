@@ -2,12 +2,21 @@
   "object": {
     "pins": [
       {
-        "package": "SKQueue",
-        "repositoryURL": "https://github.com/daniel-pedersen/SKQueue.git",
+        "package": "async-http-client",
+        "repositoryURL": "https://github.com/swift-server/async-http-client.git",
         "state": {
           "branch": null,
-          "revision": "a52c15ea2a8f28fde607155cf75c1abe9ea000a7",
-          "version": "1.2.0"
+          "revision": "037b70291941fe43de668066eb6fb802c5e181d2",
+          "version": "1.1.1"
+        }
+      },
+      {
+        "package": "SKQueue",
+        "repositoryURL": "https://github.com/MaxDesiatov/SKQueue.git",
+        "state": {
+          "branch": "master",
+          "revision": "448a61e772c5beb60ab035b2af140e3165f71b23",
+          "version": null
         }
       },
       {
@@ -26,6 +35,33 @@
           "branch": null,
           "revision": "e876fb37410e0036b98b5361bb18e6854739572b",
           "version": "2.16.0"
+        }
+      },
+      {
+        "package": "swift-nio-extras",
+        "repositoryURL": "https://github.com/apple/swift-nio-extras.git",
+        "state": {
+          "branch": null,
+          "revision": "e0e76733600a2806b3dc4feae8cfebace858c1a2",
+          "version": "1.4.1"
+        }
+      },
+      {
+        "package": "swift-nio-http2",
+        "repositoryURL": "https://github.com/apple/swift-nio-http2.git",
+        "state": {
+          "branch": null,
+          "revision": "82eb3fa0974b838358ee46bc6c5381e5ae5de6b9",
+          "version": "1.11.0"
+        }
+      },
+      {
+        "package": "swift-nio-ssl",
+        "repositoryURL": "https://github.com/apple/swift-nio-ssl.git",
+        "state": {
+          "branch": null,
+          "revision": "ae213938e151964aa691f0e902462fbe06baeeb6",
+          "version": "2.7.1"
         }
       }
     ]
