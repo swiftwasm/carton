@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "JavaScriptKit",
+        "repositoryURL": "https://github.com/kateinoigakukun/JavaScriptKit",
+        "state": {
+          "branch": null,
+          "revision": "1edcf707dcb06f50e980c6cac542f226361dc124",
+          "version": "0.3.0"
+        }
+      }
+    ]
+  },
+  "version": 1
+}
