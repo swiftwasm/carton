@@ -47,12 +47,12 @@
         }
       },
       {
-        "package": "SKQueue",
-        "repositoryURL": "https://github.com/MaxDesiatov/SKQueue.git",
+        "package": "ShellOut",
+        "repositoryURL": "https://github.com/JohnSundell/ShellOut.git",
         "state": {
-          "branch": "master",
-          "revision": "448a61e772c5beb60ab035b2af140e3165f71b23",
-          "version": null
+          "branch": null,
+          "revision": "e1577acf2b6e90086d01a6d5e2b8efdaae033568",
+          "version": "2.3.0"
         }
       },
       {
@@ -134,6 +134,15 @@
           "branch": null,
           "revision": "ae213938e151964aa691f0e902462fbe06baeeb6",
           "version": "2.7.1"
+        }
+      },
+      {
+        "package": "swift-tools-support-core",
+        "repositoryURL": "https://github.com/apple/swift-tools-support-core.git",
+        "state": {
+          "branch": null,
+          "revision": "912919ab8441306c86c514b78800e4498ab60b60",
+          "version": "0.1.3"
         }
       },
       {
