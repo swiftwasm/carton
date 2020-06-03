@@ -1,4 +1,4 @@
-# carton
+# carton 📦
 
 `carton` is a watcher, bundler, and test runner for your SwiftWasm apps. The main goal of `carton` is to provide the most smooth zero-config experience when developing for WebAssembly.
 
