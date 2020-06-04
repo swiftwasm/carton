@@ -6,7 +6,7 @@
     {
       "label": "build and run",
       "type": "shell",
-      "command": "swift build && .build/debug/carton dev"
+      "command": "swift build && cd TestApp && ../.build/debug/carton dev --target TestApp"
     }
   ]
 }

@@ -1,5 +1,6 @@
 {
   "editor.tabSize": 2,
   "editor.formatOnSave": true,
-  "editor.formatOnType": true
+  "editor.formatOnType": true,
+  "licenser.author": "Carton contributors"
 }

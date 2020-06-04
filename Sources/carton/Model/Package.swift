@@ -12,17 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import Foundation
-import Vapor
+struct ProductType: Codable {
+  let executable: String?
+  let library: [String]
+}
 
-// configures your application
-public func configure(_ app: Application, mainWasmPath: String) throws {
-  let directory = FileManager.default.homeDirectoryForCurrentUser
-    .appendingPathComponent(".carton")
-    .appendingPathComponent("static")
-    .path
-  app.middleware.use(FileMiddleware(publicDirectory: directory))
+/**
+ Simple Product structure from package dump
+ */
+struct Product: Codable {
+  let name: String
+  let type: ProductType
+}
 
-  // register routes
-  try routes(app, mainWasmPath: mainWasmPath)
+/**
+ Simple Package structure from package dump
+ */
+struct Package: Codable {
+  let name: String
+  let products: [Product]
+  let targets: [Target]
+}
+
+enum TargetType: String, Codable {
+  case regular
+  case test
+}
+
+struct Target: Codable {
+  let name: String
+  let type: TargetType
 }

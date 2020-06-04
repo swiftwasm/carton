@@ -1,13 +1,10 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.2
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
 let package = Package(
   name: "CartonTestApp",
-  products: [
-    .executable(name: "TestApp", targets: ["TestApp"]),
-  ],
   dependencies: [
     .package(url: "https://github.com/kateinoigakukun/JavaScriptKit", .revision("b245ad5")),
   ],

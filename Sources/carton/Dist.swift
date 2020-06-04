@@ -12,17 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import Foundation
-import Vapor
+import ArgumentParser
 
-// configures your application
-public func configure(_ app: Application, mainWasmPath: String) throws {
-  let directory = FileManager.default.homeDirectoryForCurrentUser
-    .appendingPathComponent(".carton")
-    .appendingPathComponent("static")
-    .path
-  app.middleware.use(FileMiddleware(publicDirectory: directory))
-
-  // register routes
-  try routes(app, mainWasmPath: mainWasmPath)
+struct Dist: ParsableCommand {
+  static var configuration = CommandConfiguration(
+    abstract: "Produce a distribution bundle ready for deployment."
+  )
 }
