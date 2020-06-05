@@ -33,12 +33,7 @@ struct Dev: ParsableCommand {
         separatedBy: CharacterSet.newlines
       ).first {
       swiftPath = FileManager.default.homeDirectoryForCurrentUser
-        .appendingPathComponent(".swiftenv")
-        .appendingPathComponent("versions")
-        .appendingPathComponent(swiftVersion)
-        .appendingPathComponent("usr")
-        .appendingPathComponent("bin")
-        .appendingPathComponent("swift")
+        .appending(".swiftenv", "versions", swiftVersion, "usr", "bin", "swift")
         .path
     } else {
       swiftPath = "swift"

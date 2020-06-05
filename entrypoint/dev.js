@@ -5,7 +5,7 @@ import { WasmFs } from "@wasmer/wasmfs";
 const swift = new SwiftRuntime();
 // Instantiate a new WASI Instance
 const wasmFs = new WasmFs();
-let wasi = new WASI({
+const wasi = new WASI({
   args: [],
   env: {},
   bindings: {
@@ -21,7 +21,7 @@ const startWasiTask = async () => {
 
   // Instantiate the WebAssembly file
   const wasm_bytes = new Uint8Array(responseArrayBuffer).buffer;
-  let { instance } = await WebAssembly.instantiate(wasm_bytes, {
+  const { instance } = await WebAssembly.instantiate(wasm_bytes, {
     wasi_snapshot_preview1: wasi.wasiImport,
     javascript_kit: swift.importObjects(),
   });

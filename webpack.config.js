@@ -2,10 +2,10 @@ const path = require("path");
 const outputPath = path.resolve(__dirname, "Public");
 
 module.exports = {
-  entry: "./entrypoint/index.js",
+  entry: "./entrypoint/dev.js",
   mode: "development",
   output: {
-    filename: "index.js",
+    filename: "dev.js",
     path: outputPath,
   },
 };
