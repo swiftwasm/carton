@@ -14,7 +14,14 @@
 
 import Foundation
 
-enum CartonError {
-  case failedToDownloadDependency(URL)
-  case dependencySHA512HashIncorrect(actual: String, expected: String)
+public struct ExpectationError: Error, CustomStringConvertible {
+  public let description: String
+}
+
+struct Equality<T: Equatable, C> {
+  let description: (_ x: T, _ y: T, _ context: C) -> String
+
+  func callAsFunction(_ x: T, _ y: T, context: C) throws {
+    guard x == y else { throw ExpectationError(description: description(x, y, context)) }
+  }
 }

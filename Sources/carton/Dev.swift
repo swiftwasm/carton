@@ -25,6 +25,8 @@ struct Dev: ParsableCommand {
   )
 
   func run() throws {
+    try checkDevDependencies()
+
     let swiftPath: String
     if
       let data = FileManager.default.contents(atPath: ".swift-version"),
