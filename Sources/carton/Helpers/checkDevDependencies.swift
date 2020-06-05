@@ -47,12 +47,16 @@ func checkDevDependencies() throws {
   let devPolyfill = cartonDir.appending("static", "dev.js")
 
   // If dev.js hash fails, download the `static.zip` archive and unpack it/
-  if try Data(contentsOf: devPolyfill).sha512 != devPolyfillHash {
+  if try !fm.fileExists(
+    atPath: devPolyfill.path
+  ) || Data(contentsOf: devPolyfill).sha512 != devPolyfillHash {
+    print("Downloading the polyfill archive from \(archiveURL)...")
     let downloadedArchive = try Data(contentsOf: archiveURL)
     let downloadedHash = downloadedArchive.sha512
     try verifyHash(downloadedHash, archiveHash, context: archiveURL)
 
     let archiveFile = cartonDir.appending("static.zip")
+    try fm.createDirectory(at: cartonDir, withIntermediateDirectories: true)
     try downloadedArchive.write(to: archiveFile)
     try fm.unzipItem(at: archiveFile, to: cartonDir)
   }
