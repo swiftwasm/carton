@@ -15,6 +15,7 @@
 import ArgumentParser
 import Foundation
 import ShellOut
+import TSCBasic
 
 struct Dev: ParsableCommand {
   @Option(help: "Specify name of an executable target in development.")
@@ -25,7 +26,7 @@ struct Dev: ParsableCommand {
   )
 
   func run() throws {
-    try checkDevDependencies()
+    try checkDevDependencies(on: localFileSystem)
 
     let swiftPath: String
     if

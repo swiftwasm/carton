@@ -38,6 +38,15 @@
         }
       },
       {
+        "package": "OpenCombine",
+        "repositoryURL": "https://github.com/broadwaylamb/OpenCombine.git",
+        "state": {
+          "branch": null,
+          "revision": "1496bab2724bf6f794cba8ac4d97d2a5013eeba7",
+          "version": "0.8.0"
+        }
+      },
+      {
         "package": "routing-kit",
         "repositoryURL": "https://github.com/vapor/routing-kit.git",
         "state": {
@@ -161,15 +170,6 @@
           "branch": null,
           "revision": "021edd1ca55451ad15b3e84da6b4064e4b877b34",
           "version": "2.1.0"
-        }
-      },
-      {
-        "package": "ZIPFoundation",
-        "repositoryURL": "https://github.com/weichsel/ZIPFoundation.git",
-        "state": {
-          "branch": null,
-          "revision": "ec32d62d412578542c0ffb7a6ce34d3e64b43b94",
-          "version": "0.9.11"
         }
       }
     ]
