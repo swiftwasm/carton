@@ -14,8 +14,14 @@
 
 import ArgumentParser
 import Foundation
-import ShellOut
 import TSCBasic
+
+func shellOut(_ arguments: String...) throws -> Data {
+  let process = Process(arguments: arguments, startNewProcessGroup: false)
+  try process.launch()
+  let result = try process.waitUntilExit()
+  return try Data(result.output.get())
+}
 
 struct Dev: ParsableCommand {
   @Option(help: "Specify name of an executable target in development.")
@@ -42,11 +48,8 @@ struct Dev: ParsableCommand {
       swiftPath = "swift"
     }
 
-    let output = try shellOut(to: swiftPath, arguments: ["package", "dump-package"])
-    guard let data = output.data(using: .utf8)
-    else { fatalError("failed to decode `swift package dump-package` output") }
-
-    let package = try JSONDecoder().decode(Package.self, from: data)
+    let output = try shellOut(swiftPath, "package", "dump-package")
+    let package = try JSONDecoder().decode(Package.self, from: output)
     var candidateNames = package.targets.filter { $0.type == .regular }.map(\.name)
 
     if let target = target {
@@ -66,10 +69,10 @@ struct Dev: ParsableCommand {
       """)
     }
 
-    let path = try shellOut(
-      to: swiftPath,
-      arguments: ["build", "--triple", "wasm32-unknown-wasi", "--show-bin-path"]
-    )
+    guard let path = try String(
+      data: shellOut(swiftPath, "build", "--triple", "wasm32-unknown-wasi", "--show-bin-path"),
+      encoding: .utf8
+    ) else { fatalError("failed to decode UTF8 output of the `swift build` invocation") }
     let mainWasmURL = URL(fileURLWithPath: path).appendingPathComponent(candidateNames[0])
 
     try Server.run(mainWasmPath: mainWasmURL.path)
