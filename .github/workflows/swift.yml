@@ -25,4 +25,4 @@ jobs:
     - name: Test on Ubuntu with Swift 5.2
       uses: Didstopia/SwiftAction@v1.0.2
       with:
-        swift-action: build
+        swift-action: build -Xswiftc -Xfrontend -Xswiftc -validate-tbd-against-ir=none
