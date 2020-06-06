@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/vapor/async-kit.git",
         "state": {
           "branch": null,
-          "revision": "48a719dec79ea3cbbc71ca9b29f69df7cd5794cd",
-          "version": "1.0.1"
+          "revision": "8e2cad80dd9f62f0349a2a78ab8c81fb456f4d4a",
+          "version": "1.1.1"
         }
       },
       {
@@ -114,8 +114,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio.git",
         "state": {
           "branch": null,
-          "revision": "e876fb37410e0036b98b5361bb18e6854739572b",
-          "version": "2.16.0"
+          "revision": "c5fa0b456524cd73dc3ddbb263d4f46c20b86ca3",
+          "version": "2.17.0"
         }
       },
       {
@@ -123,8 +123,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-extras.git",
         "state": {
           "branch": null,
-          "revision": "e0e76733600a2806b3dc4feae8cfebace858c1a2",
-          "version": "1.4.1"
+          "revision": "7cd24c0efcf9700033f671b6a8eaa64a77dd0b72",
+          "version": "1.5.1"
         }
       },
       {
@@ -132,8 +132,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-http2.git",
         "state": {
           "branch": null,
-          "revision": "82eb3fa0974b838358ee46bc6c5381e5ae5de6b9",
-          "version": "1.11.0"
+          "revision": "c8f952dbc37fe60def17eb15e2c90787ce6ee78a",
+          "version": "1.12.1"
         }
       },
       {
@@ -141,8 +141,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-ssl.git",
         "state": {
           "branch": null,
-          "revision": "ae213938e151964aa691f0e902462fbe06baeeb6",
-          "version": "2.7.1"
+          "revision": "10e0e17dd47b594c3d864a063f343d716e33e5c1",
+          "version": "2.7.3"
         }
       },
       {
@@ -159,8 +159,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "c70d45fe9cce525df5b5f4793a232596cd85484b",
-          "version": "4.5.0"
+          "revision": "4fa7ed40ccb1dc4e1f8739f31e1d3df15681bbdc",
+          "version": "4.8.0"
         }
       },
       {
