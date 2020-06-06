@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import HypertextLiteral
 import Vapor
 
 func routes(_ app: Application, mainWasmPath: String) throws {
-  app.get { _ -> HTML in
-    #"""
+  app.get { _ in
+    HTML(value: #"""
     <html>
       <head>
           <meta charset="utf-8" />
@@ -28,7 +27,7 @@ func routes(_ app: Application, mainWasmPath: String) throws {
           <h1>Hello!</h1>
       </body>
     </html>
-    """#
+    """#)
   }
 
   app.get("main.wasm") { (request: Request) in
