@@ -7,6 +7,14 @@
       "label": "build and run",
       "type": "shell",
       "command": "swift build && cd TestApp && ../.build/debug/carton dev --target TestApp"
+    },
+    {
+      "type": "npm",
+      "script": "build",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "npm: build",
+      "detail": "webpack"
     }
   ]
 }

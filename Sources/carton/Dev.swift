@@ -16,11 +16,16 @@ import ArgumentParser
 import Foundation
 import TSCBasic
 
-func shellOut(_ arguments: String...) throws -> Data {
+func processDataOutput(_ arguments: [String]) throws -> Data {
   let process = Process(arguments: arguments, startNewProcessGroup: false)
   try process.launch()
   let result = try process.waitUntilExit()
   return try Data(result.output.get())
+}
+
+func processStringsOutput(_ arguments: [String]) throws -> [String] {
+  try String(data: processDataOutput(arguments), encoding: .utf8)?
+    .components(separatedBy: CharacterSet.newlines) ?? []
 }
 
 struct Dev: ParsableCommand {
@@ -31,9 +36,12 @@ struct Dev: ParsableCommand {
     abstract: "Watch the current directory, host the app, rebuild on change."
   )
 
-  func run() throws {
-    try checkDevDependencies(on: localFileSystem)
+  mutating func run() throws {
+    guard let terminal = TerminalController(stream: stdoutStream)
+    else { fatalError("failed to create an instance of `TerminalController`") }
+    // try checkDevDependencies(on: localFileSystem, terminal)
 
+    terminal.write("Inferring basic settings...\n", inColor: .yellow)
     let swiftPath: String
     if
       let data = FileManager.default.contents(atPath: ".swift-version"),
@@ -47,8 +55,9 @@ struct Dev: ParsableCommand {
     } else {
       swiftPath = "swift"
     }
+    terminal.logLookup("- swift executable: ", swiftPath)
 
-    let output = try shellOut(swiftPath, "package", "dump-package")
+    let output = try processDataOutput([swiftPath, "package", "dump-package"])
     let package = try JSONDecoder().decode(Package.self, from: output)
     var candidateNames = package.targets.filter { $0.type == .regular }.map(\.name)
 
@@ -68,13 +77,25 @@ struct Dev: ParsableCommand {
       pass one of \(candidateNames) to the --target flag
       """)
     }
+    terminal.logLookup("- development target: ", candidateNames[0])
 
-    guard let path = try String(
-      data: shellOut(swiftPath, "build", "--triple", "wasm32-unknown-wasi", "--show-bin-path"),
-      encoding: .utf8
-    ) else { fatalError("failed to decode UTF8 output of the `swift build` invocation") }
-    let mainWasmURL = URL(fileURLWithPath: path).appendingPathComponent(candidateNames[0])
+    guard let binPath = try processStringsOutput([
+      swiftPath, "build", "--triple", "wasm32-unknown-wasi", "--show-bin-path",
+    ]).first else { fatalError("failed to decode UTF8 output of the `swift build` invocation") }
 
-    try Server.run(mainWasmPath: mainWasmURL.path)
+    let mainWasmURL = URL(fileURLWithPath: binPath).appendingPathComponent(candidateNames[0])
+    terminal.logLookup("- development binary to serve: ", mainWasmURL.path)
+
+    guard let sources = localFileSystem.currentWorkingDirectory?.appending(component: "Sources")
+    else { fatalError("failed to infer the sources directory") }
+
+    terminal.write("\nWatching this directory for changes: ", inColor: .green, bold: false)
+    terminal.logLookup("", sources)
+    terminal.write("\n")
+
+    try Server(
+      pathsToWatch: localFileSystem.traverseRecursively(sources),
+      mainWasmPath: mainWasmURL.path
+    ).run()
   }
 }

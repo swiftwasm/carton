@@ -12,16 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import OpenCombine
+import TSCBasic
 import Vapor
 
-struct Server {
-  static func run(mainWasmPath: String) throws {
+final class Server {
+  // FIXME: this only handles a single connection, should maintain a collection of connections
+  // and cleanup the array when one is closed
+  private var wsConnection: WebSocket?
+  private var subscriptions = [AnyCancellable]()
+  private let watcher: Watcher
+  private let app: Application
+
+  init(pathsToWatch: [AbsolutePath], mainWasmPath: String) throws {
+    watcher = try Watcher(pathsToWatch)
+
     var env = Environment.development
     try LoggingSystem.bootstrap(from: &env)
-    let app = Application(env)
+    app = Application(env)
+    app.configure(mainWasmPath: mainWasmPath) {
+      self.wsConnection = $0
+    }
 
+    watcher.publisher
+      .sink { [weak self] _ in
+        self?.wsConnection?.send("reload")
+      }
+      .store(in: &subscriptions)
+  }
+
+  /// Blocking function that starts the HTTP server
+  func run() throws {
     defer { app.shutdown() }
-    try configure(app, mainWasmPath: mainWasmPath)
     try app.run()
   }
 }

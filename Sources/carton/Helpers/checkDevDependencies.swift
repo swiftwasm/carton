@@ -38,15 +38,19 @@ private let verifyHash = Equality<ByteString, Foundation.URL> {
   """
 }
 
-func checkDevDependencies(on fileSystem: FileSystem) throws {
+func checkDevDependencies(on fileSystem: FileSystem, _ terminal: TerminalController) throws {
   let cartonDir = fileSystem.homeDirectory.appending(component: ".carton")
+  let staticDir = cartonDir.appending(component: "static")
   let devPolyfill = cartonDir.appending(components: "static", "dev.js")
 
   // If dev.js hash fails, download the `static.zip` archive and unpack it/
   if try !fileSystem.exists(devPolyfill) || SHA256().hash(
     fileSystem.readFileContents(devPolyfill)
   ) != devPolyfillHash {
-    print("Downloading the polyfill archive from \(archiveURL)...")
+    terminal.logLookup("Directory doesn't exist or contains outdated polyfills: ", staticDir)
+    try fileSystem.removeFileTree(cartonDir)
+
+    terminal.logLookup("Downloading the polyfill archive: ", archiveURL)
     let downloadedArchive = try ByteString(Data(contentsOf: archiveURL))
     let downloadedHash = SHA256().hash(downloadedArchive)
     try verifyHash(downloadedHash, archiveHash, context: archiveURL)
@@ -55,6 +59,7 @@ func checkDevDependencies(on fileSystem: FileSystem) throws {
     try fileSystem.createDirectory(cartonDir, recursive: true)
     try fileSystem.writeFileContents(archiveFile, bytes: downloadedArchive)
 
+    terminal.logLookup("Unpacking the archive: ", archiveFile)
     try await {
       ZipArchiver().extract(from: archiveFile, to: cartonDir, completion: $0)
     }
@@ -63,4 +68,5 @@ func checkDevDependencies(on fileSystem: FileSystem) throws {
   let unpackedPolyfillHash = try SHA256().hash(fileSystem.readFileContents(devPolyfill))
   // Nothing we can do after the hash doesn't match after unpacking
   try verifyHash(unpackedPolyfillHash, devPolyfillHash, context: devPolyfill.asURL)
+  terminal.logLookup("Polyfill integrity verified: ", devPolyfill)
 }

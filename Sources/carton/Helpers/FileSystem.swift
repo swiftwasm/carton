@@ -12,17 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import Foundation
-import Vapor
+import TSCBasic
 
-// configures your application
-public func configure(_ app: Application, mainWasmPath: String) throws {
-  let directory = FileManager.default.homeDirectoryForCurrentUser
-    .appendingPathComponent(".carton")
-    .appendingPathComponent("static")
-    .path
-  app.middleware.use(FileMiddleware(publicDirectory: directory))
+extension FileSystem {
+  func traverseRecursively(_ root: AbsolutePath) throws -> [AbsolutePath] {
+    precondition(isDirectory(root))
+    var result = [AbsolutePath]()
 
-  // register routes
-  try routes(app, mainWasmPath: mainWasmPath)
+    var pathsToTraverse = [root]
+    while let currentDirectory = pathsToTraverse.popLast() {
+      let directoryContents = try localFileSystem.getDirectoryContents(currentDirectory)
+        .map(currentDirectory.appending)
+
+      result.append(contentsOf: directoryContents)
+      pathsToTraverse.append(contentsOf: directoryContents.filter(isDirectory))
+    }
+
+    return result
+  }
 }
