@@ -5,7 +5,7 @@ is to provide a smooth zero-config experience when developing for WebAssembly.
 It is still in development, but it aims to support these features:
 
 - 🥚 Creating basic package boilerplate for apps built with SwiftWasm with `carton init`.
-- 🐣 Watching the app for source code changes and reloading it in your browser with `carton dev`.
+- 🐥 Watching the app for source code changes and reloading it in your browser with `carton dev`.
 - 🐣 Running your XCTest suite in the full JavaScript/DOM environment with `carton test`.
 - 🥚 Optimizing and packaging the app for distribution with `carton bundle`.
 
