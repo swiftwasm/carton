@@ -28,11 +28,12 @@ final class Builder {
     let subject = PassthroughSubject<String, Error>()
     publisher = subject
       .handleEvents(receiveOutput: {
-        terminal.write($0)
+        terminal.clearLine()
+        terminal.write(String($0.dropLast()))
       }, receiveCompletion: {
         switch $0 {
         case .finished:
-          terminal.write("Build completed successfully\n\n", inColor: .green, bold: false)
+          terminal.write("\nBuild completed successfully\n", inColor: .green, bold: false)
         case let .failure(error):
           let errorString = String(describing: error)
           if errorString.isEmpty {

@@ -46,7 +46,6 @@ final class Server {
         for change in changes.map(\.pathString) {
           terminal.write("- \(change)\n", inColor: .cyan)
         }
-        terminal.write("\n")
         return Builder(builderArguments, terminal)
           .publisher
           .handleEvents(receiveCompletion: { [weak self] in
