@@ -16,6 +16,7 @@ import OpenCombine
 import TSCBasic
 import Vapor
 
+/// This `Hashable` conformance is required to handle simulatenous connections with `Set<WebSocket>`
 extension WebSocket: Hashable {
   public static func == (lhs: WebSocket, rhs: WebSocket) -> Bool {
     lhs === rhs
@@ -27,8 +28,6 @@ extension WebSocket: Hashable {
 }
 
 final class Server {
-  // FIXME: this only handles a single connection, should maintain a collection of connections
-  // and cleanup the array when one is closed
   private var connections = Set<WebSocket>()
   private var subscriptions = [AnyCancellable]()
   private let watcher: Watcher
