@@ -16,10 +16,20 @@ import OpenCombine
 import TSCBasic
 import Vapor
 
+extension WebSocket: Hashable {
+  public static func == (lhs: WebSocket, rhs: WebSocket) -> Bool {
+    lhs === rhs
+  }
+
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(ObjectIdentifier(self))
+  }
+}
+
 final class Server {
   // FIXME: this only handles a single connection, should maintain a collection of connections
   // and cleanup the array when one is closed
-  private var wsConnection: WebSocket?
+  private var connections = Set<WebSocket>()
   private var subscriptions = [AnyCancellable]()
   private let watcher: Watcher
   private var builder: Builder?
@@ -36,9 +46,15 @@ final class Server {
     var env = Environment.development
     try LoggingSystem.bootstrap(from: &env)
     app = Application(env)
-    app.configure(mainWasmPath: mainWasmPath) {
-      self.wsConnection = $0
-    }
+    app.configure(
+      mainWasmPath: mainWasmPath,
+      onWebSocketOpen: { [weak self] in
+        self?.connections.insert($0)
+      },
+      onWebSocketClose: { [weak self] in
+        self?.connections.remove($0)
+      }
+    )
 
     watcher.publisher
       .flatMap(maxPublishers: .max(1)) { changes -> AnyPublisher<String, Never> in
@@ -50,7 +66,7 @@ final class Server {
           .publisher
           .handleEvents(receiveCompletion: { [weak self] in
             guard case .finished = $0 else { return }
-            self?.wsConnection?.send("reload")
+            self?.connections.forEach { $0.send("reload") }
           })
           .catch { _ in Empty().eraseToAnyPublisher() }
           .eraseToAnyPublisher()

@@ -16,7 +16,11 @@ import Foundation
 import Vapor
 
 extension Application {
-  func configure(mainWasmPath: String, onWSConnection: @escaping (WebSocket) -> ()) {
+  func configure(
+    mainWasmPath: String,
+    onWebSocketOpen: @escaping (WebSocket) -> (),
+    onWebSocketClose: @escaping (WebSocket) -> ()
+  ) {
     let directory = FileManager.default.homeDirectoryForCurrentUser
       .appendingPathComponent(".carton")
       .appendingPathComponent("static")
@@ -24,10 +28,6 @@ extension Application {
     middleware.use(FileMiddleware(publicDirectory: directory))
 
     // register routes
-    routes(mainWasmPath: mainWasmPath, onWSConnection: onWSConnection)
-  }
-
-  private func routes(mainWasmPath: String, onWSConnection: @escaping (WebSocket) -> ()) {
     get { _ in
       HTML(value: #"""
       <html>
@@ -44,7 +44,8 @@ extension Application {
     }
 
     webSocket("watcher") { _, ws in
-      onWSConnection(ws)
+      onWebSocketOpen(ws)
+      ws.onClose.whenComplete { _ in onWebSocketClose(ws) }
     }
 
     get("main.wasm") { (request: Request) in
