@@ -7,7 +7,7 @@ It is still in development, but it aims to support these features:
 - [ ] Creating basic package boilerplate for apps built with SwiftWasm with `carton init`.
 - [ ] Watching the app for source code changes and reloading it in your browser with `carton dev`.
 - [ ] Running your XCTest suite in the full JavaScript/DOM environment with `carton test`.
-- [ ] Optimizing and packaging the app for distribution with `carton dist`.
+- [ ] Optimizing and packaging the app for distribution with `carton bundle`.
 
 When using `carton` you don't have to install Node.js or to write your own webpack configs. `carton`
 itself uses webpack as a dev dependency to precompile and minify the required WASI polyfill and the
