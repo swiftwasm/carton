@@ -1,6 +1,7 @@
 import { SwiftRuntime } from "javascript-kit-swift";
 import { WASI } from "@wasmer/wasi";
 import { WasmFs } from "@wasmer/wasmfs";
+import ReconnectingWebSocket from "reconnecting-websocket";
 
 const swift = new SwiftRuntime();
 // Instantiate a new WASI Instance
@@ -14,13 +15,13 @@ const wasi = new WASI({
   },
 });
 
-const socket = new WebSocket("ws://127.0.0.1:8080/watcher");
+const socket = new ReconnectingWebSocket("ws://127.0.0.1:8080/watcher");
 
-socket.onmessage = (message) => {
+socket.addEventListener("message", (message) => {
   if (message.data === "reload") {
     location.reload();
   }
-};
+});
 
 const startWasiTask = async () => {
   // Fetch our Wasm File

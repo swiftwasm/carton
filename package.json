@@ -27,6 +27,7 @@
     "@wasmer/wasi": "^0.10.2",
     "@wasmer/wasmfs": "^0.10.2",
     "javascript-kit-swift": "^0.3.0",
+    "reconnecting-websocket": "^4.4.0",
     "webpack": "^4.43.0",
     "webpack-cli": "^3.3.11"
   }
