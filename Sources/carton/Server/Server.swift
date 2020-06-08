@@ -22,9 +22,15 @@ final class Server {
   private var wsConnection: WebSocket?
   private var subscriptions = [AnyCancellable]()
   private let watcher: Watcher
+  private var builder: Builder?
   private let app: Application
 
-  init(pathsToWatch: [AbsolutePath], mainWasmPath: String) throws {
+  init(
+    builderArguments: [String],
+    pathsToWatch: [AbsolutePath],
+    mainWasmPath: String,
+    _ terminal: TerminalController
+  ) throws {
     watcher = try Watcher(pathsToWatch)
 
     var env = Environment.development
@@ -35,9 +41,24 @@ final class Server {
     }
 
     watcher.publisher
-      .sink { [weak self] _ in
-        self?.wsConnection?.send("reload")
+      .flatMap(maxPublishers: .max(1)) { changes -> AnyPublisher<String, Never> in
+        terminal.write("\nThese paths have changed, rebuilding...\n", inColor: .yellow)
+        for change in changes.map(\.pathString) {
+          terminal.write("- \(change)\n", inColor: .cyan)
+        }
+        terminal.write("\n")
+        return Builder(builderArguments, terminal)
+          .publisher
+          .handleEvents(receiveCompletion: { [weak self] in
+            guard case .finished = $0 else { return }
+            self?.wsConnection?.send("reload")
+          })
+          .catch { _ in Empty().eraseToAnyPublisher() }
+          .eraseToAnyPublisher()
       }
+      .sink(
+        receiveValue: { _ in }
+      )
       .store(in: &subscriptions)
   }
 

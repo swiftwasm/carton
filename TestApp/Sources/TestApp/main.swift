@@ -22,4 +22,4 @@ divElement.innerText = "Hello, world"
 let body = document.body.object!
 _ = body.appendChild!(divElement)
 
-print("hello, world")
+print("Hello, world!")

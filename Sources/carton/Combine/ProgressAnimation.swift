@@ -31,7 +31,7 @@ extension Publisher where Output == Progress, Failure: CustomStringConvertible {
       switch $0 {
       case .finished:
         progressAnimation.complete(success: true)
-        terminal.write("Build finished succesfully\n", inColor: .green, bold: false)
+        terminal.write("Build finished succesfully\n", inColor: .green)
       case let .failure(error):
         progressAnimation.complete(success: false)
         terminal.write(error.description, inColor: .red, bold: false)

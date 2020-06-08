@@ -16,7 +16,11 @@ const wasi = new WASI({
 
 const socket = new WebSocket("ws://127.0.0.1:8080/watcher");
 
-socket.onmessage = (message) => console.log(message.data);
+socket.onmessage = (message) => {
+  if (message.data === "reload") {
+    location.reload();
+  }
+};
 
 const startWasiTask = async () => {
   // Fetch our Wasm File

@@ -14,6 +14,7 @@
 
 import ArgumentParser
 import Foundation
+import OpenCombine
 import TSCBasic
 
 func processDataOutput(_ arguments: [String]) throws -> Data {
@@ -41,15 +42,17 @@ struct Dev: ParsableCommand {
     else { fatalError("failed to create an instance of `TerminalController`") }
     // try checkDevDependencies(on: localFileSystem, terminal)
 
+    let fm = FileManager.default
+
     terminal.write("Inferring basic settings...\n", inColor: .yellow)
     let swiftPath: String
     if
-      let data = FileManager.default.contents(atPath: ".swift-version"),
+      let data = fm.contents(atPath: ".swift-version"),
       // get the first line of the file
       let swiftVersion = String(data: data, encoding: .utf8)?.components(
         separatedBy: CharacterSet.newlines
       ).first {
-      swiftPath = FileManager.default.homeDirectoryForCurrentUser
+      swiftPath = fm.homeDirectoryForCurrentUser
         .appending(".swiftenv", "versions", swiftVersion, "usr", "bin", "swift")
         .path
     } else {
@@ -89,13 +92,33 @@ struct Dev: ParsableCommand {
     guard let sources = localFileSystem.currentWorkingDirectory?.appending(component: "Sources")
     else { fatalError("failed to infer the sources directory") }
 
-    terminal.write("\nWatching this directory for changes: ", inColor: .green, bold: false)
+    terminal.write("\nBuilding the project before spinning up a server...\n", inColor: .yellow)
+
+    let builderArguments = [swiftPath, "build", "--triple", "wasm32-unknown-wasi"]
+    var subscription: AnyCancellable?
+    try await { completion in
+      subscription = Builder(builderArguments, terminal).publisher
+        .sink(
+          receiveCompletion: { _ in completion(Result<(), Never>.success(())) },
+          receiveValue: { _ in }
+        )
+    }
+
+    guard fm.fileExists(atPath: mainWasmURL.path) else {
+      return terminal.write(
+        "Failed to build the main executable binary, fix the build errors and restart\n"
+      )
+    }
+
+    terminal.write("\nWatching this directory for changes: ", inColor: .green)
     terminal.logLookup("", sources)
     terminal.write("\n")
 
     try Server(
+      builderArguments: builderArguments,
       pathsToWatch: localFileSystem.traverseRecursively(sources),
-      mainWasmPath: mainWasmURL.path
+      mainWasmPath: mainWasmURL.path,
+      terminal
     ).run()
   }
 }
