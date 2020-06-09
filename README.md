@@ -22,9 +22,10 @@ It is currently work in progress, so watch the repository for imminent updates!
 - macOS 10.15 and Xcode 11.4 or later for macOS users.
 - [Swift 5.2 or later](https://swift.org/download/) for Linux users.
 
-On either platform you should install SwiftWasm via [`swiftenv`](https://github.com/kylef/swiftenv) as
-described in [the SwiftWasm Book](https://swiftwasm.github.io/swiftwasm-book/GettingStarted.html), in 
-addition to the Swift 5.2 toolchain mentioned above.
+On either platform you should install cross-compilation SwiftWasm toolchain via 
+[`swiftenv`](https://github.com/kylef/swiftenv) as described in [the SwiftWasm 
+Book](https://swiftwasm.github.io/swiftwasm-book/GettingStarted.html), in addition to the 
+host Swift 5.2 toolchain mentioned above.
 
 In the future, manual installation of SwiftWasm won't be required, please see issue 
 [#3](https://github.com/swiftwasm/carton/issues/3) for more details.
