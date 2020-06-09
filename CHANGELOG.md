@@ -1,3 +1,7 @@
+# 0.0.3 (9 June 2020)
+
+Fix expected polyfill hashes and a fatal error triggered when hashes didn't match.
+
 # 0.0.2 (9 June 2020)
 
 Fix watching and reloading, allow multiple WebSocket connections in the watcher code. The
