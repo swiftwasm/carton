@@ -40,7 +40,7 @@ struct Dev: ParsableCommand {
   mutating func run() throws {
     guard let terminal = TerminalController(stream: stdoutStream)
     else { fatalError("failed to create an instance of `TerminalController`") }
-    // try checkDevDependencies(on: localFileSystem, terminal)
+    try checkDevDependencies(on: localFileSystem, terminal)
 
     let fm = FileManager.default
 

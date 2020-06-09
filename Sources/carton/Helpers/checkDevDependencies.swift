@@ -26,7 +26,7 @@ private let archiveHash = ByteString([
 ])
 
 private let archiveURL = URL(
-  string: "https://github.com/swiftwasm/carton/releases/download/0.0.1/static.zip"
+  string: "https://github.com/swiftwasm/carton/releases/download/0.0.2/static.zip"
 )!
 
 private let verifyHash = Equality<ByteString, Foundation.URL> {
