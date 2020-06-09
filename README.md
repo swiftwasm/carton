@@ -22,6 +22,12 @@ It is currently work in progress, so watch the repository for imminent updates!
 - macOS 10.15 and Xcode 11.4 or later for macOS users.
 - [Swift 5.2 or later](https://swift.org/download/) for Linux users.
 
+On either platform you should install SwiftWasm via [`swiftenv`](https://github.com/kylef/swiftenv) as
+described in [the SwiftWasm Book](https://swiftwasm.github.io/swiftwasm-book/GettingStarted.html).
+
+In the future, manual installation of SwiftWasm won't be required, please see issue 
+[#3](https://github.com/swiftwasm/carton/issues/3) for more details.
+
 ## Installation
 
 On macOS `carton` can be installed with [Homebrew](https://brew.sh/). Make sure you have Homebrew
