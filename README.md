@@ -1,7 +1,8 @@
 # carton 📦
 
-`carton` is a watcher, bundler, and test runner for your SwiftWasm apps. The main goal of `carton`
-is to provide a smooth zero-config experience when developing for WebAssembly.
+## Watcher, bundler, and test runner for your [SwiftWasm](https://swiftwasm.org/) apps
+
+The main goal of `carton` is to provide a smooth zero-config experience when developing for WebAssembly.
 It is still in development, but it aims to support these features:
 
 - 🥚 Creating basic package boilerplate for apps built with SwiftWasm with `carton init`.
