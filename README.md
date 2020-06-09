@@ -17,6 +17,25 @@ The polyfill is distributed to you precompiled.
 
 It is currently work in progress, so watch the repository for imminent updates!
 
+## Requirements
+
+- macOS 10.15 and Xcode 11.4 for macOS users.
+- [Swift 5.2 or later](https://swift.org/download/) for Linux users.
+
+## Installation
+
+On macOS `carton` can be installed with [Homebrew](https://brew.sh/). Make sure you have Homebrew
+installed and then run:
+
+```sh
+brew tap swiftwasm/tap
+brew install carton
+```
+
+You'll have to build `carton` from sources on Linux. Clone the repository and run
+`swift build -c release`, the `carton` binary will be located in the `.build/release/carton`
+directory after that.
+
 ## Contributing
 
 ### Sponsorship
