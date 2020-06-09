@@ -12,15 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import TSCBasic
+import ArgumentParser
 
-extension TerminalController {
-  func logLookup<T: CustomStringConvertible>(_ description: String, _ target: T) {
-    write(description)
-    write("\(target)\n", inColor: .cyan, bold: true)
-  }
-
-  func preWatcherBuildNotice() {
-    write("\nBuilding the project before spinning up a server...\n", inColor: .yellow)
-  }
+struct Bundle: ParsableCommand {
+  static var configuration = CommandConfiguration(
+    abstract: "Produce a distribution bundle ready for deployment."
+  )
 }

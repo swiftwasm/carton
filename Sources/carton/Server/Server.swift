@@ -70,9 +70,7 @@ final class Server {
           .catch { _ in Empty().eraseToAnyPublisher() }
           .eraseToAnyPublisher()
       }
-      .sink(
-        receiveValue: { _ in }
-      )
+      .sink(receiveValue: { _ in })
       .store(in: &subscriptions)
   }
 

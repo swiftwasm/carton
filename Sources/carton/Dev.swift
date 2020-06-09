@@ -29,6 +29,14 @@ func processStringsOutput(_ arguments: [String]) throws -> [String] {
     .components(separatedBy: CharacterSet.newlines) ?? []
 }
 
+private let dependency = Dependency(
+  fileName: "dev.js",
+  sha256: ByteString([
+    0xAF, 0xFC, 0x8E, 0xDA, 0x95, 0x69, 0x5E, 0xB1, 0xF4, 0x5D, 0x3F, 0xAF, 0x44, 0xDF, 0x11, 0xB6,
+    0xC6, 0x11, 0xDA, 0x4B, 0x50, 0x3C, 0x31, 0x76, 0x0B, 0x55, 0x07, 0xB7, 0xA4, 0xB7, 0xC3, 0x0E,
+  ])
+)
+
 struct Dev: ParsableCommand {
   @Option(help: "Specify name of an executable target in development.")
   var target: String?
@@ -37,28 +45,12 @@ struct Dev: ParsableCommand {
     abstract: "Watch the current directory, host the app, rebuild on change."
   )
 
-  mutating func run() throws {
+  func run() throws {
     guard let terminal = TerminalController(stream: stdoutStream)
     else { fatalError("failed to create an instance of `TerminalController`") }
-    try checkDevDependencies(on: localFileSystem, terminal)
 
-    let fm = FileManager.default
-
-    terminal.write("Inferring basic settings...\n", inColor: .yellow)
-    let swiftPath: String
-    if
-      let data = fm.contents(atPath: ".swift-version"),
-      // get the first line of the file
-      let swiftVersion = String(data: data, encoding: .utf8)?.components(
-        separatedBy: CharacterSet.newlines
-      ).first {
-      swiftPath = fm.homeDirectoryForCurrentUser
-        .appending(".swiftenv", "versions", swiftVersion, "usr", "bin", "swift")
-        .path
-    } else {
-      swiftPath = "swift"
-    }
-    terminal.logLookup("- swift executable: ", swiftPath)
+    try dependency.check(on: localFileSystem, terminal)
+    let swiftPath = try localFileSystem.inferSwiftPath(terminal)
 
     let output = try processDataOutput([swiftPath, "package", "dump-package"])
     let package = try JSONDecoder().decode(Package.self, from: output)
@@ -86,29 +78,23 @@ struct Dev: ParsableCommand {
       swiftPath, "build", "--triple", "wasm32-unknown-wasi", "--show-bin-path",
     ]).first else { fatalError("failed to decode UTF8 output of the `swift build` invocation") }
 
-    let mainWasmURL = URL(fileURLWithPath: binPath).appendingPathComponent(candidateNames[0])
-    terminal.logLookup("- development binary to serve: ", mainWasmURL.path)
+    let mainWasmPath = AbsolutePath(binPath).appending(component: candidateNames[0])
+    terminal.logLookup("- development binary to serve: ", mainWasmPath.pathString)
 
-    guard let sources = localFileSystem.currentWorkingDirectory?.appending(component: "Sources")
-    else { fatalError("failed to infer the sources directory") }
-
-    terminal.write("\nBuilding the project before spinning up a server...\n", inColor: .yellow)
+    terminal.preWatcherBuildNotice()
 
     let builderArguments = [swiftPath, "build", "--triple", "wasm32-unknown-wasi"]
-    var subscription: AnyCancellable?
-    try await { completion in
-      subscription = Builder(builderArguments, terminal).publisher
-        .sink(
-          receiveCompletion: { _ in completion(Result<(), Never>.success(())) },
-          receiveValue: { _ in }
-        )
-    }
 
-    guard fm.fileExists(atPath: mainWasmURL.path) else {
+    try Builder(builderArguments, terminal).waitUntilFinished()
+
+    guard localFileSystem.exists(mainWasmPath) else {
       return terminal.write(
         "Failed to build the main executable binary, fix the build errors and restart\n"
       )
     }
+
+    guard let sources = localFileSystem.currentWorkingDirectory?.appending(component: "Sources")
+    else { fatalError("failed to infer the sources directory") }
 
     terminal.write("\nWatching this directory for changes: ", inColor: .green)
     terminal.logLookup("", sources)
@@ -117,7 +103,7 @@ struct Dev: ParsableCommand {
     try Server(
       builderArguments: builderArguments,
       pathsToWatch: localFileSystem.traverseRecursively(sources),
-      mainWasmPath: mainWasmURL.path,
+      mainWasmPath: mainWasmPath.pathString,
       terminal
     ).run()
   }

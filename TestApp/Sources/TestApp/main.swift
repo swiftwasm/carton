@@ -13,13 +13,14 @@
 // limitations under the License.
 
 import JavaScriptKit
+import TestLibrary
 
 let alert = JSObjectRef.global.alert.function!
 let document = JSObjectRef.global.document.object!
 
 let divElement = document.createElement!("div").object!
-divElement.innerText = "Hello, world"
+divElement.innerText = JSValue(stringLiteral: text)
 let body = document.body.object!
 _ = body.appendChild!(divElement)
 
-print("Hello, world!")
+print(text)

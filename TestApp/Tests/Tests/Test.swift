@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import ArgumentParser
+import TestLibrary
+import XCTest
 
-struct Dist: ParsableCommand {
-  static var configuration = CommandConfiguration(
-    abstract: "Produce a distribution bundle ready for deployment."
-  )
+final class Test: XCTestCase {
+  func testTrivial() {
+    XCTAssertEqual(text, "Hello, world!")
+  }
 }

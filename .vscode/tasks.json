@@ -4,9 +4,14 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "build and run",
+      "label": "build and run dev",
       "type": "shell",
       "command": "swift build && cd TestApp && ../.build/debug/carton dev --target TestApp"
+    },
+    {
+      "label": "build and run test",
+      "type": "shell",
+      "command": "swift build && cd TestApp && ../.build/debug/carton test"
     },
     {
       "type": "npm",

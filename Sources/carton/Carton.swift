@@ -17,7 +17,7 @@ import ArgumentParser
 struct Carton: ParsableCommand {
   static var configuration = CommandConfiguration(
     abstract: "📦 Watcher, bundler, and test runner for your SwiftWasm apps.",
-    subcommands: [Dev.self, Test.self, Dist.self],
+    subcommands: [Dev.self, Test.self, Bundle.self],
     defaultSubcommand: Dev.self
   )
 }

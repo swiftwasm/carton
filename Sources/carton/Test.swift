@@ -13,7 +13,19 @@
 // limitations under the License.
 
 import ArgumentParser
+import TSCBasic
+
+private let dependency = Dependency(
+  fileName: "test.js",
+  sha256: ByteString([])
+)
 
 struct Test: ParsableCommand {
   static var configuration = CommandConfiguration(abstract: "Run the tests in a WASI environment.")
+
+  func run() throws {
+    guard let terminal = TerminalController(stream: stdoutStream)
+    else { fatalError("failed to create an instance of `TerminalController`") }
+    try dependency.check(on: localFileSystem, terminal)
+  }
 }

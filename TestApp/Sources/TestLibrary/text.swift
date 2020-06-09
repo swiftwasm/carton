@@ -12,15 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import TSCBasic
-
-extension TerminalController {
-  func logLookup<T: CustomStringConvertible>(_ description: String, _ target: T) {
-    write(description)
-    write("\(target)\n", inColor: .cyan, bold: true)
-  }
-
-  func preWatcherBuildNotice() {
-    write("\nBuilding the project before spinning up a server...\n", inColor: .yellow)
-  }
-}
+public let text = "Hello, world"

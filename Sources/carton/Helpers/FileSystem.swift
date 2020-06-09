@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import Foundation
 import TSCBasic
 
 extension FileSystem {
@@ -29,5 +30,28 @@ extension FileSystem {
     }
 
     return result
+  }
+
+  func inferSwiftPath(_ terminal: TerminalController) throws -> String {
+    guard let cwd = localFileSystem.currentWorkingDirectory
+    else { fatalError("failed to infer the current working directory") }
+
+    terminal.write("Inferring basic settings...\n", inColor: .yellow)
+
+    let swiftPath: String
+    if
+      let versionString = try readFileContents(cwd.appending(component: ".swift-version"))
+      .validDescription,
+      // get the first line of the file
+      let swiftVersion = versionString.components(separatedBy: CharacterSet.newlines).first {
+      swiftPath = localFileSystem.homeDirectory
+        .appending(components: ".swiftenv", "versions", swiftVersion, "usr", "bin", "swift")
+        .pathString
+    } else {
+      swiftPath = "swift"
+    }
+    terminal.logLookup("- swift executable: ", swiftPath)
+
+    return swiftPath
   }
 }

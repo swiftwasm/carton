@@ -24,6 +24,8 @@ struct BuilderError: Error, CustomStringConvertible {
 final class Builder {
   let publisher: AnyPublisher<String, Error>
 
+  private var subscription: AnyCancellable?
+
   init(_ arguments: [String], _ terminal: TerminalController) {
     let subject = PassthroughSubject<String, Error>()
     publisher = subject
@@ -79,6 +81,16 @@ final class Builder {
         let errorDescription = String(data: Data(stderrBuffer), encoding: .utf8) ?? ""
         return subject.send(completion: .failure(BuilderError(description: errorDescription)))
       }
+    }
+  }
+
+  func waitUntilFinished() throws {
+    try await { completion in
+      subscription = publisher
+        .sink(
+          receiveCompletion: { _ in completion(Result<(), Never>.success(())) },
+          receiveValue: { _ in }
+        )
     }
   }
 }
