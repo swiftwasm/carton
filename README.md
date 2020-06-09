@@ -19,7 +19,7 @@ It is currently work in progress, so watch the repository for imminent updates!
 
 ## Requirements
 
-- macOS 10.15 and Xcode 11.4 for macOS users.
+- macOS 10.15 and Xcode 11.4 or later for macOS users.
 - [Swift 5.2 or later](https://swift.org/download/) for Linux users.
 
 ## Installation
