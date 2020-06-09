@@ -2,27 +2,25 @@ name: Build and test
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   macos_build:
-
     runs-on: macos-10.15
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Build
-      run: swift build
+      - uses: actions/checkout@v2
+      - name: Build
+        run: swift build
 
   linux_build:
-
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Test on Ubuntu with Swift 5.2
-      uses: Didstopia/SwiftAction@v1.0.2
-      with:
-        swift-action: build -Xswiftc -Xfrontend -Xswiftc -validate-tbd-against-ir=none
+      - uses: actions/checkout@v2
+      - name: Test on Ubuntu with Swift 5.2
+        uses: Didstopia/SwiftAction@v1.0.2
+        with:
+          swift-action: build -Xswiftc -Xfrontend -Xswiftc -validate-tbd-against-ir=none

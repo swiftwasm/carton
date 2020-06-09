@@ -6,17 +6,17 @@ name: Danger
 # events but only for the master branch
 on:
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   danger-lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Danger Swift
-      uses: maxdesiatov/danger-swift@swiftlint-docker
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Danger Swift
+        uses: maxdesiatov/danger-swift@swiftlint-docker
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
