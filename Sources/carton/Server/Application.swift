@@ -37,7 +37,6 @@ extension Application {
             <script type="text/javascript" src="dev.js"></script>
         </head>
         <body>
-            <h1>Hello!</h1>
         </body>
       </html>
       """#)
