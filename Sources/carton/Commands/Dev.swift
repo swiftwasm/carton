@@ -17,16 +17,11 @@ import Foundation
 import OpenCombine
 import TSCBasic
 
-func processDataOutput(_ arguments: [String]) throws -> Data {
+func processDataOutput(_ arguments: [String]) throws -> [UInt8] {
   let process = Process(arguments: arguments, startNewProcessGroup: false)
   try process.launch()
   let result = try process.waitUntilExit()
-  return try Data(result.output.get())
-}
-
-func processStringsOutput(_ arguments: [String]) throws -> [String] {
-  try String(data: processDataOutput(arguments), encoding: .utf8)?
-    .components(separatedBy: CharacterSet.newlines) ?? []
+  return try result.output.get()
 }
 
 private let dependency = Dependency(
@@ -51,10 +46,9 @@ struct Dev: ParsableCommand {
 
     try dependency.check(on: localFileSystem, terminal)
     let swiftPath = try localFileSystem.inferSwiftPath(terminal)
-
-    let output = try processDataOutput([swiftPath, "package", "dump-package"])
-    let package = try JSONDecoder().decode(Package.self, from: output)
-    var candidateNames = package.targets.filter { $0.type == .regular }.map(\.name)
+    var candidateNames = try Package(with: swiftPath).targets
+      .filter { $0.type == .regular }
+      .map(\.name)
 
     if let target = target {
       candidateNames = candidateNames.filter { $0 == target }
@@ -74,18 +68,15 @@ struct Dev: ParsableCommand {
     }
     terminal.logLookup("- development target: ", candidateNames[0])
 
-    guard let binPath = try processStringsOutput([
-      swiftPath, "build", "--triple", "wasm32-unknown-wasi", "--show-bin-path",
-    ]).first else { fatalError("failed to decode UTF8 output of the `swift build` invocation") }
-
-    let mainWasmPath = AbsolutePath(binPath).appending(component: candidateNames[0])
+    let binPath = try localFileSystem.inferBinPath(swiftPath: swiftPath)
+    let mainWasmPath = binPath.appending(component: candidateNames[0])
     terminal.logLookup("- development binary to serve: ", mainWasmPath.pathString)
 
     terminal.preWatcherBuildNotice()
 
     let builderArguments = [swiftPath, "build", "--triple", "wasm32-unknown-wasi"]
 
-    try Builder(builderArguments, terminal).waitUntilFinished()
+    try ProcessRunner(builderArguments, terminal).waitUntilFinished()
 
     guard localFileSystem.exists(mainWasmPath) else {
       return terminal.write(

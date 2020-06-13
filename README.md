@@ -22,12 +22,12 @@ It is currently work in progress, so watch the repository for imminent updates!
 - macOS 10.15 and Xcode 11.4 or later for macOS users.
 - [Swift 5.2 or later](https://swift.org/download/) for Linux users.
 
-On either platform you should install cross-compilation SwiftWasm toolchain via 
-[`swiftenv`](https://github.com/kylef/swiftenv) as described in [the SwiftWasm 
-Book](https://swiftwasm.github.io/swiftwasm-book/GettingStarted.html), in addition to the 
+On either platform you should install cross-compilation SwiftWasm toolchain via
+[`swiftenv`](https://github.com/kylef/swiftenv) as described in [the SwiftWasm
+Book](https://swiftwasm.github.io/swiftwasm-book/GettingStarted.html), in addition to the
 host Swift 5.2 toolchain mentioned above.
 
-In the future, manual installation of SwiftWasm won't be required, please see issue 
+In the future, manual installation of SwiftWasm won't be required, please see issue
 [#3](https://github.com/swiftwasm/carton/issues/3) for more details.
 
 ## Installation
@@ -83,6 +83,6 @@ PRs before merging.
 ### Code of Conduct
 
 This project adheres to the [Contributor Covenant Code of
-Conduct](https://github.com/swiftwasm/carton/blob/master/CODE_OF_CONDUCT.md).
+Conduct](https://github.com/swiftwasm/carton/blob/main/CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold this code. Please report
 unacceptable behavior to conduct@carton.dev.

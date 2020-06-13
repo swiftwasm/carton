@@ -15,6 +15,10 @@
 import Foundation
 import TSCBasic
 
+func processStringOutput(_ arguments: [String]) throws -> String? {
+  try ByteString(processDataOutput(arguments)).validDescription
+}
+
 extension FileSystem {
   func traverseRecursively(_ root: AbsolutePath) throws -> [AbsolutePath] {
     precondition(isDirectory(root))
@@ -53,5 +57,16 @@ extension FileSystem {
     terminal.logLookup("- swift executable: ", swiftPath)
 
     return swiftPath
+  }
+
+  func inferBinPath(swiftPath: String) throws -> AbsolutePath {
+    guard
+      let output = try processStringOutput([
+        swiftPath, "build", "--triple", "wasm32-unknown-wasi", "--show-bin-path",
+      ])?.components(separatedBy: CharacterSet.newlines),
+      let binPath = output.first
+    else { fatalError("failed to decode UTF8 output of the `swift build` invocation") }
+
+    return AbsolutePath(binPath)
   }
 }

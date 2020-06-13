@@ -12,6 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import Foundation
+
+/**
+ Simple Package structure from package dump
+ */
+struct Package: Codable {
+  let name: String
+  let products: [Product]
+  let targets: [Target]
+
+  init(with swiftPath: String) throws {
+    let output = try Data(processDataOutput([swiftPath, "package", "dump-package"]))
+
+    self = try JSONDecoder().decode(Package.self, from: output)
+  }
+}
+
 struct ProductType: Codable {
   let executable: String?
   let library: [String]
@@ -23,15 +40,6 @@ struct ProductType: Codable {
 struct Product: Codable {
   let name: String
   let type: ProductType
-}
-
-/**
- Simple Package structure from package dump
- */
-struct Package: Codable {
-  let name: String
-  let products: [Product]
-  let targets: [Target]
 }
 
 enum TargetType: String, Codable {

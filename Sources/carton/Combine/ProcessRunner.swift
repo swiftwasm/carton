@@ -17,11 +17,11 @@ import Foundation
 import OpenCombine
 import TSCBasic
 
-struct BuilderError: Error, CustomStringConvertible {
+struct ProcessRunnerError: Error, CustomStringConvertible {
   let description: String
 }
 
-final class Builder {
+final class ProcessRunner {
   let publisher: AnyPublisher<String, Error>
 
   private var subscription: AnyCancellable?
@@ -32,19 +32,6 @@ final class Builder {
       .handleEvents(receiveOutput: {
         terminal.clearLine()
         terminal.write(String($0.dropLast()))
-      }, receiveCompletion: {
-        switch $0 {
-        case .finished:
-          terminal.write("\nBuild completed successfully\n", inColor: .green, bold: false)
-        case let .failure(error):
-          let errorString = String(describing: error)
-          if errorString.isEmpty {
-            terminal.write("Build failed, check the build process output above.\n", inColor: .red)
-          } else {
-            terminal.write("Build failed and produced following output: \n", inColor: .red)
-            print(error)
-          }
-        }
       })
       .eraseToAnyPublisher()
 
@@ -79,7 +66,7 @@ final class Builder {
         subject.send(completion: .failure(error))
       default:
         let errorDescription = String(data: Data(stderrBuffer), encoding: .utf8) ?? ""
-        return subject.send(completion: .failure(BuilderError(description: errorDescription)))
+        return subject.send(completion: .failure(ProcessRunnerError(description: errorDescription)))
       }
     }
   }

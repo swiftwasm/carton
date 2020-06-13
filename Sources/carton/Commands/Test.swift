@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import ArgumentParser
+import OpenCombine
 import TSCBasic
 
 private let dependency = Dependency(
@@ -26,6 +27,16 @@ struct Test: ParsableCommand {
   func run() throws {
     guard let terminal = TerminalController(stream: stdoutStream)
     else { fatalError("failed to create an instance of `TerminalController`") }
-    try dependency.check(on: localFileSystem, terminal)
+
+    // try dependency.check(on: localFileSystem, terminal)
+    let swiftPath = try localFileSystem.inferSwiftPath(terminal)
+
+    let package = try Package(with: swiftPath)
+    let binPath = try localFileSystem.inferBinPath(swiftPath: swiftPath)
+    let testBundlePath = binPath.appending(component: "\(package.name)PackageTests.xctest")
+    terminal.logLookup("- test bundle: ", testBundlePath)
+
+    let output = try processStringOutput(["wasmer", testBundlePath.pathString])!
+    print("output is: \n\(output)")
   }
 }

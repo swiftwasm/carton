@@ -31,7 +31,7 @@ final class Server {
   private var connections = Set<WebSocket>()
   private var subscriptions = [AnyCancellable]()
   private let watcher: Watcher
-  private var builder: Builder?
+  private var builder: ProcessRunner?
   private let app: Application
 
   init(
@@ -61,11 +61,25 @@ final class Server {
         for change in changes.map(\.pathString) {
           terminal.write("- \(change)\n", inColor: .cyan)
         }
-        return Builder(builderArguments, terminal)
+        return ProcessRunner(builderArguments, terminal)
           .publisher
           .handleEvents(receiveCompletion: { [weak self] in
-            guard case .finished = $0 else { return }
-            self?.connections.forEach { $0.send("reload") }
+            switch $0 {
+            case .finished:
+              terminal.write("\nBuild completed successfully\n", inColor: .green, bold: false)
+              self?.connections.forEach { $0.send("reload") }
+            case let .failure(error):
+              let errorString = String(describing: error)
+              if errorString.isEmpty {
+                terminal.write(
+                  "Build failed, check the build process output above.\n",
+                  inColor: .red
+                )
+              } else {
+                terminal.write("Build failed and produced following output: \n", inColor: .red)
+                print(error)
+              }
+            }
           })
           .catch { _ in Empty().eraseToAnyPublisher() }
           .eraseToAnyPublisher()
