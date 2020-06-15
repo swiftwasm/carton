@@ -21,6 +21,11 @@ func processDataOutput(_ arguments: [String]) throws -> [UInt8] {
   let process = Process(arguments: arguments, startNewProcessGroup: false)
   try process.launch()
   let result = try process.waitUntilExit()
+
+  guard case .terminated(code: 0) = result.exitStatus else {
+    throw ProcessRunnerError(description: "Process failed with non-zero exit status")
+  }
+
   return try result.output.get()
 }
 
@@ -46,7 +51,7 @@ struct Dev: ParsableCommand {
 
     try dependency.check(on: localFileSystem, terminal)
     let swiftPath = try localFileSystem.inferSwiftPath(terminal)
-    var candidateNames = try Package(with: swiftPath).targets
+    var candidateNames = try Package(with: swiftPath, terminal).targets
       .filter { $0.type == .regular }
       .map(\.name)
 

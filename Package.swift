@@ -9,7 +9,7 @@ let package = Package(
   dependencies: [
     .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.1.0")),
     .package(url: "https://github.com/apple/swift-tools-support-core.git", .upToNextMinor(from: "0.1.3")),
-    .package(url: "https://github.com/broadwaylamb/OpenCombine.git", .upToNextMinor(from: "0.8.0")),
+    .package(url: "https://github.com/broadwaylamb/OpenCombine.git", .upToNextMinor(from: "0.9.0")),
     .package(url: "https://github.com/vapor/vapor.git", .upToNextMinor(from: "4.5.0")),
   ],
   targets: [

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import Foundation
+import TSCBasic
 
 /**
  Simple Package structure from package dump
@@ -22,7 +23,9 @@ struct Package: Codable {
   let products: [Product]
   let targets: [Target]
 
-  init(with swiftPath: String) throws {
+  init(with swiftPath: String, _ terminal: TerminalController) throws {
+    terminal.write("Parsing package manifest: ", inColor: .yellow)
+    terminal.write("\(swiftPath) package dump-package\n")
     let output = try Data(processDataOutput([swiftPath, "package", "dump-package"]))
 
     self = try JSONDecoder().decode(Package.self, from: output)

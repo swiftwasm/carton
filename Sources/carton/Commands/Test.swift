@@ -31,7 +31,7 @@ struct Test: ParsableCommand {
     // try dependency.check(on: localFileSystem, terminal)
     let swiftPath = try localFileSystem.inferSwiftPath(terminal)
 
-    let package = try Package(with: swiftPath)
+    let package = try Package(with: swiftPath, terminal)
     let binPath = try localFileSystem.inferBinPath(swiftPath: swiftPath)
     let testBundlePath = binPath.appending(component: "\(package.name)PackageTests.xctest")
     terminal.logLookup("- test bundle: ", testBundlePath)
