@@ -22,7 +22,7 @@ func processDataOutput(_ arguments: [String]) throws -> [UInt8] {
   try process.launch()
   let result = try process.waitUntilExit()
 
-  guard case .terminated(code: 0) = result.exitStatus else {
+  guard case .terminated(code: EXIT_SUCCESS) = result.exitStatus else {
     throw ProcessRunnerError(description: "Process failed with non-zero exit status")
   }
 

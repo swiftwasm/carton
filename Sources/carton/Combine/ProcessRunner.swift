@@ -60,7 +60,7 @@ final class ProcessRunner {
       }
 
       switch result.map(\.exitStatus) {
-      case .success(.terminated(code: 0)):
+      case .success(.terminated(code: EXIT_SUCCESS)):
         subject.send(completion: .finished)
       case let .failure(error):
         subject.send(completion: .failure(error))
