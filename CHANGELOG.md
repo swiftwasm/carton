@@ -1,3 +1,10 @@
+# 0.1.0 (16 June 2020)
+
+Since SwiftPM doesn't always build an executable target even if one is present without
+an explicit `--product` flag, the `dev` command now requires the presence of an executable
+target in your `Package.swift`. Use the new `--product` flag instead of `--target` to
+disambiguate between multiple executable targets.
+
 # 0.0.5 (16 June 2020)
 
 Pass `--target` flag to `swift build` when running the `dev` command.
