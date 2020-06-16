@@ -29,10 +29,28 @@ final class ProcessRunner {
   init(_ arguments: [String], _ terminal: TerminalController) {
     let subject = PassthroughSubject<String, Error>()
     publisher = subject
-      .handleEvents(receiveOutput: {
-        terminal.clearLine()
-        terminal.write(String($0.dropLast()))
-      })
+      .handleEvents(
+        receiveOutput: {
+          terminal.clearLine()
+          terminal.write(String($0.dropLast()))
+        }, receiveCompletion: {
+          switch $0 {
+          case .finished:
+            terminal.write("\nBuild completed successfully\n", inColor: .green, bold: false)
+          case let .failure(error):
+            let errorString = String(describing: error)
+            if errorString.isEmpty {
+              terminal.write(
+                "Build failed, check the build process output above.\n",
+                inColor: .red
+              )
+            } else {
+              terminal.write("Build failed and produced following output: \n", inColor: .red)
+              print(error)
+            }
+          }
+        }
+      )
       .eraseToAnyPublisher()
 
     DispatchQueue.global().async {

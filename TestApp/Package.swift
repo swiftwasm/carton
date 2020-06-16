@@ -5,8 +5,11 @@ import PackageDescription
 
 let package = Package(
   name: "CartonTestApp",
+  products: [
+    .executable(name: "TestApp", targets: ["TestApp"]),
+  ],
   dependencies: [
-    .package(url: "https://github.com/kateinoigakukun/JavaScriptKit", .revision("b245ad5")),
+    .package(url: "https://github.com/kateinoigakukun/JavaScriptKit", .revision("85b8617")),
   ],
   targets: [
     // Targets are the basic building blocks of a package. A target can define a module or a test suite.

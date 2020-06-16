@@ -30,11 +30,51 @@ struct Package: Codable {
 
     self = try JSONDecoder().decode(Package.self, from: output)
   }
+
+  func inferDevProduct(
+    with swiftPath: String,
+    flag: String?,
+    _ terminal: TerminalController
+  ) -> String? {
+    var candidateProducts = products
+      .filter { $0.type.library == nil }
+      .map(\.name)
+
+    if let product = flag {
+      candidateProducts = candidateProducts.filter { $0 == product }
+
+      guard candidateProducts.count == 1 else {
+        terminal.write("""
+        Failed to disambiguate the executable product, \
+        make sure `\(product)` product is present in Package.swift
+        """, inColor: .red)
+        return nil
+      }
+
+      terminal.logLookup("- development product: ", product)
+      return product
+    } else if candidateProducts.count == 1 {
+      return candidateProducts[0]
+    } else {
+      terminal.write("Failed to disambiguate the development product\n", inColor: .red)
+
+      if candidateProducts.count > 1 {
+        terminal.write("Pass one of \(candidateProducts) to the --product flag\n", inColor: .red)
+      } else {
+        terminal.write(
+          "Make sure there's at least one executable product in your Package.swift\n",
+          inColor: .red
+        )
+      }
+
+      return nil
+    }
+  }
 }
 
 struct ProductType: Codable {
   let executable: String?
-  let library: [String]
+  let library: [String]?
 }
 
 /**

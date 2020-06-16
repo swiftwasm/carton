@@ -23,7 +23,16 @@ func processDataOutput(_ arguments: [String]) throws -> [UInt8] {
   let result = try process.waitUntilExit()
 
   guard case .terminated(code: EXIT_SUCCESS) = result.exitStatus else {
-    throw ProcessRunnerError(description: "Process failed with non-zero exit status")
+    var description = "Process failed with non-zero exit status"
+    if let output = try ByteString(result.output.get()).validDescription, !output.isEmpty {
+      description += " and following output:\n\(output)"
+    }
+
+    if let output = try ByteString(result.stderrOutput.get()).validDescription {
+      description += " and following error output:\n\(output)"
+    }
+
+    throw ProcessRunnerError(description: description)
   }
 
   return try result.output.get()
@@ -38,8 +47,8 @@ private let dependency = Dependency(
 )
 
 struct Dev: ParsableCommand {
-  @Option(help: "Specify name of an executable target in development.")
-  var target: String?
+  @Option(help: "Specify name of an executable product in development.")
+  var product: String?
 
   static var configuration = CommandConfiguration(
     abstract: "Watch the current directory, host the app, rebuild on change."
@@ -51,43 +60,24 @@ struct Dev: ParsableCommand {
 
     try dependency.check(on: localFileSystem, terminal)
     let swiftPath = try localFileSystem.inferSwiftPath(terminal)
-    var candidateNames = try Package(with: swiftPath, terminal).targets
-      .filter { $0.type == .regular }
-      .map(\.name)
-
-    if let target = target {
-      candidateNames = candidateNames.filter { $0 == target }
-
-      guard candidateNames.count == 1 else {
-        fatalError("""
-        failed to disambiguate the development target,
-        make sure `\(target)` is present in Package.swift
-        """)
-      }
-    }
-    guard candidateNames.count == 1 else {
-      fatalError("""
-      failed to disambiguate the development target,
-      pass one of \(candidateNames) to the --target flag
-      """)
-    }
-    let target = candidateNames[0]
-    terminal.logLookup("- development target: ", target)
+    guard let product = try Package(with: swiftPath, terminal)
+      .inferDevProduct(with: swiftPath, flag: product, terminal)
+    else { return }
 
     let binPath = try localFileSystem.inferBinPath(swiftPath: swiftPath)
-    let mainWasmPath = binPath.appending(component: target)
+    let mainWasmPath = binPath.appending(component: product)
     terminal.logLookup("- development binary to serve: ", mainWasmPath.pathString)
 
     terminal.preWatcherBuildNotice()
 
     let builderArguments =
-      [swiftPath, "build", "--triple", "wasm32-unknown-wasi", "--target", target]
+      [swiftPath, "build", "--triple", "wasm32-unknown-wasi", "--product", product]
 
     try ProcessRunner(builderArguments, terminal).waitUntilFinished()
 
     guard localFileSystem.exists(mainWasmPath) else {
       return terminal.write(
-        "\nFailed to build the main executable binary, fix the build errors and restart\n",
+        "Failed to build the main executable binary, fix the build errors and restart\n",
         inColor: .red
       )
     }
