@@ -71,21 +71,24 @@ struct Dev: ParsableCommand {
       pass one of \(candidateNames) to the --target flag
       """)
     }
-    terminal.logLookup("- development target: ", candidateNames[0])
+    let target = candidateNames[0]
+    terminal.logLookup("- development target: ", target)
 
     let binPath = try localFileSystem.inferBinPath(swiftPath: swiftPath)
-    let mainWasmPath = binPath.appending(component: candidateNames[0])
+    let mainWasmPath = binPath.appending(component: target)
     terminal.logLookup("- development binary to serve: ", mainWasmPath.pathString)
 
     terminal.preWatcherBuildNotice()
 
-    let builderArguments = [swiftPath, "build", "--triple", "wasm32-unknown-wasi"]
+    let builderArguments =
+      [swiftPath, "build", "--triple", "wasm32-unknown-wasi", "--target", target]
 
     try ProcessRunner(builderArguments, terminal).waitUntilFinished()
 
     guard localFileSystem.exists(mainWasmPath) else {
       return terminal.write(
-        "Failed to build the main executable binary, fix the build errors and restart\n"
+        "\nFailed to build the main executable binary, fix the build errors and restart\n",
+        inColor: .red
       )
     }
 
