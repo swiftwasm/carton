@@ -1,3 +1,7 @@
+# 0.0.4 (16 June 2020)
+
+Fix index page body served by HTTP when running the `dev` command.
+
 # 0.0.3 (9 June 2020)
 
 Fix expected polyfill hashes and a fatal error triggered when hashes didn't match.
