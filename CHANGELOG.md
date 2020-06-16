@@ -1,3 +1,7 @@
+# 0.0.5 (16 June 2020)
+
+Pass `--target` flag to `swift build` when running the `dev` command.
+
 # 0.0.4 (16 June 2020)
 
 Fix index page body served by HTTP when running the `dev` command.
