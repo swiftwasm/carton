@@ -6,7 +6,7 @@ jobs:
   nightly-distribution:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - run: swift package update
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v2
