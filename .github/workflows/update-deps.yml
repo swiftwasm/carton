@@ -1,4 +1,4 @@
-name: Nightly distribution
+name: Update dependencies
 on:
   schedule:
     - cron: "0 * * * *"
