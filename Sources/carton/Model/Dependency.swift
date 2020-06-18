@@ -27,7 +27,7 @@ private let archiveURL = URL(
 
 private let verifyHash = Equality<ByteString, Foundation.URL> {
   """
-  Expected SHA512 of \($2), which is
+  Expected SHA256 of \($2), which is
   \($0.hexadecimalRepresentation)
   to equal
   \($1.hexadecimalRepresentation)
@@ -49,14 +49,21 @@ struct Dependency {
     ) != sha256 {
       terminal.logLookup("Directory doesn't exist or contains outdated polyfills: ", staticDir)
       try fileSystem.removeFileTree(cartonDir)
-
-      let downloadedArchive = try ByteString(Data(contentsOf: archiveURL))
-      let downloadedHash = SHA256().hash(downloadedArchive)
-      try verifyHash(downloadedHash, archiveHash, context: archiveURL)
+      try fileSystem.createDirectory(cartonDir, recursive: true)
 
       let archiveFile = cartonDir.appending(component: "static.zip")
-      try fileSystem.createDirectory(cartonDir, recursive: true)
-      try fileSystem.writeFileContents(archiveFile, bytes: downloadedArchive)
+
+      let downloader = FoundationDownloader(fileSystem: fileSystem)
+      try await {
+        downloader.downloadFile(
+          at: archiveURL,
+          to: archiveFile,
+          progress: { _, _ in }, completion: $0
+        )
+      }
+      let downloadedArchive = try fileSystem.readFileContents(archiveFile)
+      let downloadedHash = SHA256().hash(downloadedArchive)
+      try verifyHash(downloadedHash, archiveHash, context: archiveURL)
 
       terminal.logLookup("Unpacking the archive: ", archiveFile)
       try await {
