@@ -1,3 +1,11 @@
+# 0.1.1 (19 June 2020)
+
+This is a bugfix release that fixes dependency downloads on Linux. The issue was
+caused by [Foundation not supporting HTTP
+redirects](https://github.com/apple/swift-corelibs-foundation/pull/2744), and is now
+resolved by using [AsyncHTTPClient](https://github.com/swift-server/async-http-client)
+instead of Foundation's `URLSession` for dependency downloads.
+
 # 0.1.0 (16 June 2020)
 
 Since SwiftPM doesn't always build an executable target even if one is present without
