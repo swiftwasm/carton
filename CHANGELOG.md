@@ -1,8 +1,17 @@
+# 0.1.2 (19 June 2020)
+
+This is a bugfix release that fixes stdout and stderr WASI output in async handlers.
+Previously stdout output was redirected with `console.log` only on the first pass
+of execution of top-level code, while none of the output from async handlers (such
+as DOM listeners) was redirected. Now in this release, stdout and stderr output
+is consistently redirected with `console.log` and `console.error` respectively,
+in all cases.
+
 # 0.1.1 (19 June 2020)
 
 This is a bugfix release that fixes dependency downloads on Linux. The issue was
 caused by [Foundation not supporting HTTP
-redirects](https://github.com/apple/swift-corelibs-foundation/pull/2744) in Swift 5.2 on Linux, 
+redirects](https://github.com/apple/swift-corelibs-foundation/pull/2744) in Swift 5.2 on Linux,
 and is now resolved by using [AsyncHTTPClient](https://github.com/swift-server/async-http-client)
 instead of Foundation's `URLSession` for dependency downloads.
 
