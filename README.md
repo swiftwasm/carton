@@ -10,12 +10,14 @@ It is still in development, but it aims to support these features (🐥 means "r
 - 🐣 Running your XCTest suite in the full JavaScript/DOM environment with `carton test`.
 - 🥚 Optimizing and packaging the app for distribution with `carton bundle`.
 
-When using `carton` you don't have to install Node.js or write your own webpack configs. `carton`
-itself uses webpack as a dev dependency to precompile and minify the required [WASI](https://wasi.dev/) 
-polyfill and the reload-on-rebuild code, but you won't need webpack or Node.js when using carton as 
-an end user. The polyfill is distributed to you precompiled.
-
 It is currently work in progress, so watch the repository for imminent updates!
+
+## Motivation
+
+The main motivation for `carton` came after I had enough struggles with [webpack.js](https://webpack.js.org),
+trying to make its config file work, looking for appropriate plugins. I'm convinced that the required use of
+`webpack` in SwiftWasm projects could limit the wider adoption of SwiftWasm itself. Hopefully, with `carton`
+you can avoid using `webpack` altogether.
 
 ## Requirements
 
@@ -43,6 +45,47 @@ brew install carton
 You'll have to build `carton` from sources on Linux. Clone the repository and run
 `swift build -c release`, the `carton` binary will be located in the `.build/release/carton`
 directory after that.
+
+## How does it work?
+
+`carton` bundles a [WASI](wasi.dev) polyfill, which is currently required to run any SwiftWasm code. 
+The development version of the polyfill also establishes a helper WebSocket connection to the server, 
+so that it can reload development browser tabs when rebuilt binary is available. This brings the 
+development experience closer to Xcode live previews, which you may have previously used when developing 
+SwiftUI apps.
+
+`carton` does not require any config files for these basic development scenarios, while some configuration
+may be supported in the future, for example for complex asset pipelines if needed. The only requirement
+is that your `Package.swift` contains at least a single executable product, which then will be compiled
+for WebAssembly and served when you start `carton dev` in the directory where `Package.swift` is located.
+
+`carton` is built with [Vapor](https://vapor.codes/), [SwiftNIO](https://github.com/apple/swift-nio),
+[swift-tools-support-core](https://github.com/apple/swift-tools-support-core), and
+[OpenCombine](https://github.com/broadwaylamb/OpenCombine), and supports both macOS and Linux. (Many
+thanks to everyone supporting and maintaining those projects!)
+
+## Roadmap
+
+Since a subset of Foundation and XCTest already work and are supplied in the latest snapshots of
+SwiftWasm SDK, the next top priority for `carton` is to allow running your XCTest suites directly in
+browsers and receiving test results back to the HTTP server, so that test results can be reported in CLI.
+This was blocked by [`XCTest` not allowing customized test report formats](https://bugs.swift.org/browse/SR-8436),
+which is now partially resolved with [a new argument available on 
+`XCTMain`](https://github.com/apple/swift-corelibs-xctest/pull/306) and a custom [JSON test 
+reporter](https://github.com/MaxDesiatov/XCTestJSONObserver/). After [a few other 
+issues](https://github.com/swiftwasm/swift/pull/1233) are resolved with the SwiftWasm toolchain, I'll get
+`carton test` fully working with XCTest.
+
+There are a few more commands on the roadmap to be implemented, such as `carton init` for initializing
+basic SwiftWasm projects (potentially with configurable templates), `carton bundle` to produce an
+optimized production deployment bundle, SwiftPM resources support for bundled assets, `carton sdk`
+command for SDK installation and management and much more. 
+
+As cross-compiling to WebAssembly and running apps and tests remotely is not too dissimilar to Android
+development, or even development on macOS for Linux through Docker, `carton` could potentially become
+a generic tool for cross-platform Swift developers. I'm not developing any Android apps currently, but
+if there are interested Swift for Android developers, I'd be very happy to review and merge their
+contributions enabling that.
 
 ## Contributing
 
