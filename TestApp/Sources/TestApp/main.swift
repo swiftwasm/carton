@@ -15,12 +15,17 @@
 import JavaScriptKit
 import TestLibrary
 
-let alert = JSObjectRef.global.alert.function!
 let document = JSObjectRef.global.document.object!
 
-let divElement = document.createElement!("div").object!
-divElement.innerText = JSValue(stringLiteral: text)
+let button = document.createElement!("button").object!
+button.innerText = JSValue(stringLiteral: text)
 let body = document.body.object!
-_ = body.appendChild!(divElement)
+_ = body.appendChild!(button)
 
 print(text)
+
+let buttonNode = document.getElementsByTagName!("button").object![0].object!
+buttonNode.onclick = .function { _ in
+  print(text)
+  return .undefined
+}

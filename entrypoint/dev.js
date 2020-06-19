@@ -6,6 +6,24 @@ import ReconnectingWebSocket from "reconnecting-websocket";
 const swift = new SwiftRuntime();
 // Instantiate a new WASI Instance
 const wasmFs = new WasmFs();
+
+// Output stdout and stderr to console
+const originalWriteSync = wasmFs.fs.writeSync;
+wasmFs.fs.writeSync = (fd, buffer, offset, length, position) => {
+  const text = new TextDecoder("utf-8").decode(buffer);
+  if (text !== "\n") {
+    switch (fd) {
+      case 1:
+        console.log(text);
+        break;
+      case 2:
+        console.error(text);
+        break;
+    }
+  }
+  return originalWriteSync(fd, buffer, offset, length, position);
+};
+
 const wasi = new WASI({
   args: [],
   env: {},
@@ -38,9 +56,5 @@ const startWasiTask = async () => {
   swift.setInsance(instance);
   // Start the WebAssembly WASI instance
   wasi.start(instance);
-
-  // Output what's inside of /dev/stdout
-  const stdout = await wasmFs.getStdOut();
-  console.log(stdout);
 };
 startWasiTask();
