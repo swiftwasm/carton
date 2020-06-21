@@ -1,3 +1,7 @@
+# 0.1.4 (21 June 2020)
+
+This is a bugfix release that fixes the `dev.js` bundle broken in 0.1.3.
+
 # 0.1.3 (21 June 2020)
 
 This is a bugfix release that includes the latest version of
