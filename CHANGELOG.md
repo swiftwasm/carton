@@ -1,3 +1,10 @@
+# 0.1.3 (21 June 2020)
+
+This is a bugfix release that includes the latest version of
+[JavaScriptKit](https://github.com/kateinoigakukun/JavaScriptKit/) runtime
+in the `dev.js` bundle. It fixes a bug with reference counting of `JSObjectRef`
+instances, which could lead to crashes.
+
 # 0.1.2 (19 June 2020)
 
 This is a bugfix release that fixes stdout and stderr WASI output in async handlers.
