@@ -48,7 +48,7 @@ directory after that.
 
 ## How does it work?
 
-`carton` bundles a [WASI](wasi.dev) polyfill, which is currently required to run any SwiftWasm code,
+`carton` bundles a [WASI](https://wasi.dev) polyfill, which is currently required to run any SwiftWasm code,
 and the [JavaScriptKit](https://github.com/kateinoigakukun/JavaScriptKit/) runtime for convenience. 
 `carton` also embeds an HTTP server for previewing your SwiftWasm app directly in a browser. 
 The development version of the polyfill establishes a helper WebSocket connection to the server, so that 
