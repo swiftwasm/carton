@@ -48,12 +48,12 @@ directory after that.
 
 ## How does it work?
 
-`carton` bundles a [WASI](wasi.dev) polyfill, which is currently required to run any SwiftWasm code.
-It also embeds an HTTP server which serves your SwiftWasm app for previewing directly in a browser.
-The development version of the polyfill also establishes a helper WebSocket connection to the server, 
-so that it can reload development browser tabs when rebuilt binary is available. This brings the 
-development experience closer to Xcode live previews, which you may have previously used when developing 
-SwiftUI apps.
+`carton` bundles a [WASI](wasi.dev) polyfill, which is currently required to run any SwiftWasm code,
+and the [JavaScriptKit](https://github.com/kateinoigakukun/JavaScriptKit/) runtime for convenience. 
+`carton` also embeds an HTTP server for previewing your SwiftWasm app directly in a browser. 
+The development version of the polyfill establishes a helper WebSocket connection to the server, so that 
+it can reload development browser tabs when rebuilt binary is available. This brings the development 
+experience closer to Xcode live previews, which you may have previously used when developing SwiftUI apps.
 
 `carton` does not require any config files for these basic development scenarios, while some configuration
 may be supported in the future, for example for complex asset pipelines if needed. The only requirement
