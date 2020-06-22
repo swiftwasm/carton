@@ -61,7 +61,7 @@ struct Dev: ParsableCommand {
     try dependency.check(on: localFileSystem, terminal)
     let swiftPath = try localFileSystem.inferSwiftPath(terminal)
     guard let product = try Package(with: swiftPath, terminal)
-      .inferDevProduct(with: swiftPath, flag: product, terminal)
+      .inferDevProduct(with: swiftPath, option: product, terminal)
     else { return }
 
     let binPath = try localFileSystem.inferBinPath(swiftPath: swiftPath)

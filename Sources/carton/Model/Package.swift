@@ -33,14 +33,14 @@ struct Package: Codable {
 
   func inferDevProduct(
     with swiftPath: String,
-    flag: String?,
+    option: String?,
     _ terminal: TerminalController
   ) -> String? {
     var candidateProducts = products
       .filter { $0.type.library == nil }
       .map(\.name)
 
-    if let product = flag {
+    if let product = option {
       candidateProducts = candidateProducts.filter { $0 == product }
 
       guard candidateProducts.count == 1 else {
@@ -59,7 +59,7 @@ struct Package: Codable {
       terminal.write("Failed to disambiguate the development product\n", inColor: .red)
 
       if candidateProducts.count > 1 {
-        terminal.write("Pass one of \(candidateProducts) to the --product flag\n", inColor: .red)
+        terminal.write("Pass one of \(candidateProducts) to the --product option\n", inColor: .red)
       } else {
         terminal.write(
           "Make sure there's at least one executable product in your Package.swift\n",
