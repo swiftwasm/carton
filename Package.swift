@@ -20,10 +20,20 @@ let package = Package(
       name: "carton",
       dependencies: [
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
+        .product(name: "AsyncHTTPClient", package: "async-http-client"),
         .product(name: "Vapor", package: "vapor"),
         .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
-        .product(name: "AsyncHTTPClient", package: "async-http-client"),
         "OpenCombine",
+      ]
+    ),
+    // This target is used only for release automation tasks and
+    // should not be installed by `carton` users.
+    .target(
+      name: "carton-release",
+      dependencies: [
+        .product(name: "ArgumentParser", package: "swift-argument-parser"),
+        .product(name: "AsyncHTTPClient", package: "async-http-client"),
+        .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
       ]
     ),
     .testTarget(
