@@ -1,8 +1,8 @@
 # 0.1.5 (22 June 2020)
 
 This is a refinement release that adds a `--version` flag. Additionally, the
-`dev` command is no longer the default, now a simple `carton` invocation prints
-a help message describing available commands.
+`dev` command is no longer the default, now a simple `carton` invocation without
+any arguments prints a help message describing available commands.
 
 # 0.1.4 (21 June 2020)
 
