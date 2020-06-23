@@ -12,10 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import ArgumentParser
-
-struct Bundle: ParsableCommand {
-  static var configuration = CommandConfiguration(
-    abstract: "Produce a distribution bundle ready for deployment."
-  )
-}
+let defaultToolchainVersion = "wasm-DEVELOPMENT-SNAPSHOT-2020-06-12-a"

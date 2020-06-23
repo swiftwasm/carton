@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import AsyncHTTPClient
 import Foundation
 import TSCBasic
 
@@ -26,7 +27,7 @@ extension FileSystem {
 
     var pathsToTraverse = [root]
     while let currentDirectory = pathsToTraverse.popLast() {
-      let directoryContents = try localFileSystem.getDirectoryContents(currentDirectory)
+      let directoryContents = try getDirectoryContents(currentDirectory)
         .map(currentDirectory.appending)
 
       result.append(contentsOf: directoryContents)
@@ -36,27 +37,47 @@ extension FileSystem {
     return result
   }
 
-  func inferSwiftPath(_ terminal: TerminalController) throws -> String {
-    guard let cwd = localFileSystem.currentWorkingDirectory
-    else { fatalError("failed to infer the current working directory") }
+  func inferSwiftVersion() throws -> String {
+    guard let cwd = currentWorkingDirectory else { return defaultToolchainVersion }
 
-    terminal.write("Inferring basic settings...\n", inColor: .yellow)
+    let versionFile = cwd.appending(component: ".swift-version")
 
-    let swiftPath: String
-    if
-      let versionString = try readFileContents(cwd.appending(component: ".swift-version"))
-      .validDescription,
+    guard isFile(versionFile), let version = try readFileContents(versionFile)
+      .validDescription?
       // get the first line of the file
-      let swiftVersion = versionString.components(separatedBy: CharacterSet.newlines).first {
-      swiftPath = localFileSystem.homeDirectory
-        .appending(components: ".swiftenv", "versions", swiftVersion, "usr", "bin", "swift")
-        .pathString
-    } else {
-      swiftPath = "swift"
-    }
-    terminal.logLookup("- swift executable: ", swiftPath)
+      .components(separatedBy: CharacterSet.newlines).first,
+      version.contains("wasm")
+    else { return defaultToolchainVersion }
 
-    return swiftPath
+    return version
+  }
+
+  /** Infer `swift` binary path matching a given version if any is present, or infer the
+   version from the `.swift-version` file. If neither version is installed, download it.
+   */
+  func inferSwiftPath(version: String? = nil, _ terminal: TerminalController) throws -> String {
+    let swiftVersion = try version ?? inferSwiftVersion()
+
+    func checkAndLog(_ prefix: AbsolutePath) -> String? {
+      let swiftPath = prefix.appending(components: swiftVersion, "usr", "bin", "swift")
+
+      guard isFile(swiftPath) else { return nil }
+
+      terminal.write("Inferring basic settings...\n", inColor: .yellow)
+      terminal.logLookup("- swift executable: ", swiftPath)
+
+      return swiftPath.pathString
+    }
+
+    if let path = checkAndLog(homeDirectory.appending(components: ".swiftenv", "versions")) {
+      return path
+    }
+
+    if let path = checkAndLog(homeDirectory.appending(components: ".carton", "sdk")) {
+      return path
+    }
+
+    return swiftVersion
   }
 
   func inferBinPath(swiftPath: String) throws -> AbsolutePath {

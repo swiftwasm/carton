@@ -6,12 +6,22 @@
     {
       "label": "build and run",
       "type": "shell",
-      "command": "swift build && cd TestApp && ../.build/debug/carton"
+      "command": "swift run carton"
+    },
+    {
+      "label": "build and run sdk",
+      "type": "shell",
+      "command": "swift run carton sdk"
+    },
+    {
+      "label": "build and run sdk install",
+      "type": "shell",
+      "command": "swift run carton sdk install"
     },
     {
       "label": "build and version",
       "type": "shell",
-      "command": "swift build && cd TestApp && ../.build/debug/carton --version"
+      "command": "swift run carton --version"
     },
     {
       "label": "build and run dev",
