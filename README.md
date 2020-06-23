@@ -26,7 +26,7 @@ you can avoid using `webpack` altogether.
 
 On either platform you should install cross-compilation SwiftWasm toolchain via
 [`swiftenv`](https://github.com/kylef/swiftenv) as described in [the SwiftWasm
-Book](https://swiftwasm.github.io/swiftwasm-book/GettingStarted.html), in addition to the
+Book](https://swiftwasm.github.io/swiftwasm-book/index.html), in addition to the
 host Swift 5.2 toolchain mentioned above.
 
 In the future, manual installation of SwiftWasm won't be required, please see issue
