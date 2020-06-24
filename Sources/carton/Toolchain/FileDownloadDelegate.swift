@@ -65,8 +65,9 @@ final class FileDownloadDelegate: HTTPClientResponseDelegate {
   }
 
   func didFinishRequest(task: HTTPClient.Task<Response>) throws -> Response {
-    writeFuture?.whenComplete { _ in
-      try? self.handle.close()
+    writeFuture?.whenComplete { [weak self] _ in
+      try? self?.handle.close()
+      self?.writeFuture = nil
     }
     return (totalBytes, receivedBytes)
   }
