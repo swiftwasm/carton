@@ -26,6 +26,8 @@ final class FileDownloadDelegate: HTTPClientResponseDelegate {
   private let io: NonBlockingFileIO
   private let reportProgress: (_ totalBytes: Int?, _ receivedBytes: Int) -> ()
 
+  private var writeFuture: EventLoopFuture<()>?
+
   init(
     path: String,
     reportProgress: @escaping (_ totalBytes: Int?, _ receivedBytes: Int) -> ()
@@ -56,12 +58,16 @@ final class FileDownloadDelegate: HTTPClientResponseDelegate {
   ) -> EventLoopFuture<()> {
     receivedBytes += buffer.readableBytes
     reportProgress(totalBytes, receivedBytes)
-    return io.write(fileHandle: handle, buffer: buffer, eventLoop: task.eventLoop)
+
+    let writeFuture = io.write(fileHandle: handle, buffer: buffer, eventLoop: task.eventLoop)
+    self.writeFuture = writeFuture
+    return writeFuture
   }
 
   func didFinishRequest(task: HTTPClient.Task<Response>) throws -> Response {
-    // FIXME: should only close after all writes have completed
-    try handle.close()
+    writeFuture?.whenComplete { _ in
+      try? self.handle.close()
+    }
     return (totalBytes, receivedBytes)
   }
 }

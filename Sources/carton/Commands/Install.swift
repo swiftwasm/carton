@@ -54,7 +54,7 @@ struct Install: ParsableCommand {
       client.execute(request: request, delegate: delegate).futureResult.whenComplete($0)
     }
 
-    print("response is \(response)")
+    print("\nresponse is \(response)")
     try client.syncShutdown()
   }
 }
