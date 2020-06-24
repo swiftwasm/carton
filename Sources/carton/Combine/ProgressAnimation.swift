@@ -22,7 +22,7 @@ struct Progress {
   let text: String
 }
 
-extension Publisher where Output == Progress, Failure: CustomStringConvertible {
+extension Publisher where Output == Progress {
   func sink(
     to progressAnimation: ProgressAnimationProtocol,
     _ terminal: TerminalController
@@ -34,7 +34,7 @@ extension Publisher where Output == Progress, Failure: CustomStringConvertible {
         terminal.write("Build finished succesfully\n", inColor: .green)
       case let .failure(error):
         progressAnimation.complete(success: false)
-        terminal.write(error.description, inColor: .red, bold: false)
+        terminal.write("\(error)", inColor: .red, bold: false)
       }
     }, receiveValue: {
       progressAnimation.update(step: $0.step, total: $0.total, text: $0.text)

@@ -16,14 +16,26 @@ import AsyncHTTPClient
 import NIO
 import NIOHTTP1
 
-final class ResponseDelegate: HTTPClientResponseDelegate {
-  typealias Response = (totalBytes: Int, receivedBytes: Int)
+final class FileDownloadDelegate: HTTPClientResponseDelegate {
+  typealias Response = (totalBytes: Int?, receivedBytes: Int)
 
-  private var totalBytes: Int
+  private var totalBytes: Int?
   private var receivedBytes = 0
 
-  init(expectedBytes: Int) {
-    totalBytes = expectedBytes
+  private let handle: NIOFileHandle
+  private let io: NonBlockingFileIO
+  private let reportProgress: (_ totalBytes: Int?, _ receivedBytes: Int) -> ()
+
+  init(
+    path: String,
+    reportProgress: @escaping (_ totalBytes: Int?, _ receivedBytes: Int) -> ()
+  ) throws {
+    handle = try NIOFileHandle(path: path, mode: .write, flags: .allowFileCreation())
+    let pool = NIOThreadPool(numberOfThreads: 1)
+    pool.start()
+    io = NonBlockingFileIO(threadPool: pool)
+
+    self.reportProgress = reportProgress
   }
 
   func didReceiveHead(
@@ -42,12 +54,14 @@ final class ResponseDelegate: HTTPClientResponseDelegate {
     task: HTTPClient.Task<Response>,
     _ buffer: ByteBuffer
   ) -> EventLoopFuture<()> {
-    task.eventLoop.makeSucceededFuture(())
+    receivedBytes += buffer.readableBytes
+    reportProgress(totalBytes, receivedBytes)
+    return io.write(fileHandle: handle, buffer: buffer, eventLoop: task.eventLoop)
   }
 
-  func didReceiveError(task: HTTPClient.Task<Response>, _ error: Error) {}
-
   func didFinishRequest(task: HTTPClient.Task<Response>) throws -> Response {
-    (totalBytes, receivedBytes)
+    // FIXME: should only close after all writes have completed
+    try handle.close()
+    return (totalBytes, receivedBytes)
   }
 }

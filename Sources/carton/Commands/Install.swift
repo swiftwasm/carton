@@ -13,8 +13,11 @@
 // limitations under the License.
 
 import ArgumentParser
+import AsyncHTTPClient
 import Foundation
+import OpenCombine
 import TSCBasic
+import TSCUtility
 
 struct Install: ParsableCommand {
   static var configuration = CommandConfiguration(
@@ -27,16 +30,31 @@ struct Install: ParsableCommand {
     guard let terminal = TerminalController(stream: stdoutStream)
     else { fatalError("failed to create an instance of `TerminalController`") }
 
-    let delegate = ResponseDelegate(expectedBytes: 891_856_371)
+    let path = "/Users/maxd/archive"
+    let subject = PassthroughSubject<Progress, Error>()
+    let delegate = try FileDownloadDelegate(path: path) {
+      subject.send(.init(step: $1, total: $0 ?? 891_856_371, text: "saving to \(path)"))
+    }
 
-    let url = version.flatMap { URL(string: $0) }
-    let version = try localFileSystem.inferSwiftPath(version: self.version, terminal)
-    print(version)
+    var subscriptions = [AnyCancellable]()
 
-    // let client = HTTPClient(eventLoopGroupProvider: .createNew)
-    // let response: HTTPClient.Response = try await {
-    //   client.get(url: archiveURL).whenComplete($0)
-    // }
-    // try client.syncShutdown()
+    subject.sink(
+      to: PercentProgressAnimation(stream: stdoutStream, header: "Downloading the archive"),
+      terminal
+    )
+    .store(in: &subscriptions)
+
+    let url = version.flatMap { URL(string: $0) }!.absoluteString
+    // let version = try localFileSystem.inferSwiftPath(version: self.version, terminal)
+    // print(version)
+
+    let client = HTTPClient(eventLoopGroupProvider: .createNew)
+    let request = try HTTPClient.Request(url: url)
+    let response = try await {
+      client.execute(request: request, delegate: delegate).futureResult.whenComplete($0)
+    }
+
+    print("response is \(response)")
+    try client.syncShutdown()
   }
 }
