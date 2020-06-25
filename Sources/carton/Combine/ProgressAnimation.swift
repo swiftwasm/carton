@@ -23,21 +23,22 @@ struct Progress {
 }
 
 extension Publisher where Output == Progress {
-  func sink(
-    to progressAnimation: ProgressAnimationProtocol,
+  func handle(
+    with progressAnimation: ProgressAnimationProtocol,
     _ terminal: TerminalController
-  ) -> AnyCancellable {
-    sink(receiveCompletion: {
-      switch $0 {
-      case .finished:
-        progressAnimation.complete(success: true)
-        terminal.write("Build finished succesfully\n", inColor: .green)
-      case let .failure(error):
-        progressAnimation.complete(success: false)
-        terminal.write("\(error)", inColor: .red, bold: false)
+  ) -> Publishers.HandleEvents<Self> {
+    handleEvents(
+      receiveOutput: {
+        progressAnimation.update(step: $0.step, total: $0.total, text: $0.text)
+      },
+      receiveCompletion: {
+        switch $0 {
+        case .finished:
+          progressAnimation.complete(success: true)
+        case .failure:
+          progressAnimation.complete(success: false)
+        }
       }
-    }, receiveValue: {
-      progressAnimation.update(step: $0.step, total: $0.total, text: $0.text)
-    })
+    )
   }
 }

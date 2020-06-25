@@ -24,7 +24,7 @@ final class FileDownloadDelegate: HTTPClientResponseDelegate {
 
   private let handle: NIOFileHandle
   private let io: NonBlockingFileIO
-  private let reportHeaders: ((HTTPHeaders) -> ())?
+  private let reportHead: ((HTTPResponseHead) -> ())?
   private let reportProgress: ((_ totalBytes: Int?, _ receivedBytes: Int) -> ())?
 
   private var writeFuture: EventLoopFuture<()>?
@@ -32,14 +32,14 @@ final class FileDownloadDelegate: HTTPClientResponseDelegate {
   init(
     path: String,
     pool: NIOThreadPool = NIOThreadPool(numberOfThreads: 1),
-    reportHeaders: ((HTTPHeaders) -> ())? = nil,
+    reportHead: ((HTTPResponseHead) -> ())? = nil,
     reportProgress: ((_ totalBytes: Int?, _ receivedBytes: Int) -> ())? = nil
   ) throws {
     handle = try NIOFileHandle(path: path, mode: .write, flags: .allowFileCreation())
     pool.start()
     io = NonBlockingFileIO(threadPool: pool)
 
-    self.reportHeaders = reportHeaders
+    self.reportHead = reportHead
     self.reportProgress = reportProgress
   }
 
@@ -47,7 +47,7 @@ final class FileDownloadDelegate: HTTPClientResponseDelegate {
     task: HTTPClient.Task<Response>,
     _ head: HTTPResponseHead
   ) -> EventLoopFuture<()> {
-    reportHeaders?(head.headers)
+    reportHead?(head)
 
     if let totalBytesString = head.headers.first(name: "Content-Length"),
       let totalBytes = Int(totalBytesString) {

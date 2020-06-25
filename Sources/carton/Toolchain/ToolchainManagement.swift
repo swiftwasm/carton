@@ -27,11 +27,19 @@ private let versionRegEx = try! RegEx(pattern: "(?:swift-)?(.+-a)-.+\\.tar.gz")
 
 enum ToolchainError: Error, CustomStringConvertible {
   case directoryDoesNotExist(AbsolutePath)
+  case invalidResponseCode(UInt)
+  case invalidInstallationArchive(AbsolutePath)
 
   var description: String {
     switch self {
     case let .directoryDoesNotExist(path):
       return "Directory at path \(path.pathString) does not exist and could not be created"
+    case let .invalidResponseCode(code):
+      return """
+      While attempting to download an archive, the server returned an invalid response code \(code)
+      """
+    case let .invalidInstallationArchive(path):
+      return "Invalid toolchain/SDK archive was installed at path \(path)"
     }
   }
 }
@@ -41,13 +49,15 @@ extension FileSystem {
     from versionSpec: String? = nil,
     _ terminal: TerminalController
   ) throws -> String {
-    if
-      let versionSpec = versionSpec,
-      let url = URL(string: versionSpec),
-      let filename = url.pathComponents.last,
-      let match = versionRegEx.matchGroups(in: filename).first?.first {
-      terminal.logLookup("Inferred swift version: ", match)
-      return match
+    if let versionSpec = versionSpec {
+      if let url = URL(string: versionSpec),
+        let filename = url.pathComponents.last,
+        let match = versionRegEx.matchGroups(in: filename).first?.first {
+        terminal.logLookup("Inferred swift version: ", match)
+        return match
+      } else {
+        return versionSpec
+      }
     }
 
     guard let cwd = currentWorkingDirectory else { return defaultToolchainVersion }
@@ -68,32 +78,44 @@ extension FileSystem {
    version from the `.swift-version` file. If neither version is installed, download it.
    */
   func inferSwiftPath(versionSpec: String? = nil, _ terminal: TerminalController) throws -> String {
-    let specURL = versionSpec.flatMap { URL(string: $0) }
+    let specURL = versionSpec.flatMap { (string: String) -> Foundation.URL? in
+      guard
+        let url = Foundation.URL(string: string),
+        let scheme = url.scheme,
+        ["http", "https"].contains(scheme)
+      else { return nil }
+      return url
+    }
+
     let swiftVersion = try inferSwiftVersion(from: versionSpec, terminal)
 
-    func checkAndLog(_ prefix: AbsolutePath) -> String? {
+    func checkAndLog(_ prefix: AbsolutePath) throws -> String? {
       let swiftPath = prefix.appending(components: swiftVersion, "usr", "bin", "swift")
 
       guard isFile(swiftPath) else { return nil }
 
       terminal.write("Inferring basic settings...\n", inColor: .yellow)
       terminal.logLookup("- swift executable: ", swiftPath)
+      if let output = try processStringOutput([swiftPath.pathString, "--version"]) {
+        terminal.write(output)
+      }
 
       return swiftPath.pathString
     }
 
-    if let path = checkAndLog(homeDirectory.appending(components: ".swiftenv", "versions")) {
+    if let path = try checkAndLog(homeDirectory.appending(components: ".swiftenv", "versions")) {
       return path
     }
 
     let sdkPath = homeDirectory.appending(components: ".carton", "sdk")
-    if let path = checkAndLog(sdkPath) {
+    if let path = try checkAndLog(sdkPath) {
       return path
     }
 
     func inferDownloadURL(from version: String) -> Foundation.URL? {
+      // FIXME: these platform names are not specific enough, need smarter checking here
       #if os(macOS)
-      let platformSuffix = "macos"
+      let platformSuffix = "osx"
       #elseif os(Linux)
       let platformSuffix = "linux"
       #endif
@@ -118,9 +140,18 @@ extension FileSystem {
       inColor: .yellow
     )
     terminal.logLookup("Swift toolchain/SDK download URL: ", downloadURL)
-    try installSDK(version: swiftVersion, from: downloadURL, to: sdkPath, terminal)
+    let installationPath = try installSDK(
+      version: swiftVersion,
+      from: downloadURL,
+      to: sdkPath,
+      terminal
+    )
 
-    return swiftVersion
+    guard let path = try checkAndLog(sdkPath) else {
+      throw ToolchainError.invalidInstallationArchive(installationPath)
+    }
+
+    return path
   }
 
   func installSDK(
@@ -128,7 +159,7 @@ extension FileSystem {
     from url: Foundation.URL,
     to sdkPath: AbsolutePath,
     _ terminal: TerminalController
-  ) throws {
+  ) throws -> AbsolutePath {
     if !exists(sdkPath, followSymlink: true) {
       try createDirectory(sdkPath, recursive: true)
     }
@@ -139,24 +170,53 @@ extension FileSystem {
 
     let subject = PassthroughSubject<Progress, Error>()
     let archivePath = sdkPath.appending(component: "\(version).tar.gz")
-    let delegate = try FileDownloadDelegate(path: archivePath.pathString) {
-      subject.send(.init(step: $1, total: $0 ?? 891_856_371, text: "saving to \(archivePath)"))
-    }
+    let delegate = try FileDownloadDelegate(
+      path: archivePath.pathString,
+      reportHead: {
+        guard $0.status != .ok else { return }
+
+        subject.send(completion: .failure(ToolchainError.invalidResponseCode($0.status.code)))
+      },
+      reportProgress: {
+        subject.send(.init(step: $1, total: $0 ?? 891_856_371, text: "saving to \(archivePath)"))
+      }
+    )
 
     var subscriptions = [AnyCancellable]()
 
-    subject.sink(
-      to: PercentProgressAnimation(stream: stdoutStream, header: "Downloading the archive"),
-      terminal
-    )
-    .store(in: &subscriptions)
-
     let client = HTTPClient(eventLoopGroupProvider: .createNew)
     let request = try HTTPClient.Request(url: url)
-    _ = try await {
-      client.execute(request: request, delegate: delegate).futureResult.whenComplete($0)
+    // swiftlint:disable:next force_try
+    defer { try! client.syncShutdown() }
+
+    _ = try await { (completion: @escaping (Result<(), Error>) -> ()) in
+      client.execute(request: request, delegate: delegate).futureResult.whenComplete { _ in
+        subject.send(completion: .finished)
+      }
+
+      subject
+        .handle(
+          with: PercentProgressAnimation(
+            stream: stdoutStream,
+            header: "Downloading the archive"
+          ),
+          terminal
+        )
+        .sink(
+          receiveCompletion: {
+            switch $0 {
+            case .finished:
+              terminal.write("Download completed successfully\n", inColor: .green)
+              completion(.success(()))
+            case let .failure(error):
+              terminal.write("Download failed\n", inColor: .red)
+              completion(.failure(error))
+            }
+          },
+          receiveValue: { _ in }
+        )
+        .store(in: &subscriptions)
     }
-    try client.syncShutdown()
 
     let installationPath = sdkPath.appending(component: version)
 
@@ -166,10 +226,12 @@ extension FileSystem {
       "tar", "xzf", archivePath.pathString, "--strip-components=1",
       "--directory", installationPath.pathString,
     ]
-    terminal.logLookup("\nUnpacking the archive: ", arguments.joined(separator: " "))
+    terminal.logLookup("Unpacking the archive: ", arguments.joined(separator: " "))
     _ = try processDataOutput(arguments)
 
     try removeFileTree(archivePath)
+
+    return installationPath
   }
 
   func inferBinPath(swiftPath: String) throws -> AbsolutePath {
