@@ -13,11 +13,7 @@
 // limitations under the License.
 
 import ArgumentParser
-import AsyncHTTPClient
-import Foundation
-import OpenCombine
 import TSCBasic
-import TSCUtility
 
 struct Install: ParsableCommand {
   static var configuration = CommandConfiguration(
@@ -30,31 +26,7 @@ struct Install: ParsableCommand {
     guard let terminal = TerminalController(stream: stdoutStream)
     else { fatalError("failed to create an instance of `TerminalController`") }
 
-    let path = "/Users/maxd/archive"
-    let subject = PassthroughSubject<Progress, Error>()
-    let delegate = try FileDownloadDelegate(path: path) {
-      subject.send(.init(step: $1, total: $0 ?? 891_856_371, text: "saving to \(path)"))
-    }
-
-    var subscriptions = [AnyCancellable]()
-
-    subject.sink(
-      to: PercentProgressAnimation(stream: stdoutStream, header: "Downloading the archive"),
-      terminal
-    )
-    .store(in: &subscriptions)
-
-    let url = version.flatMap { URL(string: $0) }!.absoluteString
-    // let version = try localFileSystem.inferSwiftPath(version: self.version, terminal)
-    // print(version)
-
-    let client = HTTPClient(eventLoopGroupProvider: .createNew)
-    let request = try HTTPClient.Request(url: url)
-    let response = try await {
-      client.execute(request: request, delegate: delegate).futureResult.whenComplete($0)
-    }
-
-    print("\nresponse is \(response)")
-    try client.syncShutdown()
+    _ = try localFileSystem.inferSwiftPath(versionSpec: version, terminal)
+    terminal.write("\nSDK successfully installed!\n", inColor: .green)
   }
 }

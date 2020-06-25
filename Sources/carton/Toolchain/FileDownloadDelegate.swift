@@ -24,19 +24,22 @@ final class FileDownloadDelegate: HTTPClientResponseDelegate {
 
   private let handle: NIOFileHandle
   private let io: NonBlockingFileIO
-  private let reportProgress: (_ totalBytes: Int?, _ receivedBytes: Int) -> ()
+  private let reportHeaders: ((HTTPHeaders) -> ())?
+  private let reportProgress: ((_ totalBytes: Int?, _ receivedBytes: Int) -> ())?
 
   private var writeFuture: EventLoopFuture<()>?
 
   init(
     path: String,
-    reportProgress: @escaping (_ totalBytes: Int?, _ receivedBytes: Int) -> ()
+    pool: NIOThreadPool = NIOThreadPool(numberOfThreads: 1),
+    reportHeaders: ((HTTPHeaders) -> ())? = nil,
+    reportProgress: ((_ totalBytes: Int?, _ receivedBytes: Int) -> ())? = nil
   ) throws {
     handle = try NIOFileHandle(path: path, mode: .write, flags: .allowFileCreation())
-    let pool = NIOThreadPool(numberOfThreads: 1)
     pool.start()
     io = NonBlockingFileIO(threadPool: pool)
 
+    self.reportHeaders = reportHeaders
     self.reportProgress = reportProgress
   }
 
@@ -44,6 +47,8 @@ final class FileDownloadDelegate: HTTPClientResponseDelegate {
     task: HTTPClient.Task<Response>,
     _ head: HTTPResponseHead
   ) -> EventLoopFuture<()> {
+    reportHeaders?(head.headers)
+
     if let totalBytesString = head.headers.first(name: "Content-Length"),
       let totalBytes = Int(totalBytesString) {
       self.totalBytes = totalBytes
@@ -57,7 +62,7 @@ final class FileDownloadDelegate: HTTPClientResponseDelegate {
     _ buffer: ByteBuffer
   ) -> EventLoopFuture<()> {
     receivedBytes += buffer.readableBytes
-    reportProgress(totalBytes, receivedBytes)
+    reportProgress?(totalBytes, receivedBytes)
 
     let writeFuture = io.write(fileHandle: handle, buffer: buffer, eventLoop: task.eventLoop)
     self.writeFuture = writeFuture
@@ -66,7 +71,8 @@ final class FileDownloadDelegate: HTTPClientResponseDelegate {
 
   func didFinishRequest(task: HTTPClient.Task<Response>) throws -> Response {
     writeFuture?.whenComplete { [weak self] _ in
-      try? self?.handle.close()
+      // swiftlint:disable:next force_try
+      try! self?.handle.close()
       self?.writeFuture = nil
     }
     return (totalBytes, receivedBytes)
