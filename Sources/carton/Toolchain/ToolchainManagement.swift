@@ -25,6 +25,8 @@ func processStringOutput(_ arguments: [String]) throws -> String? {
 // swiftlint:disable:next force_try
 private let versionRegEx = try! RegEx(pattern: "(?:swift-)?(.+-a)-.+\\.tar.gz")
 
+private let expectedArchiveSize = 891_856_371
+
 enum ToolchainError: Error, CustomStringConvertible {
   case directoryDoesNotExist(AbsolutePath)
   case invalidResponseCode(UInt)
@@ -178,7 +180,11 @@ extension FileSystem {
         subject.send(completion: .failure(ToolchainError.invalidResponseCode($0.status.code)))
       },
       reportProgress: {
-        subject.send(.init(step: $1, total: $0 ?? 891_856_371, text: "saving to \(archivePath)"))
+        subject.send(.init(
+          step: $1,
+          total: $0 ?? expectedArchiveSize,
+          text: "saving to \(archivePath)"
+        ))
       }
     )
 
