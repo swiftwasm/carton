@@ -12,14 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import ArgumentParser
+import AsyncHTTPClient
+import Foundation
 
-let cartonVersion = "0.1.5"
+extension HTTPClient.Request {
+  static func get(url: URL) throws -> Self {
+    try get(url: url.absoluteString)
+  }
 
-struct Carton: ParsableCommand {
-  static var configuration = CommandConfiguration(
-    abstract: "📦 Watcher, bundler, and test runner for your SwiftWasm apps.",
-    version: cartonVersion,
-    subcommands: [Dev.self, SDK.self]
-  )
+  static func get(url: String) throws -> Self {
+    var request = try HTTPClient.Request(url: url)
+    request.headers.add(name: "User-Agent", value: "carton \(cartonVersion)")
+    return request
+  }
 }

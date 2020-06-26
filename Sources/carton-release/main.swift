@@ -24,8 +24,7 @@ struct CartonRelease: ParsableCommand {
 
     let client = HTTPClient(eventLoopGroupProvider: .createNew)
     let response: HTTPClient.Response = try await {
-      client.get(url: archiveURL)
-        .whenComplete($0)
+      client.get(url: archiveURL).whenComplete($0)
     }
     try client.syncShutdown()
 

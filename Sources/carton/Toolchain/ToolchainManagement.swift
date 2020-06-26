@@ -23,9 +23,23 @@ func processStringOutput(_ arguments: [String]) throws -> String? {
 }
 
 // swiftlint:disable:next force_try
-private let versionRegEx = try! RegEx(pattern: "(?:swift-)?(.+-a)-.+\\.tar.gz")
+private let versionRegEx = try! RegEx(pattern: "(?:swift-)?(.+-.)-.+\\.tar.gz")
 
 private let expectedArchiveSize = 891_856_371
+
+private struct Release: Decodable {
+  struct Asset: Decodable {
+    enum CodingKeys: String, CodingKey {
+      case name
+      case url = "browser_download_url"
+    }
+
+    let name: String
+    let url: Foundation.URL
+  }
+
+  let assets: [Asset]
+}
 
 enum ToolchainError: Error, CustomStringConvertible {
   case directoryDoesNotExist(AbsolutePath)
@@ -114,24 +128,45 @@ extension FileSystem {
       return path
     }
 
-    func inferDownloadURL(from version: String) -> Foundation.URL? {
+    let client = HTTPClient(eventLoopGroupProvider: .createNew)
+    // swiftlint:disable:next force_try
+    defer { try! client.syncShutdown() }
+
+    func inferDownloadURL(from version: String) throws -> Foundation.URL? {
+      let releaseURL = """
+      https://api.github.com/repos/swiftwasm/swift/releases/tags/\
+      swift-\(version)
+      """
+
+      terminal.logLookup("Fetching release assets from ", releaseURL)
+      let decoder = JSONDecoder()
+      let request = try HTTPClient.Request.get(url: releaseURL)
+      guard let release = try await({
+        client.execute(request: request).map { response -> Release? in
+          guard let body = response.body else { return nil }
+
+          // swiftlint:disable:next force_try
+          return try! decoder.decode(Release.self, from: body)
+        }.whenComplete($0)
+      }) else { return nil }
+
       // FIXME: these platform names are not specific enough, need smarter checking here
       #if os(macOS)
-      let platformSuffix = "osx"
+      let platformSuffixes = ["osx", "catalina"]
       #elseif os(Linux)
-      let platformSuffix = "linux"
+      let platformSuffixes = ["linux", "ubuntu18.04"]
       #endif
-      return URL(string: """
-      https://github.com/swiftwasm/swift/releases/download/\
-      swift-\(version)/swift-\(version)-\(platformSuffix).tar.gz
-      """)
+
+      return release.assets.map(\.url).filter { url in
+        platformSuffixes.contains { url.absoluteString.contains($0) }
+      }.first
     }
 
     let downloadURL: Foundation.URL
 
     if let specURL = specURL {
       downloadURL = specURL
-    } else if let inferredURL = inferDownloadURL(from: swiftVersion) {
+    } else if let inferredURL = try inferDownloadURL(from: swiftVersion) {
       downloadURL = inferredURL
     } else {
       fatalError("Failed to infer download URL for version \(swiftVersion)")
@@ -146,6 +181,7 @@ extension FileSystem {
       version: swiftVersion,
       from: downloadURL,
       to: sdkPath,
+      client,
       terminal
     )
 
@@ -160,6 +196,7 @@ extension FileSystem {
     version: String,
     from url: Foundation.URL,
     to sdkPath: AbsolutePath,
+    _ client: HTTPClient,
     _ terminal: TerminalController
   ) throws -> AbsolutePath {
     if !exists(sdkPath, followSymlink: true) {
@@ -189,11 +226,7 @@ extension FileSystem {
     )
 
     var subscriptions = [AnyCancellable]()
-
-    let client = HTTPClient(eventLoopGroupProvider: .createNew)
-    let request = try HTTPClient.Request(url: url)
-    // swiftlint:disable:next force_try
-    defer { try! client.syncShutdown() }
+    let request = try HTTPClient.Request.get(url: url)
 
     _ = try await { (completion: @escaping (Result<(), Error>) -> ()) in
       client.execute(request: request, delegate: delegate).futureResult.whenComplete { _ in

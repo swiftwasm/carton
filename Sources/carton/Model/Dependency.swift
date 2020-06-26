@@ -54,8 +54,9 @@ struct Dependency {
       try fileSystem.removeFileTree(cartonDir)
 
       let client = HTTPClient(eventLoopGroupProvider: .createNew)
+      let request = try HTTPClient.Request.get(url: archiveURL)
       let response: HTTPClient.Response = try await {
-        client.get(url: archiveURL).whenComplete($0)
+        client.execute(request: request).whenComplete($0)
       }
       try client.syncShutdown()
 
