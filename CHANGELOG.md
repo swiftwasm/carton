@@ -1,3 +1,11 @@
+# 0.2.0 (26 June 2020)
+
+This release introduces a new `carton sdk install` command that allows
+you to quickly install the [SwftWasm](https://swiftwasm.org/) toolchain and SDK
+without requiring any additional dependencies such as `swiftenv`. Also,
+`carton dev` now automatically installs SwiftWasm through the same code paths
+as `carton sdk install`, when no suitable SDK is detected.
+
 # 0.1.5 (22 June 2020)
 
 This is a refinement release that adds a `--version` flag. Additionally, the

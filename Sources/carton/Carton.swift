@@ -14,7 +14,7 @@
 
 import ArgumentParser
 
-let cartonVersion = "0.1.5"
+let cartonVersion = "0.2.0"
 
 struct Carton: ParsableCommand {
   static var configuration = CommandConfiguration(
