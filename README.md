@@ -79,8 +79,7 @@ issues](https://github.com/swiftwasm/swift/pull/1233) are resolved with the Swif
 
 There are a few more commands on the roadmap to be implemented, such as `carton init` for initializing
 basic SwiftWasm projects (potentially with configurable templates), `carton bundle` to produce an
-optimized production deployment bundle, SwiftPM resources support for bundled assets, `carton sdk`
-command for SDK installation and management and much more.
+optimized production deployment bundle, SwiftPM resources support for bundled assets, and much more.
 
 As cross-compiling to WebAssembly and running apps and tests remotely is not too dissimilar to Android
 development, or even development on macOS for Linux through Docker, `carton` could potentially become
