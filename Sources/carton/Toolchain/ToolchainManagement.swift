@@ -150,7 +150,6 @@ extension FileSystem {
         }.whenComplete($0)
       }) else { return nil }
 
-      // FIXME: these platform names are not specific enough, need smarter checking here
       #if os(macOS)
       let platformSuffixes = ["osx", "catalina"]
       #elseif os(Linux)
