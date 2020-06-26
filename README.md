@@ -18,7 +18,8 @@ It is currently work in progress, so watch the repository for imminent updates!
 The main motivation for `carton` came after I had enough struggles with [webpack.js](https://webpack.js.org),
 trying to make its config file work, looking for appropriate plugins. I'm convinced that the required use of
 `webpack` in SwiftWasm projects could limit the wider adoption of SwiftWasm itself. Hopefully, with `carton`
-you can avoid using `webpack` altogether.
+you can avoid using `webpack` altogether. `carton` also simplifies a few other things in your SwiftWasm
+development workflow such as toolchain and SDK installations.
 
 ## Requirements
 
