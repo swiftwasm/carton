@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/vapor/console-kit.git",
         "state": {
           "branch": null,
-          "revision": "4ffc23dd1d6454228f78194ef68d8b20fca9390a",
-          "version": "4.1.1"
+          "revision": "05c52a91631a6ca432275439f6456a5dace0d1db",
+          "version": "4.1.2"
         }
       },
       {
