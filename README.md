@@ -66,7 +66,7 @@ for WebAssembly and served when you start `carton dev` in the directory where `P
 thanks to everyone supporting and maintaining those projects!)
 
 ### Providing a destination file to `carton dev`
-The `carton dev` command can be passed an optional destination.json file to the `swift build` command it calls. Currently, this is required to be able to use `Foundation` in your code.
+The `carton dev` command can be passed an optional `destination.json` file to the `swift build` command it calls. Currently, this is required to be able to use `Foundation` in your code.
 
 The specification of the `destination.json` can be found [here](https://github.com/apple/swift-package-manager/blob/master/Sources/Workspace/Destination.swift):
 
