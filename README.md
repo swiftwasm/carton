@@ -69,7 +69,9 @@ thanks to everyone supporting and maintaining those projects!)
 By default `carton dev` will compile in the `debug` configuration. Add the `--release` flag to compile in the `release` configuration.
 
 ### Providing a destination file to `carton dev`
-The `carton dev` command can be passed an optional `destination.json` file to the `swift build` command it calls. Currently, this is required to be able to use `Foundation` in your code.
+The `carton dev` command can be passed an optional `destination.json` file to the `swift build` command it
+calls. Currently, this is required to be able to use `Foundation` in your code.
+
 
 The specification of the `destination.json` can be found [here](https://github.com/apple/swift-package-manager/blob/master/Sources/Workspace/Destination.swift):
 
@@ -96,11 +98,15 @@ Below is a template allowing you to link to the right Foundation:
 }
 ```
 
-When using `swiftenv` on MacOS, `${PATH_TO_TOOLCHAIN}` will usually be of the following format: `/Users/me/.swiftenv/versions/wasm-DEVELOPMENT-SNAPSHOT-2020-06-12-a/`.
+When using `carton` on MacOS, `${PATH_TO_TOOLCHAIN}` will usually be of the following
+format: `/Users/me/.carton/sdk/wasm-DEVELOPMENT-SNAPSHOT-2020-06-12-a/` or
+`/Users/me/.swiftenv/versions/wasm-DEVELOPMENT-SNAPSHOT-2020-06-12-a/` if you installed
+the SDK with [`swiftenv`](https://github.com/kylef/swiftenv).
 
-Note that this path should really be consistent with the toolchain used by `carton`. So when you do not use a `swiftenv` based toolchain, you need to take care of specifying the correct one.
+Note that this path should really be consistent with the toolchain used by `carton`. So when you
+do not use a `swiftenv` based toolchain, you need to take care of specifying the correct one.
 
-In the future, we should make sure that this is taken care of by `carton` itself.
+In the future, we'll make sure that this is taken care of by `carton` itself.
 
 ## Roadmap
 
