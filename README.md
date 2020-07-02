@@ -72,7 +72,6 @@ By default `carton dev` will compile in the `debug` configuration. Add the `--re
 The `carton dev` command can be passed an optional `destination.json` file to the `swift build` command it
 calls. Currently, this is required to be able to use `Foundation` in your code.
 
-
 The specification of the `destination.json` can be found [here](https://github.com/apple/swift-package-manager/blob/master/Sources/Workspace/Destination.swift):
 
 Below is a template allowing you to link to the right Foundation:
