@@ -65,6 +65,9 @@ for WebAssembly and served when you start `carton dev` in the directory where `P
 [OpenCombine](https://github.com/broadwaylamb/OpenCombine), and supports both macOS and Linux. (Many
 thanks to everyone supporting and maintaining those projects!)
 
+### Running `carton dev` with the `release` configuration
+By default `carton dev` will compile in the `debug` configuration. Add the `--release` flag to compile in the `release` configuration.
+
 ### Providing a destination file to `carton dev`
 The `carton dev` command can be passed an optional destination.json file to the `swift build` command it calls. Currently, this is required to be able to use `Foundation` in your code.
 
