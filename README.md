@@ -65,6 +65,40 @@ for WebAssembly and served when you start `carton dev` in the directory where `P
 [OpenCombine](https://github.com/broadwaylamb/OpenCombine), and supports both macOS and Linux. (Many
 thanks to everyone supporting and maintaining those projects!)
 
+### Providing a destination file to `carton dev`
+The `carton dev` command can be passed an optional destination.json file to the `swift build` command it calls. Currently, this is required to be able to use `Foundation` in your code.
+
+The specification of the `destination.json` can be found here:
+
+Below is a template allowing you to link to the right Foundation:
+```json
+{
+  "version": 1,
+  "sdk": "${PATH_TO_TOOLCHAIN}/usr/share/wasi-sysroot",
+  "toolchain-bin-dir": "${PATH_TO_TOOLCHAIN}/usr/bin",
+  "target": "wasm32-unknown-wasi",
+  "extra-cc-flags": [
+    ""
+  ],
+  "extra-cpp-flags": [
+    ""
+  ],
+  "extra-swiftc-flags": [
+    "-I", "${PATH_TO_TOOLCHAIN}/usr/lib/swift/wasi/wasm32",
+    "-Xlinker", "-lCoreFoundation",
+    "-Xlinker", "-lBlocksRuntime",
+    "-Xlinker", "-licui18n",
+    "-Xlinker", "-luuid"
+  ]
+}
+```
+
+When using `swiftenv` on MacOS, `${PATH_TO_TOOLCHAIN}` will usually be of the following format: `/Users/me/.swiftenv/versions/wasm-DEVELOPMENT-SNAPSHOT-2020-06-12-a/`.
+
+Note that this path should really be consistent with the toolchain used by `carton`. So when you do not use a `swiftenv` based toolchain, you need to take care of specifying the correct one.
+
+In the future, we should make sure that this is taken care of by `carton` itself.
+
 ## Roadmap
 
 Since a subset of Foundation and XCTest already work and are supplied in the latest snapshots of

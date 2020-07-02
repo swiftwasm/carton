@@ -50,6 +50,9 @@ struct Dev: ParsableCommand {
   @Option(help: "Specify name of an executable product in development.")
   var product: String?
 
+  @Option(help: "Specify name of a json destination file to be passed to `swift build`.")
+  var destination: String?
+
   static var configuration = CommandConfiguration(
     abstract: "Watch the current directory, host the app, rebuild on change."
   )
@@ -70,8 +73,12 @@ struct Dev: ParsableCommand {
 
     terminal.preWatcherBuildNotice()
 
-    let builderArguments =
-      [swiftPath, "build", "--triple", "wasm32-unknown-wasi", "--product", product]
+    let builderArguments: [String]
+    if let destination = destination {
+      builderArguments = [swiftPath, "build", "--triple", "wasm32-unknown-wasi", "--product", product, "--destination", destination]
+    } else {
+      builderArguments = [swiftPath, "build", "--triple", "wasm32-unknown-wasi", "--product", product]
+    }
 
     try ProcessRunner(builderArguments, terminal).waitUntilFinished()
 
