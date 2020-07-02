@@ -53,6 +53,9 @@ struct Dev: ParsableCommand {
   @Option(help: "Specify name of a json destination file to be passed to `swift build`.")
   var destination: String?
 
+  @Flag(help: "When specified, will build in release mode.")
+  var release: Bool = false
+
   static var configuration = CommandConfiguration(
     abstract: "Watch the current directory, host the app, rebuild on change."
   )
@@ -73,11 +76,9 @@ struct Dev: ParsableCommand {
 
     terminal.preWatcherBuildNotice()
 
-    let builderArguments: [String]
+    var builderArguments = [swiftPath, "build", "-c", release ? "release" : "debug", "--triple", "wasm32-unknown-wasi", "--product", product]
     if let destination = destination {
-      builderArguments = [swiftPath, "build", "--triple", "wasm32-unknown-wasi", "--product", product, "--destination", destination]
-    } else {
-      builderArguments = [swiftPath, "build", "--triple", "wasm32-unknown-wasi", "--product", product]
+      builderArguments.append(contentsOf: ["--destination", destination])
     }
 
     try ProcessRunner(builderArguments, terminal).waitUntilFinished()
