@@ -53,7 +53,7 @@ struct Dev: ParsableCommand {
   @Option(help: "Specify name of a json destination file to be passed to `swift build`.")
   var destination: String?
 
-  @Flag(help: "When specificed, will build in release mode`.")
+  @Flag(help: "When specified, will build in release mode.")
   var release: Bool = false
 
   static var configuration = CommandConfiguration(
