@@ -13,10 +13,24 @@
 // limitations under the License.
 
 import ArgumentParser
+import TSCBasic
 
-struct SDK: ParsableCommand {
+struct Versions: ParsableCommand {
   static var configuration = CommandConfiguration(
-    abstract: "Manage installed Swift toolchains and SDKs.",
-    subcommands: [Install.self, Versions.self]
+    abstract: "Lists all installed toolchains/SDKs"
   )
+  
+  func run() throws {
+    guard let terminal = TerminalController(stream: stdoutStream)
+    else { fatalError("failed to create an instance of `TerminalController`") }
+    
+    let versions = try localFileSystem.fetchAllSwiftVersions()
+    if (versions.count > 0) {
+      versions.forEach { version in
+        terminal.write("\(version)\n", inColor: .green)
+      }
+    } else {
+      terminal.write("No sdks installed\n")
+    }
+  }
 }
