@@ -61,6 +61,14 @@ enum ToolchainError: Error, CustomStringConvertible {
 }
 
 extension FileSystem {
+  private var swiftenvVersionsPath: AbsolutePath {
+    return homeDirectory.appending(components: ".swiftenv", "versions")
+  }
+  
+  private var cartonSDKPath: AbsolutePath {
+    return homeDirectory.appending(components: ".carton", "sdk")
+  }
+  
   private func inferSwiftVersion(
     from versionSpec: String? = nil,
     _ terminal: TerminalController
@@ -119,11 +127,11 @@ extension FileSystem {
       return swiftPath.pathString
     }
 
-    if let path = try checkAndLog(homeDirectory.appending(components: ".swiftenv", "versions")) {
+    if let path = try checkAndLog(swiftenvVersionsPath) {
       return path
     }
 
-    let sdkPath = homeDirectory.appending(components: ".carton", "sdk")
+    let sdkPath = cartonSDKPath
     if let path = try checkAndLog(sdkPath) {
       return path
     }
@@ -281,5 +289,9 @@ extension FileSystem {
     else { fatalError("failed to decode UTF8 output of the `swift build` invocation") }
 
     return AbsolutePath(binPath)
+  }
+  
+  func fetchAllSwiftVersions() throws -> [String] {
+    try getDirectoryContents(cartonSDKPath) + getDirectoryContents(swiftenvVersionsPath)
   }
 }
