@@ -24,8 +24,8 @@
   },
   "homepage": "https://github.com/MaxDesiatov/carton#readme",
   "devDependencies": {
-    "@wasmer/wasi": "^0.10.2",
-    "@wasmer/wasmfs": "^0.10.2",
+    "@wasmer/wasi": "^0.11.2",
+    "@wasmer/wasmfs": "^0.11.2",
     "javascript-kit-swift": "^0.4.0",
     "reconnecting-websocket": "^4.4.0",
     "webpack": "^4.43.0",

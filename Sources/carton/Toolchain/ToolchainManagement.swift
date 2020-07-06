@@ -62,13 +62,13 @@ enum ToolchainError: Error, CustomStringConvertible {
 
 extension FileSystem {
   private var swiftenvVersionsPath: AbsolutePath {
-    return homeDirectory.appending(components: ".swiftenv", "versions")
+    homeDirectory.appending(components: ".swiftenv", "versions")
   }
-  
+
   private var cartonSDKPath: AbsolutePath {
-    return homeDirectory.appending(components: ".carton", "sdk")
+    homeDirectory.appending(components: ".carton", "sdk")
   }
-  
+
   private func inferSwiftVersion(
     from versionSpec: String? = nil,
     _ terminal: TerminalController
@@ -290,7 +290,7 @@ extension FileSystem {
 
     return AbsolutePath(binPath)
   }
-  
+
   func fetchAllSwiftVersions() throws -> [String] {
     try getDirectoryContents(cartonSDKPath) + getDirectoryContents(swiftenvVersionsPath)
   }
