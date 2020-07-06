@@ -62,13 +62,13 @@ enum ToolchainError: Error, CustomStringConvertible {
 
 extension FileSystem {
   private var swiftenvVersionsPath: AbsolutePath {
-    return homeDirectory.appending(components: ".swiftenv", "versions")
+    homeDirectory.appending(components: ".swiftenv", "versions")
   }
-  
+
   private var cartonSDKPath: AbsolutePath {
-    return homeDirectory.appending(components: ".carton", "sdk")
+    homeDirectory.appending(components: ".carton", "sdk")
   }
-  
+
   private func inferSwiftVersion(
     from versionSpec: String? = nil,
     _ terminal: TerminalController
@@ -98,6 +98,57 @@ extension FileSystem {
     return version
   }
 
+  private func checkAndLog(
+    swiftVersion: String,
+    _ prefix: AbsolutePath,
+    _ terminal: TerminalController
+  ) throws -> String? {
+    let swiftPath = prefix.appending(components: swiftVersion, "usr", "bin", "swift")
+
+    guard isFile(swiftPath) else { return nil }
+
+    terminal.write("Inferring basic settings...\n", inColor: .yellow)
+    terminal.logLookup("- swift executable: ", swiftPath)
+    if let output = try processStringOutput([swiftPath.pathString, "--version"]) {
+      terminal.write(output)
+    }
+
+    return swiftPath.pathString
+  }
+
+  private func inferDownloadURL(
+    from version: String,
+    _ client: HTTPClient,
+    _ terminal: TerminalController
+  ) throws -> Foundation.URL? {
+    let releaseURL = """
+    https://api.github.com/repos/swiftwasm/swift/releases/tags/\
+    swift-\(version)
+    """
+
+    terminal.logLookup("Fetching release assets from ", releaseURL)
+    let decoder = JSONDecoder()
+    let request = try HTTPClient.Request.get(url: releaseURL)
+    guard let release = try await({
+      client.execute(request: request).map { response -> Release? in
+        guard let body = response.body else { return nil }
+
+        // swiftlint:disable:next force_try
+        return try! decoder.decode(Release.self, from: body)
+      }.whenComplete($0)
+      }) else { return nil }
+
+    #if os(macOS)
+    let platformSuffixes = ["osx", "catalina"]
+    #elseif os(Linux)
+    let platformSuffixes = ["linux", "ubuntu18.04"]
+    #endif
+
+    return release.assets.map(\.url).filter { url in
+      platformSuffixes.contains { url.absoluteString.contains($0) }
+    }.first
+  }
+
   /** Infer `swift` binary path matching a given version if any is present, or infer the
    version from the `.swift-version` file. If neither version is installed, download it.
    */
@@ -113,26 +164,12 @@ extension FileSystem {
 
     let swiftVersion = try inferSwiftVersion(from: versionSpec, terminal)
 
-    func checkAndLog(_ prefix: AbsolutePath) throws -> String? {
-      let swiftPath = prefix.appending(components: swiftVersion, "usr", "bin", "swift")
-
-      guard isFile(swiftPath) else { return nil }
-
-      terminal.write("Inferring basic settings...\n", inColor: .yellow)
-      terminal.logLookup("- swift executable: ", swiftPath)
-      if let output = try processStringOutput([swiftPath.pathString, "--version"]) {
-        terminal.write(output)
-      }
-
-      return swiftPath.pathString
-    }
-
-    if let path = try checkAndLog(swiftenvVersionsPath) {
+    if let path = try checkAndLog(swiftVersion: swiftVersion, swiftenvVersionsPath, terminal) {
       return path
     }
 
     let sdkPath = cartonSDKPath
-    if let path = try checkAndLog(sdkPath) {
+    if let path = try checkAndLog(swiftVersion: swiftVersion, sdkPath, terminal) {
       return path
     }
 
@@ -140,40 +177,11 @@ extension FileSystem {
     // swiftlint:disable:next force_try
     defer { try! client.syncShutdown() }
 
-    func inferDownloadURL(from version: String) throws -> Foundation.URL? {
-      let releaseURL = """
-      https://api.github.com/repos/swiftwasm/swift/releases/tags/\
-      swift-\(version)
-      """
-
-      terminal.logLookup("Fetching release assets from ", releaseURL)
-      let decoder = JSONDecoder()
-      let request = try HTTPClient.Request.get(url: releaseURL)
-      guard let release = try await({
-        client.execute(request: request).map { response -> Release? in
-          guard let body = response.body else { return nil }
-
-          // swiftlint:disable:next force_try
-          return try! decoder.decode(Release.self, from: body)
-        }.whenComplete($0)
-      }) else { return nil }
-
-      #if os(macOS)
-      let platformSuffixes = ["osx", "catalina"]
-      #elseif os(Linux)
-      let platformSuffixes = ["linux", "ubuntu18.04"]
-      #endif
-
-      return release.assets.map(\.url).filter { url in
-        platformSuffixes.contains { url.absoluteString.contains($0) }
-      }.first
-    }
-
     let downloadURL: Foundation.URL
 
     if let specURL = specURL {
       downloadURL = specURL
-    } else if let inferredURL = try inferDownloadURL(from: swiftVersion) {
+    } else if let inferredURL = try inferDownloadURL(from: swiftVersion, client, terminal) {
       downloadURL = inferredURL
     } else {
       fatalError("Failed to infer download URL for version \(swiftVersion)")
@@ -192,7 +200,7 @@ extension FileSystem {
       terminal
     )
 
-    guard let path = try checkAndLog(sdkPath) else {
+    guard let path = try checkAndLog(swiftVersion: swiftVersion, sdkPath, terminal) else {
       throw ToolchainError.invalidInstallationArchive(installationPath)
     }
 
@@ -290,7 +298,7 @@ extension FileSystem {
 
     return AbsolutePath(binPath)
   }
-  
+
   func fetchAllSwiftVersions() throws -> [String] {
     try getDirectoryContents(cartonSDKPath) + getDirectoryContents(swiftenvVersionsPath)
   }

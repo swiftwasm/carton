@@ -18,14 +18,20 @@ import TestLibrary
 let document = JSObjectRef.global.document.object!
 
 let button = document.createElement!("button").object!
-button.innerText = JSValue(stringLiteral: text)
+button.innerText = .string("Crash!")
 let body = document.body.object!
 _ = body.appendChild!(button)
 
 print(text)
 
+func crash() {
+  let x = [Any]()
+  print(x[1])
+}
+
 let buttonNode = document.getElementsByTagName!("button").object![0].object!
 buttonNode.onclick = .function { _ in
   print(text)
+  crash()
   return .undefined
 }
