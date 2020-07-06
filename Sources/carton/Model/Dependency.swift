@@ -22,7 +22,7 @@ private let archiveHash = ByteString([
   0xA9, 0x45, 0x7D, 0xE2, 0xB8, 0xB0, 0x5B, 0xB0, 0xC2, 0x26, 0xF8, 0x9B, 0x27, 0x94, 0x0B, 0x0A,
 ])
 
-private let archiveURL = "https://github.com/swiftwasm/carton/releases/download/0.1.3/static.zip"
+private let archiveURL = "https://github.com/swiftwasm/carton/releases/download/0.2.0/static.zip"
 
 private let verifyHash = Equality<ByteString, String> {
   """

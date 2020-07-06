@@ -64,7 +64,7 @@ struct Dev: ParsableCommand {
     guard let terminal = TerminalController(stream: stdoutStream)
     else { fatalError("failed to create an instance of `TerminalController`") }
 
-    // try dependency.check(on: localFileSystem, terminal)
+    try dependency.check(on: localFileSystem, terminal)
     let swiftPath = try localFileSystem.inferSwiftPath(terminal)
     guard let product = try Package(with: swiftPath, terminal)
       .inferDevProduct(with: swiftPath, option: product, terminal)
