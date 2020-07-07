@@ -136,7 +136,7 @@ extension FileSystem {
         // swiftlint:disable:next force_try
         return try! decoder.decode(Release.self, from: body)
       }.whenComplete($0)
-      }) else { return nil }
+    }) else { return nil }
 
     #if os(macOS)
     let platformSuffixes = ["osx", "catalina"]
@@ -311,6 +311,6 @@ extension FileSystem {
       try result.append(contentsOf: getDirectoryContents(swiftenvVersionsPath))
     }
 
-    return result
+    return result.sorted()
   }
 }
