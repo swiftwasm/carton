@@ -227,15 +227,12 @@ extension FileSystem {
     let delegate = try FileDownloadDelegate(
       path: archivePath.pathString,
       reportHead: {
-        guard
-          $0.status == .ok,
-          let totalBytesString = $0.headers.first(name: "Content-Length"),
-          let totalBytes = Int(totalBytesString)
+        guard $0.status == .ok,
+          let totalBytes = $0.headers.first(name: "Content-Length").flatMap(Int.init)
         else {
           subject.send(completion: .failure(ToolchainError.invalidResponseCode($0.status.code)))
           return
         }
-
         terminal.write("Archive size is \(totalBytes / 1_000_000) MB\n", inColor: .yellow)
       },
       reportProgress: {
@@ -257,10 +254,7 @@ extension FileSystem {
 
       subject
         .handle(
-          with: PercentProgressAnimation(
-            stream: stdoutStream,
-            header: "Downloading the archive"
-          ),
+          with: PercentProgressAnimation(stream: stdoutStream, header: "Downloading the archive"),
           terminal
         )
         .sink(
