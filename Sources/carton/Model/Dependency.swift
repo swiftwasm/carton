@@ -65,6 +65,8 @@ struct Dependency {
         let bytes = body.readBytes(length: body.readableBytes)
       else { throw DependencyError.downloadFailed(url: archiveURL) }
 
+      terminal.logLookup("Polyfills archive successfully downloaded from ", archiveURL)
+
       let downloadedArchive = ByteString(bytes)
 
       let downloadedHash = SHA256().hash(downloadedArchive)
