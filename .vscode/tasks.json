@@ -19,6 +19,11 @@
       "command": "swift run carton sdk install"
     },
     {
+      "label": "build and run sdk versions",
+      "type": "shell",
+      "command": "swift run carton sdk versions"
+    },
+    {
       "label": "build and version",
       "type": "shell",
       "command": "swift run carton --version"
