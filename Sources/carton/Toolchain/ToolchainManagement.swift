@@ -301,6 +301,16 @@ extension FileSystem {
   }
 
   func fetchAllSwiftVersions() throws -> [String] {
-    try getDirectoryContents(cartonSDKPath) + getDirectoryContents(swiftenvVersionsPath)
+    var result = [String]()
+
+    if isDirectory(cartonSDKPath) {
+      try result.append(contentsOf: getDirectoryContents(cartonSDKPath))
+    }
+
+    if isDirectory(swiftenvVersionsPath) {
+      try result.append(contentsOf: getDirectoryContents(swiftenvVersionsPath))
+    }
+
+    return result
   }
 }
