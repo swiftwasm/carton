@@ -1,6 +1,20 @@
+# 0.3.1 (7 July 2020)
+
+This is a bugfix release that fixes SwiftWasm backtrace reporting in certain cases and also enables
+sorting for the output of the `carton sdk versions` subcommand.
+
+**Merged pull requests:**
+
+- Fix backtrace logging for async startWasiTask ([#30](https://github.com/swiftwasm/carton/pull/30)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Sort the output of `carton sdk versions` ([#29](https://github.com/swiftwasm/carton/pull/29)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+
 # 0.3.0 (7 July 2020)
 
-This is a release that adds a new `carton sdk versions` subcomand, new `--release` flag and a new `--destination` option to the `carton dev` command. Additionally, archive size is logged when a new SDK is downloaded, and backtrace logging is improved in browser consoles for crashing SwiftWasm apps. Many thanks to [@RayZhao1998](https://github.com/RayZhao1998) and [@ratranqu](https://github.com/ratranqu) for their contributions! 👏
+This is a release that adds a new `carton sdk versions` subcomand, new `--release` flag and a new
+`--destination` option to the `carton dev` command. Additionally, archive size is logged when a new
+SDK is downloaded, and backtrace logging is improved in browser consoles for crashing SwiftWasm
+apps. Many thanks to [@RayZhao1998](https://github.com/RayZhao1998) and
+[@ratranqu](https://github.com/ratranqu) for their contributions! 👏
 
 **Closed issues:**
 
