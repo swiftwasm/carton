@@ -1,3 +1,19 @@
+# 0.3.0 (7 July 2020)
+
+This is a release that adds a new `carton sdk versions` subcomand, new `--release` flag and a new `--destination` option to the `carton dev` command. Additionally, archive size is logged when a new SDK is downloaded, and backtrace logging is improved in browser consoles for crashing SwiftWasm apps. Many thanks to [@RayZhao1998](https://github.com/RayZhao1998) and [@ratranqu](https://github.com/ratranqu) for their contributions! 👏
+
+**Closed issues:**
+
+- Support linking with Foundation/CoreFoundation ([#11](https://github.com/swiftwasm/carton/issues/11))
+
+**Merged pull requests:**
+
+- Log archive size when downloading new SDK ([#28](https://github.com/swiftwasm/carton/pull/28)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update WASI polyfill, print a backtrace on crash ([#27](https://github.com/swiftwasm/carton/pull/27)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Support `carton sdk versions` ([#21](https://github.com/swiftwasm/carton/pull/21)) via [@RayZhao1998](https://github.com/RayZhao1998)
+- Add a --release flag to the carton dev command ([#19](https://github.com/swiftwasm/carton/pull/19)) via [@ratranqu](https://github.com/ratranqu)
+- Add --destination option to the `carton dev` command ([#18](https://github.com/swiftwasm/carton/pull/18)) via [@ratranqu](https://github.com/ratranqu)
+
 # 0.2.0 (26 June 2020)
 
 This release introduces a new `carton sdk install` command that allows
