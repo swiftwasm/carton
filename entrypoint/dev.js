@@ -58,11 +58,15 @@ const startWasiTask = async () => {
   wasi.start(instance);
 };
 
-try {
-  startWasiTask();
-} catch (e) {
-  console.log(e);
-  if (e instanceof RuntimeError) {
+function handleError(e) {
+  console.error(e);
+  if (e instanceof WebAssembly.RuntimeError) {
     console.log(e.stack);
   }
+}
+
+try {
+  startWasiTask().catch(handleError);
+} catch (e) {
+  handleError(e);
 }
