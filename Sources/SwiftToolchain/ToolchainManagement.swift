@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import AsyncHTTPClient
+import CartonHelpers
 import Foundation
 import OpenCombine
 import TSCBasic
@@ -41,25 +42,6 @@ private struct Release: Decodable {
   let assets: [Asset]
 }
 
-enum ToolchainError: Error, CustomStringConvertible {
-  case directoryDoesNotExist(AbsolutePath)
-  case invalidResponseCode(UInt)
-  case invalidInstallationArchive(AbsolutePath)
-
-  var description: String {
-    switch self {
-    case let .directoryDoesNotExist(path):
-      return "Directory at path \(path.pathString) does not exist and could not be created"
-    case let .invalidResponseCode(code):
-      return """
-      While attempting to download an archive, the server returned an invalid response code \(code)
-      """
-    case let .invalidInstallationArchive(path):
-      return "Invalid toolchain/SDK archive was installed at path \(path)"
-    }
-  }
-}
-
 extension FileSystem {
   private var swiftenvVersionsPath: AbsolutePath {
     homeDirectory.appending(components: ".swiftenv", "versions")
@@ -69,7 +51,7 @@ extension FileSystem {
     homeDirectory.appending(components: ".carton", "sdk")
   }
 
-  private func inferSwiftVersion(
+  func inferSwiftVersion(
     from versionSpec: String? = nil,
     _ terminal: TerminalController
   ) throws -> String {
@@ -102,7 +84,7 @@ extension FileSystem {
     swiftVersion: String,
     _ prefix: AbsolutePath,
     _ terminal: TerminalController
-  ) throws -> String? {
+  ) throws -> AbsolutePath? {
     let swiftPath = prefix.appending(components: swiftVersion, "usr", "bin", "swift")
 
     guard isFile(swiftPath) else { return nil }
@@ -113,7 +95,7 @@ extension FileSystem {
       terminal.write(output)
     }
 
-    return swiftPath.pathString
+    return swiftPath
   }
 
   private func inferDownloadURL(
@@ -152,7 +134,10 @@ extension FileSystem {
   /** Infer `swift` binary path matching a given version if any is present, or infer the
    version from the `.swift-version` file. If neither version is installed, download it.
    */
-  func inferSwiftPath(versionSpec: String? = nil, _ terminal: TerminalController) throws -> String {
+  func inferSwiftPath(
+    from versionSpec: String? = nil,
+    _ terminal: TerminalController
+  ) throws -> (AbsolutePath, String) {
     let specURL = versionSpec.flatMap { (string: String) -> Foundation.URL? in
       guard
         let url = Foundation.URL(string: string),
@@ -165,12 +150,12 @@ extension FileSystem {
     let swiftVersion = try inferSwiftVersion(from: versionSpec, terminal)
 
     if let path = try checkAndLog(swiftVersion: swiftVersion, swiftenvVersionsPath, terminal) {
-      return path
+      return (path, swiftVersion)
     }
 
     let sdkPath = cartonSDKPath
     if let path = try checkAndLog(swiftVersion: swiftVersion, sdkPath, terminal) {
-      return path
+      return (path, swiftVersion)
     }
 
     let client = HTTPClient(eventLoopGroupProvider: .createNew)
@@ -204,10 +189,10 @@ extension FileSystem {
       throw ToolchainError.invalidInstallationArchive(installationPath)
     }
 
-    return path
+    return (path, swiftVersion)
   }
 
-  func installSDK(
+  private func installSDK(
     version: String,
     from url: Foundation.URL,
     to sdkPath: AbsolutePath,
@@ -289,18 +274,7 @@ extension FileSystem {
     return installationPath
   }
 
-  func inferBinPath(swiftPath: String) throws -> AbsolutePath {
-    guard
-      let output = try processStringOutput([
-        swiftPath, "build", "--triple", "wasm32-unknown-wasi", "--show-bin-path",
-      ])?.components(separatedBy: CharacterSet.newlines),
-      let binPath = output.first
-    else { fatalError("failed to decode UTF8 output of the `swift build` invocation") }
-
-    return AbsolutePath(binPath)
-  }
-
-  func fetchAllSwiftVersions() throws -> [String] {
+  public func fetchAllSwiftVersions() throws -> [String] {
     var result = [String]()
 
     if isDirectory(cartonSDKPath) {

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import ArgumentParser
+import SwiftToolchain
 import TSCBasic
 
 struct Install: ParsableCommand {
@@ -26,7 +27,7 @@ struct Install: ParsableCommand {
     guard let terminal = TerminalController(stream: stdoutStream)
     else { fatalError("failed to create an instance of `TerminalController`") }
 
-    _ = try localFileSystem.inferSwiftPath(versionSpec: version, terminal)
+    _ = try Toolchain(for: version, localFileSystem, terminal)
     terminal.write("\nSDK successfully installed!\n", inColor: .green)
   }
 }

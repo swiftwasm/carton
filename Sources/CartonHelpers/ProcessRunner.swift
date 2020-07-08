@@ -21,12 +21,12 @@ struct ProcessRunnerError: Error, CustomStringConvertible {
   let description: String
 }
 
-final class ProcessRunner {
-  let publisher: AnyPublisher<String, Error>
+public final class ProcessRunner {
+  public let publisher: AnyPublisher<String, Error>
 
   private var subscription: AnyCancellable?
 
-  init(_ arguments: [String], _ terminal: TerminalController) {
+  public init(_ arguments: [String], _ terminal: TerminalController) {
     let subject = PassthroughSubject<String, Error>()
     publisher = subject
       .handleEvents(
@@ -89,7 +89,7 @@ final class ProcessRunner {
     }
   }
 
-  func waitUntilFinished() throws {
+  public func waitUntilFinished() throws {
     try await { completion in
       subscription = publisher
         .sink(

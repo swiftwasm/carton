@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import ArgumentParser
+import SwiftToolchain
 import TSCBasic
 
 struct Versions: ParsableCommand {

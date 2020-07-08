@@ -12,4 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-let defaultToolchainVersion = "wasm-DEVELOPMENT-SNAPSHOT-2020-06-12-a"
+import AsyncHTTPClient
+import Foundation
+
+public extension HTTPClient.Request {
+  static func get(url: URL) throws -> Self {
+    try get(url: url.absoluteString)
+  }
+
+  static func get(url: String) throws -> Self {
+    var request = try HTTPClient.Request(url: url)
+    request.headers.add(name: "User-Agent", value: "carton \(cartonVersion)")
+    return request
+  }
+}

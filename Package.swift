@@ -30,6 +30,25 @@ let package = Package(
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
         .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
         .product(name: "Vapor", package: "vapor"),
+        "CartonHelpers",
+        "OpenCombine",
+        "SwiftToolchain",
+      ]
+    ),
+    .target(
+      name: "SwiftToolchain",
+      dependencies: [
+        .product(name: "AsyncHTTPClient", package: "async-http-client"),
+        .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
+        "CartonHelpers",
+        "OpenCombine",
+      ]
+    ),
+    .target(
+      name: "CartonHelpers",
+      dependencies: [
+        .product(name: "AsyncHTTPClient", package: "async-http-client"),
+        .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
         "OpenCombine",
       ]
     ),

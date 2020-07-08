@@ -12,13 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import ArgumentParser
-import CartonHelpers
-
-struct Carton: ParsableCommand {
-  static var configuration = CommandConfiguration(
-    abstract: "📦 Watcher, bundler, and test runner for your SwiftWasm apps.",
-    version: cartonVersion,
-    subcommands: [Dev.self, SDK.self]
-  )
-}
+public let defaultToolchainVersion = "wasm-DEVELOPMENT-SNAPSHOT-2020-06-12-a"
