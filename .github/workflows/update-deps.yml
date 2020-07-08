@@ -14,6 +14,7 @@ jobs:
           token: ${{ secrets.PAT }}
           commit-message: Update dependencies
           title: Update dependencies
+          labels: dependencies
           body: |
             - Dependency updates
 
