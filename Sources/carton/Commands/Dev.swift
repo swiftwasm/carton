@@ -15,28 +15,8 @@
 import ArgumentParser
 import Foundation
 import OpenCombine
+import SwiftToolchain
 import TSCBasic
-
-func processDataOutput(_ arguments: [String]) throws -> [UInt8] {
-  let process = Process(arguments: arguments, startNewProcessGroup: false)
-  try process.launch()
-  let result = try process.waitUntilExit()
-
-  guard case .terminated(code: EXIT_SUCCESS) = result.exitStatus else {
-    var description = "Process failed with non-zero exit status"
-    if let output = try ByteString(result.output.get()).validDescription, !output.isEmpty {
-      description += " and following output:\n\(output)"
-    }
-
-    if let output = try ByteString(result.stderrOutput.get()).validDescription {
-      description += " and following error output:\n\(output)"
-    }
-
-    throw ProcessRunnerError(description: description)
-  }
-
-  return try result.output.get()
-}
 
 private let dependency = Dependency(
   fileName: "dev.js",
@@ -54,7 +34,7 @@ struct Dev: ParsableCommand {
   var destination: String?
 
   @Flag(help: "When specified, will build in release mode.")
-  var release: Bool = false
+  var release = false
 
   static var configuration = CommandConfiguration(
     abstract: "Watch the current directory, host the app, rebuild on change."
@@ -65,31 +45,12 @@ struct Dev: ParsableCommand {
     else { fatalError("failed to create an instance of `TerminalController`") }
 
     try dependency.check(on: localFileSystem, terminal)
-    let swiftPath = try localFileSystem.inferSwiftPath(terminal)
-    guard let product = try Package(with: swiftPath, terminal)
-      .inferDevProduct(with: swiftPath, option: product, terminal)
-    else { return }
 
-    let binPath = try localFileSystem.inferBinPath(swiftPath: swiftPath)
-    let mainWasmPath = binPath.appending(component: product)
-    terminal.logLookup("- development binary to serve: ", mainWasmPath.pathString)
-
-    terminal.preWatcherBuildNotice()
-
-    var builderArguments = [swiftPath, "build", "-c", release ? "release" : "debug", "--triple",
-                            "wasm32-unknown-wasi", "--product", product]
-    if let destination = destination {
-      builderArguments.append(contentsOf: ["--destination", destination])
-    }
-
-    try ProcessRunner(builderArguments, terminal).waitUntilFinished()
-
-    guard localFileSystem.exists(mainWasmPath) else {
-      return terminal.write(
-        "Failed to build the main executable binary, fix the build errors and restart\n",
-        inColor: .red
-      )
-    }
+    let (arguments, mainWasmPath) = try Toolchain(localFileSystem, terminal).buildCurrentProject(
+      product: product,
+      destination: destination,
+      release: release
+    )
 
     guard let sources = localFileSystem.currentWorkingDirectory?.appending(component: "Sources")
     else { fatalError("failed to infer the sources directory") }
@@ -99,7 +60,7 @@ struct Dev: ParsableCommand {
     terminal.write("\n")
 
     try Server(
-      builderArguments: builderArguments,
+      builderArguments: arguments,
       pathsToWatch: localFileSystem.traverseRecursively(sources),
       mainWasmPath: mainWasmPath.pathString,
       terminal

@@ -14,13 +14,22 @@
 
 import TSCBasic
 
-extension TerminalController {
-  func logLookup<T: CustomStringConvertible>(_ description: String, _ target: T) {
-    write(description)
-    write("\(target)\n", inColor: .cyan, bold: true)
-  }
+struct Destination: Encodable {
+  let version = 1
+  let target = "wasm32-unknown-wasi"
+  let sdk: AbsolutePath
+  let toolchainBinDir: AbsolutePath
+  let extraCCFlags: [String]
+  let extraSwiftcFlags: [String]
+  let extraCPPFlags = [String]()
 
-  func preWatcherBuildNotice() {
-    write("\nBuilding the project before spinning up a server...\n", inColor: .yellow)
+  enum CodingKeys: String, CodingKey {
+    case version
+    case target
+    case sdk
+    case toolchainBinDir = "toolchain-bin-dir"
+    case extraCCFlags = "extra-cc-flags"
+    case extraSwiftcFlags = "extra-swiftc-flags"
+    case extraCPPFlags = "extra-cpp-flags"
   }
 }

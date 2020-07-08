@@ -12,17 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import AsyncHTTPClient
-import Foundation
+import TSCBasic
 
-extension HTTPClient.Request {
-  static func get(url: URL) throws -> Self {
-    try get(url: url.absoluteString)
-  }
-
-  static func get(url: String) throws -> Self {
-    var request = try HTTPClient.Request(url: url)
-    request.headers.add(name: "User-Agent", value: "carton \(cartonVersion)")
-    return request
+public extension TerminalController {
+  func logLookup<T: CustomStringConvertible>(_ description: String, _ target: T) {
+    write(description)
+    write("\(target)\n", inColor: .cyan, bold: true)
   }
 }
