@@ -10,7 +10,7 @@ sorting for the output of the `carton sdk versions` subcommand.
 
 # 0.3.0 (7 July 2020)
 
-This is a release that adds a new `carton sdk versions` subcomand, new `--release` flag and a new
+This is a release that adds a new `carton sdk versions` subcommand, new `--release` flag and a new
 `--destination` option to the `carton dev` command. Additionally, archive size is logged when a new
 SDK is downloaded, and backtrace logging is improved in browser consoles for crashing SwiftWasm
 apps. Many thanks to [@RayZhao1998](https://github.com/RayZhao1998) and
