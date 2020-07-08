@@ -46,7 +46,7 @@ public final class Toolchain {
   private let terminal: TerminalController
 
   private let version: String
-  let swiftPath: AbsolutePath
+  private let swiftPath: AbsolutePath
 
   public init(
     for versionSpec: String? = nil,
@@ -58,7 +58,7 @@ public final class Toolchain {
     self.terminal = terminal
   }
 
-  func inferBinPath() throws -> AbsolutePath {
+  private func inferBinPath() throws -> AbsolutePath {
     guard
       let output = try processStringOutput([
         swiftPath.pathString, "build", "--triple", "wasm32-unknown-wasi", "--show-bin-path",
@@ -69,7 +69,7 @@ public final class Toolchain {
     return AbsolutePath(binPath)
   }
 
-  func inferDevProduct(hint: String?) throws -> String? {
+  private func inferDevProduct(hint: String?) throws -> String? {
     let package = try Package(with: swiftPath, terminal)
 
     var candidateProducts = package.products
