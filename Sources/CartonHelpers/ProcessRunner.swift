@@ -14,7 +14,11 @@
 
 import Dispatch
 import Foundation
+#if canImport(Combine)
+import Combine
+#else
 import OpenCombine
+#endif
 import TSCBasic
 
 struct ProcessRunnerError: Error, CustomStringConvertible {

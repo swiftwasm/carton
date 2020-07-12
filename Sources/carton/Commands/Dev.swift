@@ -14,7 +14,11 @@
 
 import ArgumentParser
 import Foundation
+#if canImport(Combine)
+import Combine
+#else
 import OpenCombine
+#endif
 import SwiftToolchain
 import TSCBasic
 

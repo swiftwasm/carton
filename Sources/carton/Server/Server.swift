@@ -13,7 +13,11 @@
 // limitations under the License.
 
 import CartonHelpers
+#if canImport(Combine)
+import Combine
+#else
 import OpenCombine
+#endif
 import TSCBasic
 import Vapor
 
