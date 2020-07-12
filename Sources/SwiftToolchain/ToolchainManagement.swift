@@ -15,7 +15,11 @@
 import AsyncHTTPClient
 import CartonHelpers
 import Foundation
+#if canImport(Combine)
+import Combine
+#else
 import OpenCombine
+#endif
 import TSCBasic
 import TSCUtility
 

@@ -13,7 +13,11 @@
 // limitations under the License.
 
 import ArgumentParser
+#if canImport(Combine)
+import Combine
+#else
 import OpenCombine
+#endif
 import TSCBasic
 
 private let dependency = Dependency(

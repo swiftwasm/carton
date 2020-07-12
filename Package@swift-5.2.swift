@@ -1,13 +1,7 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.2
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
-
-let openCombineProduct: Target.Dependency = .product(
-  name: "OpenCombine",
-  package: "OpenCombine",
-  condition: .when(platforms: [.linux])
-)
 
 let package = Package(
   name: "carton",
@@ -37,7 +31,7 @@ let package = Package(
         .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
         .product(name: "Vapor", package: "vapor"),
         "CartonHelpers",
-        openCombineProduct,
+        "OpenCombine",
         "SwiftToolchain",
       ]
     ),
@@ -47,7 +41,7 @@ let package = Package(
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
         .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
         "CartonHelpers",
-        openCombineProduct,
+        "OpenCombine",
       ]
     ),
     .target(
@@ -55,7 +49,7 @@ let package = Package(
       dependencies: [
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
         .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
-        openCombineProduct,
+        "OpenCombine",
       ]
     ),
     // This target is used only for release automation tasks and
