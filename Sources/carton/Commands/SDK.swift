@@ -17,6 +17,6 @@ import ArgumentParser
 struct SDK: ParsableCommand {
   static var configuration = CommandConfiguration(
     abstract: "Manage installed Swift toolchains and SDKs.",
-    subcommands: [Install.self, Versions.self]
+    subcommands: [Install.self, Versions.self, Local.self]
   )
 }
