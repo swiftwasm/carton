@@ -135,6 +135,55 @@ extension FileSystem {
     }.first
   }
 
+  public func inferDestinationPath(
+    for version: String,
+    swiftPath: AbsolutePath
+  ) throws -> AbsolutePath {
+    let sdkPath = cartonSDKPath
+
+    if !isDirectory(sdkPath) {
+      try createDirectory(sdkPath, recursive: true)
+    }
+
+    let destinationPath = sdkPath.appending(component: "\(version).json")
+
+    guard !isFile(destinationPath) else {
+      return destinationPath
+    }
+
+    let sdkRoot = swiftPath.parentDirectory.parentDirectory
+    let wasiSysroot = sdkRoot.appending(components: "share", "wasi-syroot")
+    let binDir = sdkRoot.appending(component: "bin")
+    let wasm32Dir = sdkRoot.appending(components: "lib", "swift", "wasi", "wasm32")
+    let includeFlags = ["-I", wasm32Dir.pathString]
+
+    let destination = Destination(
+      sdk: wasiSysroot,
+      toolchainBinDir: binDir,
+      extraCCFlags: includeFlags,
+      extraSwiftcFlags: includeFlags + [
+        "-Xlinker",
+        "-lFoundation",
+        "-Xlinker",
+        "-lCoreFoundation",
+        "-Xlinker",
+        "-lBlocksRuntime",
+        "-Xlinker",
+        "-licui18n",
+        "-Xlinker",
+        "-luuid",
+      ]
+    )
+
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = .prettyPrinted
+
+    let data = try encoder.encode(destination)
+    try data.write(to: destinationPath.asURL)
+
+    return destinationPath
+  }
+
   /** Infer `swift` binary path matching a given version if any is present, or infer the
    version from the `.swift-version` file. If neither version is installed, download it.
    */
