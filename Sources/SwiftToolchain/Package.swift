@@ -54,4 +54,5 @@ enum TargetType: String, Codable {
 struct Target: Codable {
   let name: String
   let type: TargetType
+  let path: String?
 }

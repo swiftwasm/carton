@@ -12,28 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import JavaScriptKit
-import TestLibrary
-import CustomPathTarget
-
-let document = JSObjectRef.global.document.object!
-
-let button = document.createElement!("button").object!
-button.innerText = .string("Crash!")
-let body = document.body.object!
-_ = body.appendChild!(button)
-
-print(text)
-print(customTargetText)
-
-func crash() {
-  let x = [Any]()
-  print(x[1])
-}
-
-let buttonNode = document.getElementsByTagName!("button").object![0].object!
-buttonNode.onclick = .function { _ in
-  print(text)
-  crash()
-  return .undefined
-}
+public let customTargetText = "Hello, custom target!"

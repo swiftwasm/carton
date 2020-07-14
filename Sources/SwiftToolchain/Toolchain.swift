@@ -106,6 +106,24 @@ public final class Toolchain {
       return nil
     }
   }
+    
+  public func inferSourcePaths() throws -> [String] {
+    let package = try Package(with: swiftPath, terminal)
+    
+    let targetPaths = package.targets.map { target -> String in
+        guard let path = target.path else {
+            switch target.type {
+            case .regular:
+                return "Sources/\(target.name)"
+            case .test:
+                return "Tests/\(target.name)"
+            }
+        }
+        return path
+    }
+    
+    return targetPaths
+  }
 
   public func buildCurrentProject(
     product: String?,
