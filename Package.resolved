@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/vapor/console-kit.git",
         "state": {
           "branch": null,
-          "revision": "9b5842b47be1a3164a42811613dce09bf5bf1f91",
-          "version": "4.1.3"
+          "revision": "310f714b4ac4032946fd2c7984e8082a99f7dd49",
+          "version": "4.2.0"
         }
       },
       {
@@ -150,8 +150,8 @@
         "repositoryURL": "https://github.com/vapor/websocket-kit.git",
         "state": {
           "branch": null,
-          "revision": "021edd1ca55451ad15b3e84da6b4064e4b877b34",
-          "version": "2.1.0"
+          "revision": "b0736014be634475dac4c23843811257d86dcdc1",
+          "version": "2.1.1"
         }
       }
     ]
