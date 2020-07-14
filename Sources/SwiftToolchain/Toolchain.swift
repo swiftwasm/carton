@@ -106,6 +106,24 @@ public final class Toolchain {
       return nil
     }
   }
+    
+  public func inferSourcesPaths() throws -> [String] {
+    let package = try Package(with: swiftPath, terminal)
+    
+    let targetPaths = package.targets.compactMap { target -> String? in
+        guard let path = target.path else {
+            switch target.type {
+            case .regular:
+                return "Sources/\(target.name)"
+            case .test:
+                return nil
+            }
+        }
+        return path
+    }
+    
+    return targetPaths
+  }
 
   private func inferDestinationPath() throws -> AbsolutePath {
     try fileSystem.inferDestinationPath(for: version, swiftPath: swiftPath)

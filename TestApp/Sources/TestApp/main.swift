@@ -15,6 +15,7 @@
 import Foundation
 import JavaScriptKit
 import TestLibrary
+import CustomPathTarget
 
 let document = JSObjectRef.global.document.object!
 
@@ -24,6 +25,7 @@ let body = document.body.object!
 _ = body.appendChild!(button)
 
 print("Number of seconds since epoch: \(Date().timeIntervalSince1970)")
+print(customTargetText)
 
 func crash() {
   let x = [Any]()
