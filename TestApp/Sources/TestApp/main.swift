@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import Foundation
 import JavaScriptKit
 import TestLibrary
 import CustomPathTarget
@@ -23,7 +24,7 @@ button.innerText = .string("Crash!")
 let body = document.body.object!
 _ = body.appendChild!(button)
 
-print(text)
+print("Number of seconds since epoch: \(Date().timeIntervalSince1970)")
 print(customTargetText)
 
 func crash() {

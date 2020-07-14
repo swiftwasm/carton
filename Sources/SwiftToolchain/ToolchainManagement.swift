@@ -55,6 +55,14 @@ extension FileSystem {
     homeDirectory.appending(components: ".carton", "sdk")
   }
 
+  private func getDirectoryPaths(_ directoryPath: AbsolutePath) throws -> [AbsolutePath] {
+    if isDirectory(directoryPath) {
+      return try getDirectoryContents(directoryPath).map { directoryPath.appending(component: $0) }
+    } else {
+      return []
+    }
+  }
+
   func inferSwiftVersion(
     from versionSpec: String? = nil,
     _ terminal: TerminalController
@@ -133,6 +141,55 @@ extension FileSystem {
     return release.assets.map(\.url).filter { url in
       platformSuffixes.contains { url.absoluteString.contains($0) }
     }.first
+  }
+
+  public func inferDestinationPath(
+    for version: String,
+    swiftPath: AbsolutePath
+  ) throws -> AbsolutePath {
+    let sdkPath = cartonSDKPath
+
+    if !isDirectory(sdkPath) {
+      try createDirectory(sdkPath, recursive: true)
+    }
+
+    let destinationPath = sdkPath.appending(component: "\(version).json")
+
+    guard !isFile(destinationPath) else {
+      return destinationPath
+    }
+
+    let sdkRoot = swiftPath.parentDirectory.parentDirectory
+    let wasiSysroot = sdkRoot.appending(components: "share", "wasi-syroot")
+    let binDir = sdkRoot.appending(component: "bin")
+    let wasm32Dir = sdkRoot.appending(components: "lib", "swift", "wasi", "wasm32")
+    let includeFlags = ["-I", wasm32Dir.pathString]
+
+    let destination = Destination(
+      sdk: wasiSysroot,
+      toolchainBinDir: binDir,
+      extraCCFlags: includeFlags,
+      extraSwiftcFlags: includeFlags + [
+        "-Xlinker",
+        "-lFoundation",
+        "-Xlinker",
+        "-lCoreFoundation",
+        "-Xlinker",
+        "-lBlocksRuntime",
+        "-Xlinker",
+        "-licui18n",
+        "-Xlinker",
+        "-luuid",
+      ]
+    )
+
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = .prettyPrinted
+
+    let data = try encoder.encode(destination)
+    try data.write(to: destinationPath.asURL)
+
+    return destinationPath
   }
 
   /** Infer `swift` binary path matching a given version if any is present, or infer the
@@ -282,11 +339,13 @@ extension FileSystem {
     var result = [String]()
 
     if isDirectory(cartonSDKPath) {
-      try result.append(contentsOf: getDirectoryContents(cartonSDKPath))
+      try result.append(contentsOf: getDirectoryPaths(cartonSDKPath)
+        .filter { isDirectory($0) }.map(\.basename))
     }
 
     if isDirectory(swiftenvVersionsPath) {
-      try result.append(contentsOf: getDirectoryContents(swiftenvVersionsPath))
+      try result.append(contentsOf: getDirectoryPaths(swiftenvVersionsPath)
+        .filter { isDirectory($0) }.map(\.basename))
     }
 
     return result.sorted()

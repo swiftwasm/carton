@@ -125,6 +125,10 @@ public final class Toolchain {
     return targetPaths
   }
 
+  private func inferDestinationPath() throws -> AbsolutePath {
+    try fileSystem.inferDestinationPath(for: version, swiftPath: swiftPath)
+  }
+
   public func buildCurrentProject(
     product: String?,
     destination: String?,
@@ -140,12 +144,10 @@ public final class Toolchain {
     terminal.write("\nBuilding the project before spinning up a server...\n", inColor: .yellow)
 
     var builderArguments = [
-      swiftPath.pathString, "build", "-c", release ? "release" : "debug",
-      "--triple", "wasm32-unknown-wasi", "--product", product,
+      swiftPath.pathString, "build", "-c", release ? "release" : "debug", "--product", product,
     ]
-    if let destination = destination {
-      builderArguments.append(contentsOf: ["--destination", destination])
-    }
+    let destination = try destination ?? inferDestinationPath().pathString
+    builderArguments.append(contentsOf: ["--destination", destination])
 
     try ProcessRunner(builderArguments, terminal).waitUntilFinished()
 
