@@ -107,7 +107,7 @@ public final class Toolchain {
     }
   }
     
-  public func inferSourcePaths() throws -> [String] {
+  public func inferSourcesPaths() throws -> [String] {
     let package = try Package(with: swiftPath, terminal)
     
     let targetPaths = package.targets.compactMap { target -> String? in
