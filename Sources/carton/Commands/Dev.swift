@@ -58,7 +58,7 @@ struct Dev: ParsableCommand {
       release: release
     )
     
-    let sources = try toolchain.inferSourcePaths().map { source -> [AbsolutePath] in
+    let sources = try toolchain.inferSourcesPaths().map { source -> [AbsolutePath] in
         let relativePath = try RelativePath(validating: source)
         guard let sources = localFileSystem.currentWorkingDirectory?.appending(relativePath)
         else { fatalError("failed to infer the sources directory") }
