@@ -25,7 +25,7 @@ struct Package: Codable {
   let targets: [Target]
 
   init(with swiftPath: AbsolutePath, _ terminal: TerminalController) throws {
-    terminal.write("Parsing package manifest: ", inColor: .yellow)
+    terminal.write("\nParsing package manifest: ", inColor: .yellow)
     terminal.write("\(swiftPath) package dump-package\n")
     let output = try Data(processDataOutput([swiftPath.pathString, "package", "dump-package"]))
 
