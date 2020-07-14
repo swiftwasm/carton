@@ -47,7 +47,7 @@ final class Server {
   ) throws {
     watcher = try Watcher(pathsToWatch)
 
-    var env = Environment.development
+    var env = Environment(name: "development", arguments: ["vapor"])
     try LoggingSystem.bootstrap(from: &env)
     app = Application(env)
     app.configure(

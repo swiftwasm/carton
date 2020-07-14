@@ -49,25 +49,25 @@ struct Dev: ParsableCommand {
     else { fatalError("failed to create an instance of `TerminalController`") }
 
     try dependency.check(on: localFileSystem, terminal)
-    
+
     let toolchain = try Toolchain(localFileSystem, terminal)
-    
-    let (arguments,mainWasmPath) = try toolchain.buildCurrentProject(
+
+    let (arguments, mainWasmPath) = try toolchain.buildCurrentProject(
       product: product,
       destination: destination,
       release: release
     )
-    
+
     let sources = try toolchain.inferSourcesPaths().map { source -> [AbsolutePath] in
-        let relativePath = try RelativePath(validating: source)
-        guard let sources = localFileSystem.currentWorkingDirectory?.appending(relativePath)
-        else { fatalError("failed to infer the sources directory") }
-        
-        terminal.write("\nWatching this directory for changes: ", inColor: .green)
-        terminal.logLookup("", sources)
-        terminal.write("\n")
-        
-        return try localFileSystem.traverseRecursively(sources)
+      let relativePath = try RelativePath(validating: source)
+      guard let sources = localFileSystem.currentWorkingDirectory?.appending(relativePath)
+      else { fatalError("failed to infer the sources directory") }
+
+      terminal.write("\nWatching this directory for changes: ", inColor: .green)
+      terminal.logLookup("", sources)
+      terminal.write("\n")
+
+      return try localFileSystem.traverseRecursively(sources)
     }.flatMap { $0 }
 
     try Server(
