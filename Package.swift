@@ -23,7 +23,7 @@ let package = Package(
       .upToNextMinor(from: "0.1.3")
     ),
     .package(url: "https://github.com/OpenCombine/OpenCombine.git", from: "0.10.0"),
-    .package(url: "https://github.com/vapor/vapor.git", .upToNextMinor(from: "4.5.0")),
+    .package(url: "https://github.com/vapor/vapor.git", from: "4.15.2"),
   ],
   targets: [
     // Targets are the basic building blocks of a package. A target can define a module
