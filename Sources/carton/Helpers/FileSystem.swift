@@ -18,7 +18,7 @@ import TSCBasic
 extension FileSystem {
   func traverseRecursively(_ root: AbsolutePath) throws -> [AbsolutePath] {
     precondition(isDirectory(root))
-    var result = [AbsolutePath]()
+    var result = [root]
 
     var pathsToTraverse = [root]
     while let currentDirectory = pathsToTraverse.popLast() {

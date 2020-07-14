@@ -107,7 +107,7 @@ public final class Toolchain {
     }
   }
 
-  public func inferSourcesPaths() throws -> [String] {
+  public func inferSourcesPaths() throws -> [AbsolutePath] {
     let package = try Package(with: swiftPath, terminal)
 
     let targetPaths = package.targets.compactMap { target -> String? in
@@ -122,7 +122,9 @@ public final class Toolchain {
       return path
     }
 
-    return targetPaths
+    return try targetPaths.compactMap {
+      try fileSystem.currentWorkingDirectory?.appending(RelativePath(validating: $0))
+    }
   }
 
   private func inferDestinationPath() throws -> AbsolutePath {

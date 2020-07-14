@@ -58,17 +58,13 @@ struct Dev: ParsableCommand {
       release: release
     )
 
-    let sources = try toolchain.inferSourcesPaths().map { source -> [AbsolutePath] in
-      let relativePath = try RelativePath(validating: source)
-      guard let sources = localFileSystem.currentWorkingDirectory?.appending(relativePath)
-      else { fatalError("failed to infer the sources directory") }
+    let paths = try toolchain.inferSourcesPaths()
 
-      terminal.write("\nWatching this directory for changes: ", inColor: .green)
-      terminal.logLookup("", sources)
-      terminal.write("\n")
+    terminal.write("\nWatching these directories for changes:\n", inColor: .green)
+    paths.forEach { terminal.logLookup("", $0) }
+    terminal.write("\n")
 
-      return try localFileSystem.traverseRecursively(sources)
-    }.flatMap { $0 }
+    let sources = try paths.flatMap { try localFileSystem.traverseRecursively($0) }
 
     try Server(
       builderArguments: arguments,
