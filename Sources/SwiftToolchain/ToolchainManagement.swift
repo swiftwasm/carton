@@ -55,6 +55,14 @@ extension FileSystem {
     homeDirectory.appending(components: ".carton", "sdk")
   }
 
+  private func getDirectoryPaths(_ directoryPath: AbsolutePath) throws -> [AbsolutePath] {
+    if isDirectory(directoryPath) {
+      return try getDirectoryContents(directoryPath).map { directoryPath.appending(component: $0) }
+    } else {
+      return []
+    }
+  }
+
   func inferSwiftVersion(
     from versionSpec: String? = nil,
     _ terminal: TerminalController
@@ -331,11 +339,13 @@ extension FileSystem {
     var result = [String]()
 
     if isDirectory(cartonSDKPath) {
-      try result.append(contentsOf: getDirectoryContents(cartonSDKPath))
+      try result.append(contentsOf: getDirectoryPaths(cartonSDKPath)
+        .filter { isDirectory($0) }.map(\.basename))
     }
 
     if isDirectory(swiftenvVersionsPath) {
-      try result.append(contentsOf: getDirectoryContents(swiftenvVersionsPath))
+      try result.append(contentsOf: getDirectoryPaths(swiftenvVersionsPath)
+        .filter { isDirectory($0) }.map(\.basename))
     }
 
     return result.sorted()
