@@ -298,7 +298,6 @@ extension FileSystem {
       .validDescription?
       // get the first line of the file
       .components(separatedBy: CharacterSet.newlines).first
-    
     else { return nil }
     
     return version
