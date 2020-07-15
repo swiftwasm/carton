@@ -147,6 +147,7 @@ public final class Toolchain {
 
     var builderArguments = [
       swiftPath.pathString, "build", "-c", release ? "release" : "debug", "--product", product,
+      "--enable-test-discovery",
     ]
     let destination = try destination ?? inferDestinationPath().pathString
     builderArguments.append(contentsOf: ["--destination", destination])
