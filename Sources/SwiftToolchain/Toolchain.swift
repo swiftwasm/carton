@@ -170,7 +170,7 @@ public final class Toolchain {
   public func buildTestBundle(isRelease: Bool) throws -> AbsolutePath {
     let binPath = try inferBinPath()
     let testBundlePath = binPath.appending(component: "\(package.name)PackageTests.xctest")
-    terminal.logLookup("- test bundle to test: ", testBundlePath.pathString)
+    terminal.logLookup("- test bundle to run: ", testBundlePath.pathString)
 
     terminal.write(
       "\nBuilding the test bundle before running the test suite...\n",
