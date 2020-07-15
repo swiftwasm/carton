@@ -49,7 +49,7 @@ public final class ProcessRunner {
                 inColor: .red
               )
             } else {
-              terminal.write("Process failed and produced following output: \n", inColor: .red)
+              terminal.write("\nProcess failed and produced following output: \n", inColor: .red)
               print(error)
             }
           }
