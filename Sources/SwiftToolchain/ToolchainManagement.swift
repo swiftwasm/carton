@@ -54,12 +54,12 @@ extension FileSystem {
   private var cartonSDKPath: AbsolutePath {
     homeDirectory.appending(components: ".carton", "sdk")
   }
-  
+
   public var swiftVersionPath: AbsolutePath {
     guard let cwd = currentWorkingDirectory else {
       fatalError()
     }
-    
+
     return cwd.appending(component: ".swift-version")
   }
 
@@ -351,17 +351,17 @@ extension FileSystem {
 
     return result.sorted()
   }
-  
+
   public func fetchLocalSwiftVersion() throws -> String? {
     guard isFile(swiftVersionPath), let version = try readFileContents(swiftVersionPath)
       .validDescription?
       // get the first line of the file
       .components(separatedBy: CharacterSet.newlines).first
     else { return nil }
-    
+
     return version
   }
-  
+
   public func setLocalSwiftVersion(_ version: String) throws {
     try writeFileContents(swiftVersionPath, bytes: ByteString([UInt8](version.utf8)))
   }

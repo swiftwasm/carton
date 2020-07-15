@@ -29,7 +29,7 @@ struct Versions: ParsableCommand {
     let localVersion = try localFileSystem.fetchLocalSwiftVersion()
     if versions.count > 0 {
       versions.forEach { version in
-        if (version == (localVersion ?? "")) {
+        if version == (localVersion ?? "") {
           terminal.write("* \(version) (local)\n", inColor: .green)
         } else {
           terminal.write("  \(version)\n", inColor: .white)
