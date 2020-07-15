@@ -23,6 +23,7 @@ enum ToolchainError: Error, CustomStringConvertible {
   case noExecutableProduct
   case failedToBuild(product: String)
   case failedToBuildTestBundle
+  case missingPackage
 
   var description: String {
     switch self {
@@ -40,6 +41,8 @@ enum ToolchainError: Error, CustomStringConvertible {
       return "Failed to build executable product \(product)"
     case .failedToBuildTestBundle:
       return "Failed to build the test bundle"
+    case .missingPackage:
+      return "No package found"
     }
   }
 }
@@ -50,7 +53,7 @@ public final class Toolchain {
 
   private let version: String
   private let swiftPath: AbsolutePath
-  private let package: Package
+  private let package: Package?
 
   public init(
     for versionSpec: String? = nil,
@@ -60,7 +63,7 @@ public final class Toolchain {
     (swiftPath, version) = try fileSystem.inferSwiftPath(from: versionSpec, terminal)
     self.fileSystem = fileSystem
     self.terminal = terminal
-    package = try Package(with: swiftPath, terminal)
+    package = try? Package(with: swiftPath, terminal)
   }
 
   private func inferBinPath() throws -> AbsolutePath {
@@ -75,6 +78,9 @@ public final class Toolchain {
   }
 
   private func inferDevProduct(hint: String?) throws -> String? {
+    guard let package = package else {
+      throw ToolchainError.missingPackage
+    }
     var candidateProducts = package.products
       .filter { $0.type.library == nil }
       .map(\.name)
@@ -168,6 +174,9 @@ public final class Toolchain {
 
   /// Returns an absolute path to the resulting test bundle
   public func buildTestBundle(isRelease: Bool) throws -> AbsolutePath {
+    guard let package = package else {
+      throw ToolchainError.missingPackage
+    }
     let binPath = try inferBinPath()
     let testBundlePath = binPath.appending(component: "\(package.name)PackageTests.xctest")
     terminal.logLookup("- test bundle to run: ", testBundlePath.pathString)
@@ -193,5 +202,14 @@ public final class Toolchain {
     }
 
     return testBundlePath
+  }
+  
+  public func packageInit(name: String, type: PackageType) throws {
+    try ProcessRunner([
+      swiftPath.pathString, "package", "init",
+      "--name", name,
+      "--type", type.rawValue
+    ], terminal)
+    .waitUntilFinished()
   }
 }

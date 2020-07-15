@@ -56,3 +56,11 @@ struct Target: Codable {
   let type: TargetType
   let path: String?
 }
+
+public enum PackageType: String {
+  case empty
+  case library
+  case executable
+  case systemModule = "system-module"
+  case manifest
+}
