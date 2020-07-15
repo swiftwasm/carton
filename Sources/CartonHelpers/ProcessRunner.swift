@@ -30,13 +30,21 @@ public final class ProcessRunner {
 
   private var subscription: AnyCancellable?
 
-  public init(_ arguments: [String], _ terminal: TerminalController) {
+  public init(
+    _ arguments: [String],
+    clearOutputLines: Bool = true,
+    _ terminal: TerminalController
+  ) {
     let subject = PassthroughSubject<String, Error>()
     publisher = subject
       .handleEvents(
         receiveOutput: {
-          terminal.clearLine()
-          terminal.write(String($0.dropLast()))
+          if clearOutputLines {
+            terminal.clearLine()
+            terminal.write(String($0.dropLast()))
+          } else {
+            terminal.write($0)
+          }
         }, receiveCompletion: {
           switch $0 {
           case .finished:

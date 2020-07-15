@@ -17,29 +17,29 @@ import TSCBasic
 
 struct Local: ParsableCommand {
   static var configuration = CommandConfiguration(abstract: """
-    Prints SDK version used for the current project or saves it \
-    in the `.swift-version` file if a version is passed as an argument.
-    """)
-  
+  Prints SDK version used for the current project or saves it \
+  in the `.swift-version` file if a version is passed as an argument.
+  """)
+
   @Argument() var version: String?
-  
+
   func run() throws {
     guard let terminal = TerminalController(stream: stdoutStream) else {
       fatalError("failed to create an instance of `TerminalController`")
     }
-    
+
     guard let localVersion = try localFileSystem.fetchLocalSwiftVersion() else {
       terminal.logLookup("Version file is not present: ", localFileSystem.swiftVersionPath)
       return
     }
-    
+
     guard let version = version else {
       terminal.write("\(localVersion)", inColor: .green)
       return
     }
-    
+
     let versions = try localFileSystem.fetchAllSwiftVersions()
-    if (versions.contains(version)) {
+    if versions.contains(version) {
       _ = try localFileSystem.setLocalSwiftVersion(version)
     } else {
       terminal.write("The version \(version) hasn't been installed!", inColor: .red)
