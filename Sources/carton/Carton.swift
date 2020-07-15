@@ -19,6 +19,6 @@ struct Carton: ParsableCommand {
   static var configuration = CommandConfiguration(
     abstract: "📦 Watcher, bundler, and test runner for your SwiftWasm apps.",
     version: cartonVersion,
-    subcommands: [Dev.self, SDK.self]
+    subcommands: [Dev.self, SDK.self, Test.self]
   )
 }

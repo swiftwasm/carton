@@ -17,6 +17,6 @@ import XCTest
 
 final class Test: XCTestCase {
   func testTrivial() {
-    XCTAssertEqual(text, "Hello, world!")
+    XCTAssertEqual(text, "Hello, world")
   }
 }

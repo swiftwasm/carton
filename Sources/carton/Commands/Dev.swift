@@ -37,7 +37,7 @@ struct Dev: ParsableCommand {
   @Option(help: "Specify name of a json destination file to be passed to `swift build`.")
   var destination: String?
 
-  @Flag(help: "When specified, will build in release mode.")
+  @Flag(help: "When specified, build in the release mode.")
   var release = false
 
   static var configuration = CommandConfiguration(
@@ -55,7 +55,7 @@ struct Dev: ParsableCommand {
     let (arguments, mainWasmPath) = try toolchain.buildCurrentProject(
       product: product,
       destination: destination,
-      release: release
+      isRelease: release
     )
 
     let paths = try toolchain.inferSourcesPaths()
