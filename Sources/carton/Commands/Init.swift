@@ -24,8 +24,8 @@ struct Init: ParsableCommand {
 
   @Option(name: .long,
           help: "The template to base the project on.",
-          transform: { Templates(rawValue: $0.lowercased()) ?? .basic })
-  var template: Templates
+          transform: { Templates(rawValue: $0.lowercased()) })
+  var template: Templates?
   
   @Flag(name: .long,
         help: "List the available templates.")
@@ -51,8 +51,9 @@ struct Init: ParsableCommand {
         terminal.write("Failed to get current working directory.\n", inColor: .red)
         return
       }
+      let template = self.template ?? .basic
       terminal.write("Creating new project with template ")
-      terminal.write("\(self.template.rawValue)", inColor: .green)
+      terminal.write("\(template.rawValue)", inColor: .green)
       terminal.write(" in ")
       terminal.write("\(name)\n", inColor: .cyan)
       
