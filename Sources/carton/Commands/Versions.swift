@@ -26,9 +26,14 @@ struct Versions: ParsableCommand {
     else { fatalError("failed to create an instance of `TerminalController`") }
 
     let versions = try localFileSystem.fetchAllSwiftVersions()
+    let localVersion = try localFileSystem.fetchLocalSwiftVersion()
     if versions.count > 0 {
       versions.forEach { version in
-        terminal.write("\(version)\n", inColor: .green)
+        if version == (localVersion ?? "") {
+          terminal.write("* \(version) (local)\n", inColor: .green)
+        } else {
+          terminal.write("  \(version)\n", inColor: .white)
+        }
       }
     } else {
       terminal.write("No sdks installed\n")
