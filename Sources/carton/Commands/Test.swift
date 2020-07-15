@@ -18,29 +18,26 @@ import Combine
 #else
 import OpenCombine
 #endif
+import CartonHelpers
+import SwiftToolchain
 import TSCBasic
-
-private let dependency = Dependency(
-  fileName: "test.js",
-  sha256: ByteString([])
-)
 
 struct Test: ParsableCommand {
   static var configuration = CommandConfiguration(abstract: "Run the tests in a WASI environment.")
+
+  @Flag(help: "When specified, build in the release mode.")
+  var release = false
 
   func run() throws {
     guard let terminal = TerminalController(stream: stdoutStream)
     else { fatalError("failed to create an instance of `TerminalController`") }
 
-    // try dependency.check(on: localFileSystem, terminal)
-    // let swiftPath = try localFileSystem.inferSwiftPath(terminal)
+    let toolchain = try Toolchain(localFileSystem, terminal)
+    let testBundlePath = try toolchain.buildTestBundle(isRelease: release)
 
-    // let package = try Package(with: swiftPath, terminal)
-    // let binPath = try localFileSystem.inferBinPath(swiftPath: swiftPath)
-    // let testBundlePath = binPath.appending(component: "\(package.name)PackageTests.xctest")
-    // terminal.logLookup("- test bundle: ", testBundlePath)
+    terminal.write("\nRunning the test bundle with wasmer:\n", inColor: .yellow)
+    let runner = ProcessRunner(["wasmer", testBundlePath.pathString], terminal)
 
-    // let output = try processStringOutput(["wasmer", testBundlePath.pathString])!
-    // print("output is: \n\(output)")
+    try runner.waitUntilFinished()
   }
 }

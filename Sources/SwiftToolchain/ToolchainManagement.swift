@@ -23,7 +23,7 @@ import OpenCombine
 import TSCBasic
 import TSCUtility
 
-func processStringOutput(_ arguments: [String]) throws -> String? {
+public func processStringOutput(_ arguments: [String]) throws -> String? {
   try ByteString(processDataOutput(arguments)).validDescription
 }
 

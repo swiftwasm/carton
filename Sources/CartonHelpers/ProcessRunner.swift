@@ -40,16 +40,16 @@ public final class ProcessRunner {
         }, receiveCompletion: {
           switch $0 {
           case .finished:
-            terminal.write("\nBuild completed successfully\n", inColor: .green, bold: false)
+            terminal.write("\nProcess completed successfully\n", inColor: .green, bold: false)
           case let .failure(error):
             let errorString = String(describing: error)
             if errorString.isEmpty {
               terminal.write(
-                "Build failed, check the build process output above.\n",
+                "\nProcess failed, check the build process output above.\n",
                 inColor: .red
               )
             } else {
-              terminal.write("Build failed and produced following output: \n", inColor: .red)
+              terminal.write("Process failed and produced following output: \n", inColor: .red)
               print(error)
             }
           }

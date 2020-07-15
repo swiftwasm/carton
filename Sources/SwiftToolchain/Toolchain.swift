@@ -22,6 +22,7 @@ enum ToolchainError: Error, CustomStringConvertible {
   case invalidInstallationArchive(AbsolutePath)
   case noExecutableProduct
   case failedToBuild(product: String)
+  case failedToBuildTestBundle
 
   var description: String {
     switch self {
@@ -37,6 +38,8 @@ enum ToolchainError: Error, CustomStringConvertible {
       return "No executable product to build could be inferred"
     case let .failedToBuild(product):
       return "Failed to build executable product \(product)"
+    case .failedToBuildTestBundle:
+      return "Failed to build the test bundle"
     }
   }
 }
@@ -47,6 +50,7 @@ public final class Toolchain {
 
   private let version: String
   private let swiftPath: AbsolutePath
+  private let package: Package
 
   public init(
     for versionSpec: String? = nil,
@@ -56,6 +60,7 @@ public final class Toolchain {
     (swiftPath, version) = try fileSystem.inferSwiftPath(from: versionSpec, terminal)
     self.fileSystem = fileSystem
     self.terminal = terminal
+    package = try Package(with: swiftPath, terminal)
   }
 
   private func inferBinPath() throws -> AbsolutePath {
@@ -70,8 +75,6 @@ public final class Toolchain {
   }
 
   private func inferDevProduct(hint: String?) throws -> String? {
-    let package = try Package(with: swiftPath, terminal)
-
     var candidateProducts = package.products
       .filter { $0.type.library == nil }
       .map(\.name)
@@ -134,7 +137,7 @@ public final class Toolchain {
   public func buildCurrentProject(
     product: String?,
     destination: String?,
-    release: Bool
+    isRelease: Bool
   ) throws -> (builderArguments: [String], mainWasmPath: AbsolutePath) {
     guard let product = try inferDevProduct(hint: product)
     else { throw ToolchainError.noExecutableProduct }
@@ -145,12 +148,10 @@ public final class Toolchain {
 
     terminal.write("\nBuilding the project before spinning up a server...\n", inColor: .yellow)
 
-    var builderArguments = [
-      swiftPath.pathString, "build", "-c", release ? "release" : "debug", "--product", product,
-      "--enable-test-discovery",
+    let builderArguments = try [
+      swiftPath.pathString, "build", "-c", isRelease ? "release" : "debug", "--product", product,
+      "--enable-test-discovery", "--destination", destination ?? inferDestinationPath().pathString,
     ]
-    let destination = try destination ?? inferDestinationPath().pathString
-    builderArguments.append(contentsOf: ["--destination", destination])
 
     try ProcessRunner(builderArguments, terminal).waitUntilFinished()
 
@@ -163,5 +164,34 @@ public final class Toolchain {
     }
 
     return (builderArguments, mainWasmPath)
+  }
+
+  /// Returns an absolute path to the resulting test bundle
+  public func buildTestBundle(isRelease: Bool) throws -> AbsolutePath {
+    let binPath = try inferBinPath()
+    let testBundlePath = binPath.appending(component: "\(package.name)PackageTests.xctest")
+    terminal.logLookup("- test bundle to test: ", testBundlePath.pathString)
+
+    terminal.write(
+      "\nBuilding the test bundle before running the test suite...\n",
+      inColor: .yellow
+    )
+
+    let builderArguments = try [
+      swiftPath.pathString, "build", "-c", isRelease ? "release" : "debug", "--build-tests",
+      "--destination", inferDestinationPath().pathString,
+    ]
+
+    try ProcessRunner(builderArguments, terminal).waitUntilFinished()
+
+    guard localFileSystem.exists(testBundlePath) else {
+      terminal.write(
+        "Failed to build the test bundle, fix the build errors and restart\n",
+        inColor: .red
+      )
+      throw ToolchainError.failedToBuildTestBundle
+    }
+
+    return testBundlePath
   }
 }
