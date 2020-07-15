@@ -28,6 +28,12 @@ struct Test: ParsableCommand {
   @Flag(help: "When specified, build in the release mode.")
   var release = false
 
+  @Flag(name: .shortAndLong, help: "When specified, list all available test cases.")
+  var list = false
+
+  @Argument
+  var testCases = [String]()
+
   func run() throws {
     guard let terminal = TerminalController(stream: stdoutStream)
     else { fatalError("failed to create an instance of `TerminalController`") }
@@ -36,7 +42,14 @@ struct Test: ParsableCommand {
     let testBundlePath = try toolchain.buildTestBundle(isRelease: release)
 
     terminal.write("\nRunning the test bundle with wasmer:\n", inColor: .yellow)
-    let runner = ProcessRunner(["wasmer", testBundlePath.pathString], terminal)
+    var wasmerArguments = ["wasmer", testBundlePath.pathString]
+    if list {
+      wasmerArguments.append(contentsOf: ["--", "-l"])
+    } else if !testCases.isEmpty {
+      wasmerArguments.append("--")
+      wasmerArguments.append(contentsOf: testCases)
+    }
+    let runner = ProcessRunner(wasmerArguments, terminal)
 
     try runner.waitUntilFinished()
   }
