@@ -49,7 +49,10 @@ struct Init: ParsableCommand {
     terminal.write(" in ")
     terminal.write("\(name)\n", inColor: .cyan)
 
-    guard let packagePath = self.name == nil ? localFileSystem.currentWorkingDirectory : AbsolutePath(name, relativeTo: currentDir) else {
+    guard let packagePath = self.name == nil ? 
+      localFileSystem.currentWorkingDirectory : 
+      AbsolutePath(name, relativeTo: currentDir) 
+    else {
       terminal.write("Path to project could be created.\n", inColor: .red)
       return
     }
