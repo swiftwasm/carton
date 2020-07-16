@@ -203,13 +203,13 @@ public final class Toolchain {
 
     return testBundlePath
   }
-  
+
   public func packageInit(name: String, type: PackageType) throws {
     try ProcessRunner([
       swiftPath.pathString, "package", "init",
       "--name", name,
-      "--type", type.rawValue
+      "--type", type.rawValue,
     ], terminal)
-    .waitUntilFinished()
+      .waitUntilFinished()
   }
 }

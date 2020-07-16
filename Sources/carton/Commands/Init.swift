@@ -13,8 +13,8 @@
 // limitations under the License.
 
 import ArgumentParser
-import SwiftToolchain
 import Foundation
+import SwiftToolchain
 import TSCBasic
 
 struct Init: ParsableCommand {
@@ -26,11 +26,11 @@ struct Init: ParsableCommand {
           help: "The template to base the project on.",
           transform: { Templates(rawValue: $0.lowercased()) })
   var template: Templates?
-  
+
   @Flag(name: .long,
         help: "List the available templates.")
   var listTemplates: Bool = false
-  
+
   @Argument() var name: String?
 
   func run() throws {
@@ -56,7 +56,7 @@ struct Init: ParsableCommand {
       terminal.write("\(template.rawValue)", inColor: .green)
       terminal.write(" in ")
       terminal.write("\(name)\n", inColor: .cyan)
-      
+
       let packagePath = AbsolutePath(name, relativeTo: currentDir)
       try localFileSystem.createDirectory(packagePath)
       try template.template.create(on: localFileSystem,

@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import TSCBasic
 import SwiftToolchain
+import TSCBasic
 
 enum Templates: String, CaseIterable {
   case basic
   case tokamak
-  
+
   var template: Template.Type {
     switch self {
     case .basic: return Basic.self
@@ -42,7 +42,7 @@ struct PackageDependency: CustomStringConvertible {
   let name: String
   let url: String
   let version: Version
-  
+
   enum Version: CustomStringConvertible {
     case from(String)
     case branch(String)
@@ -55,7 +55,7 @@ struct PackageDependency: CustomStringConvertible {
       }
     }
   }
-  
+
   var description: String {
     #".package(name: "\#(name)", url: "\#(url)", \#(version))"#
   }
@@ -77,6 +77,7 @@ extension Template {
     try Toolchain(fileSystem, terminal)
       .packageInit(name: project.name, type: type)
   }
+
   static func createManifest(fileSystem: FileSystem,
                              project: Project,
                              dependencies: [PackageDependency] = [],
@@ -107,16 +108,17 @@ extension Template {
           ]
       )
       """
-        .write(to: $0)
+      .write(to: $0)
     }
   }
 }
 
 // MARK: Templates
+
 extension Templates {
-  struct Basic : Template {
+  struct Basic: Template {
     static let description: String = "A simple SwiftWasm project."
-    
+
     static func create(on fileSystem: FileSystem,
                        project: Project,
                        _ terminal: TerminalController) throws {
@@ -133,9 +135,9 @@ extension Templates {
 }
 
 extension Templates {
-  struct Tokamak : Template {
+  struct Tokamak: Template {
     static let description: String = "A simple Tokamak project."
-    
+
     static func create(on fileSystem: FileSystem,
                        project: Project,
                        _ terminal: TerminalController) throws {
@@ -147,10 +149,10 @@ extension Templates {
       try createManifest(fileSystem: fileSystem,
                          project: project,
                          dependencies: [
-                          .init(name: "Tokamak", url: "https://github.com/swiftwasm/Tokamak", version: .branch("main"))
+                           .init(name: "Tokamak", url: "https://github.com/swiftwasm/Tokamak", version: .branch("main")),
                          ],
                          targetDepencencies: [
-                          .init(name: "TokamakDOM", package: "Tokamak")
+                           .init(name: "TokamakDOM", package: "Tokamak"),
                          ],
                          terminal)
       try fileSystem.writeFileContents(project.path.appending(components: "Sources", project.name, "main.swift")) {
@@ -166,7 +168,7 @@ extension Templates {
         let renderer = DOMRenderer(ContentView(), div)
         _ = body.appendChild!(div)
         """
-          .write(to: $0)
+        .write(to: $0)
       }
       try fileSystem.writeFileContents(project.path.appending(components: "Sources", project.name, "ContentView.swift")) {
         """
@@ -178,7 +180,7 @@ extension Templates {
             }
         }
         """
-          .write(to: $0)
+        .write(to: $0)
       }
     }
   }
