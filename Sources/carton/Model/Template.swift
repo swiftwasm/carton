@@ -157,7 +157,11 @@ extension Templates {
         ],
         terminal
       )
-      try fileSystem.writeFileContents(project.path.appending(components: "Sources", project.name, "main.swift")) {
+      try fileSystem.writeFileContents(project.path.appending(
+        components: "Sources", 
+        project.name, 
+        "main.swift"
+      )) {
         """
         import TokamakDOM
         import JavaScriptKit
