@@ -98,7 +98,7 @@ extension Template {
           ],
           targets: [
               .target(
-                  name: "HelloWorld",
+                  name: "\(project.name)",
                   dependencies: [
                       \(targetDepencencies.map(\.description).joined(separator: ",\n"))
                   ]),
