@@ -57,8 +57,10 @@ struct Init: ParsableCommand {
       return
     }
     try localFileSystem.createDirectory(packagePath)
-    try template.template.create(on: localFileSystem,
-                                 project: .init(name: name, path: packagePath, inPlace: self.name == nil),
-                                 terminal)
+    try template.template.create(
+      on: localFileSystem,
+      project: .init(name: name, path: packagePath, inPlace: self.name == nil),
+      terminal
+    )
   }
 }
