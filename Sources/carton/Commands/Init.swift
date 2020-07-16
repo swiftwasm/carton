@@ -19,7 +19,8 @@ import TSCBasic
 
 struct Init: ParsableCommand {
   static var configuration = CommandConfiguration(
-    abstract: "Create a Swift package for a new SwiftWasm project."
+    abstract: "Create a Swift package for a new SwiftWasm project.",
+    subcommands: [ListTemplates.self]
   )
 
   @Option(name: .long,
@@ -27,41 +28,34 @@ struct Init: ParsableCommand {
           transform: { Templates(rawValue: $0.lowercased()) })
   var template: Templates?
 
-  @Flag(name: .long,
-        help: "List the available templates.")
-  var listTemplates: Bool = false
-
-  @Argument() var name: String?
+  @Option(name: .long,
+          help: "The name of the project") var name: String?
 
   func run() throws {
     guard let terminal = TerminalController(stream: stdoutStream)
     else { fatalError("failed to create an instance of `TerminalController`") }
 
-    if listTemplates {
-      Templates.allCases.forEach {
-        terminal.write($0.rawValue, inColor: .green, bold: true)
-        terminal.write("\t\($0.template.description)\n")
-      }
-    } else {
-      guard let name = name else {
-        terminal.write("No name specified.\n", inColor: .red)
-        return
-      }
-      guard let currentDir = localFileSystem.currentWorkingDirectory else {
-        terminal.write("Failed to get current working directory.\n", inColor: .red)
-        return
-      }
-      let template = self.template ?? .basic
-      terminal.write("Creating new project with template ")
-      terminal.write("\(template.rawValue)", inColor: .green)
-      terminal.write(" in ")
-      terminal.write("\(name)\n", inColor: .cyan)
-
-      let packagePath = AbsolutePath(name, relativeTo: currentDir)
-      try localFileSystem.createDirectory(packagePath)
-      try template.template.create(on: localFileSystem,
-                                   project: .init(name: name, path: packagePath),
-                                   terminal)
+    guard let name = name ?? localFileSystem.currentWorkingDirectory?.basename else {
+      terminal.write("Project name could not be inferred\n", inColor: .red)
+      return
     }
+    guard let currentDir = localFileSystem.currentWorkingDirectory else {
+      terminal.write("Failed to get current working directory.\n", inColor: .red)
+      return
+    }
+    let template = self.template ?? .basic
+    terminal.write("Creating new project with template ")
+    terminal.write("\(template.rawValue)", inColor: .green)
+    terminal.write(" in ")
+    terminal.write("\(name)\n", inColor: .cyan)
+
+    guard let packagePath = self.name == nil ? localFileSystem.currentWorkingDirectory : AbsolutePath(name, relativeTo: currentDir) else {
+      terminal.write("Path to project could be created.\n", inColor: .red)
+      return
+    }
+    try localFileSystem.createDirectory(packagePath)
+    try template.template.create(on: localFileSystem,
+                                 project: .init(name: name, path: packagePath, inPlace: self.name == nil),
+                                 terminal)
   }
 }

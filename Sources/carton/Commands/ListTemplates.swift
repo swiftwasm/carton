@@ -12,10 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import ArgumentParser
 import TSCBasic
 
-struct Project {
-  let name: String
-  let path: AbsolutePath
-  let inPlace: Bool
+struct ListTemplates: ParsableCommand {
+  static var configuration = CommandConfiguration(
+    abstract: "List the available templates"
+  )
+
+  func run() throws {
+    guard let terminal = TerminalController(stream: stdoutStream)
+    else { fatalError("failed to create an instance of `TerminalController`") }
+    Templates.allCases.forEach {
+      terminal.write($0.rawValue, inColor: .green, bold: true)
+      terminal.write("\t\($0.template.description)\n")
+    }
+  }
 }

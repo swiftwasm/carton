@@ -204,12 +204,15 @@ public final class Toolchain {
     return testBundlePath
   }
 
-  public func packageInit(name: String, type: PackageType) throws {
-    try ProcessRunner([
+  public func packageInit(name: String, type: PackageType, inPlace: Bool) throws {
+    var initArgs = [
       swiftPath.pathString, "package", "init",
-      "--name", name,
       "--type", type.rawValue,
-    ], terminal)
+    ]
+    if !inPlace {
+      initArgs.append(contentsOf: ["--name", name])
+    }
+    try ProcessRunner(initArgs, terminal)
       .waitUntilFinished()
   }
 }

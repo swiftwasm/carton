@@ -75,7 +75,7 @@ extension Template {
                             project: Project,
                             _ terminal: TerminalController) throws {
     try Toolchain(fileSystem, terminal)
-      .packageInit(name: project.name, type: type)
+      .packageInit(name: project.name, type: type, inPlace: project.inPlace)
   }
 
   static func createManifest(fileSystem: FileSystem,
