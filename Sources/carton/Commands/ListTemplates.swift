@@ -13,12 +13,19 @@
 // limitations under the License.
 
 import ArgumentParser
-import CartonHelpers
+import TSCBasic
 
-struct Carton: ParsableCommand {
+struct ListTemplates: ParsableCommand {
   static var configuration = CommandConfiguration(
-    abstract: "📦 Watcher, bundler, and test runner for your SwiftWasm apps.",
-    version: cartonVersion,
-    subcommands: [Init.self, Dev.self, SDK.self, Test.self]
+    abstract: "List the available templates"
   )
+
+  func run() throws {
+    guard let terminal = TerminalController(stream: stdoutStream)
+    else { fatalError("failed to create an instance of `TerminalController`") }
+    Templates.allCases.forEach {
+      terminal.write($0.rawValue, inColor: .green, bold: true)
+      terminal.write("\t\($0.template.description)\n")
+    }
+  }
 }
