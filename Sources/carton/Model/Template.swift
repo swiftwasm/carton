@@ -146,15 +146,17 @@ extension Templates {
                         fileSystem: fileSystem,
                         project: project,
                         terminal)
-      try createManifest(fileSystem: fileSystem,
-                         project: project,
-                         dependencies: [
-                           .init(name: "Tokamak", url: "https://github.com/swiftwasm/Tokamak", version: .branch("main")),
-                         ],
-                         targetDepencencies: [
-                           .init(name: "TokamakDOM", package: "Tokamak"),
-                         ],
-                         terminal)
+      try createManifest(
+        fileSystem: fileSystem,
+        project: project,
+        dependencies: [
+          .init(name: "Tokamak", url: "https://github.com/swiftwasm/Tokamak", version: .branch("main")),
+        ],
+        targetDepencencies: [
+          .init(name: "TokamakDOM", package: "Tokamak"),
+        ],
+        terminal
+      )
       try fileSystem.writeFileContents(project.path.appending(components: "Sources", project.name, "main.swift")) {
         """
         import TokamakDOM
