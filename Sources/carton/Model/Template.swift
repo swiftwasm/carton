@@ -174,7 +174,7 @@ extension Templates {
         """
         import TokamakDOM
 
-        struct ContentView : View {
+        struct ContentView: View {
             var body: some View {
                 Text("Hello, world!")
             }
