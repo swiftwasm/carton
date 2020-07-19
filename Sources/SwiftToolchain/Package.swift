@@ -23,6 +23,24 @@ struct Package: Codable {
   let name: String
   let products: [Product]
   let targets: [Target]
+  let dependencies: [Dependency]?
+
+  struct Dependency: Codable {
+    let name: String
+    let requirement: Requirement
+
+    struct Requirement: Codable {
+      let range: [Range]?
+      let branch: [String]?
+      let revision: [String]?
+      let exact: [String]?
+
+      struct Range: Codable {
+        let lowerBound: String
+        let upperBound: String
+      }
+    }
+  }
 
   init(with swiftPath: AbsolutePath, _ terminal: TerminalController) throws {
     terminal.write("\nParsing package manifest: ", inColor: .yellow)

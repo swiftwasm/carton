@@ -60,6 +60,7 @@ let package = Package(
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
         .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
+        "CartonHelpers",
       ]
     ),
     .testTarget(

@@ -16,7 +16,7 @@ import ArgumentParser
 import TSCBasic
 
 struct ListTemplates: ParsableCommand {
-  static var configuration = CommandConfiguration(
+  static let configuration = CommandConfiguration(
     abstract: "List the available templates"
   )
 

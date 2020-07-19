@@ -16,7 +16,7 @@ import ArgumentParser
 import TSCBasic
 
 struct Local: ParsableCommand {
-  static var configuration = CommandConfiguration(abstract: """
+  static let configuration = CommandConfiguration(abstract: """
   Prints SDK version used for the current project or saves it \
   in the `.swift-version` file if a version is passed as an argument.
   """)

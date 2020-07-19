@@ -150,7 +150,11 @@ extension Templates {
         fileSystem: fileSystem,
         project: project,
         dependencies: [
-          .init(name: "Tokamak", url: "https://github.com/swiftwasm/Tokamak", version: .branch("main")),
+          .init(
+            name: "Tokamak",
+            url: "https://github.com/swiftwasm/Tokamak",
+            version: .branch("main")
+          ),
         ],
         targetDepencencies: [
           .init(name: "TokamakDOM", package: "Tokamak"),
@@ -158,8 +162,8 @@ extension Templates {
         terminal
       )
       try fileSystem.writeFileContents(project.path.appending(
-        components: "Sources", 
-        project.name, 
+        components: "Sources",
+        project.name,
         "main.swift"
       )) {
         """
@@ -176,7 +180,9 @@ extension Templates {
         """
         .write(to: $0)
       }
-      try fileSystem.writeFileContents(project.path.appending(components: "Sources", project.name, "ContentView.swift")) {
+      try fileSystem.writeFileContents(
+        project.path.appending(components: "Sources", project.name, "ContentView.swift")
+      ) {
         """
         import TokamakDOM
 

@@ -16,6 +16,8 @@ import CartonHelpers
 import Foundation
 import TSCBasic
 
+private let compatibleJSKitRevision = "c90e82f"
+
 enum ToolchainError: Error, CustomStringConvertible {
   case directoryDoesNotExist(AbsolutePath)
   case invalidResponseCode(UInt)
@@ -147,6 +149,23 @@ public final class Toolchain {
   ) throws -> (builderArguments: [String], mainWasmPath: AbsolutePath) {
     guard let product = try inferDevProduct(hint: product)
     else { throw ToolchainError.noExecutableProduct }
+
+    if let package = package,
+      let jsKit = package.dependencies?.first(where: { $0.name == "JavaScriptKit" }),
+      jsKit.requirement.revision != ["c90e82f"] {
+      let version = jsKit.requirement.revision.flatMap { " (\($0[0]))" } ?? ""
+
+      terminal.write(
+        """
+
+        This revision of JavaScriptKit\(version) is not known to be compatible with \
+        carton \(cartonVersion). Please specify a JavaScriptKit dependency to revision \
+        \(compatibleJSKitRevision) in your `Package.swift`.\n
+
+        """,
+        inColor: .red
+      )
+    }
 
     let binPath = try inferBinPath()
     let mainWasmPath = binPath.appending(component: product)

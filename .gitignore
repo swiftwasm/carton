@@ -94,3 +94,7 @@ Public
 
 # Node.js
 node_modules
+
+# carton
+static
+static.zip
