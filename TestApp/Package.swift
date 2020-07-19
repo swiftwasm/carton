@@ -12,8 +12,9 @@ let package = Package(
     .package(url: "https://github.com/kateinoigakukun/JavaScriptKit", .revision("c90e82f")),
   ],
   targets: [
-    // Targets are the basic building blocks of a package. A target can define a module or a test suite.
-    // Targets can depend on other targets in this package, and on products in packages which this package depends on.
+    // Targets are the basic building blocks of a package. A target can define a module or a test
+    // suite. Targets can depend on other targets in this package, and on products in packages which
+    // this package depends on.
     .target(name: "TestApp", dependencies: ["JavaScriptKit", "TestLibrary", "CustomPathTarget"]),
     .target(name: "TestLibrary"),
     .target(name: "CustomPathTarget", path: "CustomPathTarget"),
