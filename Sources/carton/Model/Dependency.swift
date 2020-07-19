@@ -17,12 +17,8 @@ import Foundation
 import TSCBasic
 import TSCUtility
 
-private let archiveHash = ByteString([
-  0x1D, 0xCC, 0x1A, 0x8B, 0x89, 0x3C, 0xFD, 0xF6, 0x07, 0xF3, 0x9A, 0xBE, 0x22, 0xF1, 0xB7, 0x22,
-  0x5B, 0x7B, 0x41, 0x86, 0x66, 0xDF, 0x98, 0x52, 0x2C, 0x7B, 0xE5, 0x54, 0x73, 0xD2, 0x3E, 0x8A,
-])
-
-private let archiveURL = "https://github.com/swiftwasm/carton/releases/download/0.3.0/static.zip"
+private let staticArchiveURL =
+  "https://github.com/swiftwasm/carton/releases/download/0.3.1/static.zip"
 
 private let verifyHash = Equality<ByteString, String> {
   """
@@ -54,7 +50,7 @@ struct Dependency {
       try fileSystem.removeFileTree(cartonDir)
 
       let client = HTTPClient(eventLoopGroupProvider: .createNew)
-      let request = try HTTPClient.Request.get(url: archiveURL)
+      let request = try HTTPClient.Request.get(url: staticArchiveURL)
       let response: HTTPClient.Response = try await {
         client.execute(request: request).whenComplete($0)
       }
@@ -63,14 +59,14 @@ struct Dependency {
       guard
         var body = response.body,
         let bytes = body.readBytes(length: body.readableBytes)
-      else { throw DependencyError.downloadFailed(url: archiveURL) }
+      else { throw DependencyError.downloadFailed(url: staticArchiveURL) }
 
-      terminal.logLookup("Polyfills archive successfully downloaded from ", archiveURL)
+      terminal.logLookup("Polyfills archive successfully downloaded from ", staticArchiveURL)
 
       let downloadedArchive = ByteString(bytes)
 
       let downloadedHash = SHA256().hash(downloadedArchive)
-      try verifyHash(downloadedHash, archiveHash, context: archiveURL)
+      try verifyHash(downloadedHash, staticArchiveHash, context: staticArchiveURL)
 
       let archiveFile = cartonDir.appending(component: "static.zip")
       try fileSystem.createDirectory(cartonDir, recursive: true)

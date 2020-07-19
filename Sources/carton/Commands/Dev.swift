@@ -24,10 +24,7 @@ import TSCBasic
 
 private let dependency = Dependency(
   fileName: "dev.js",
-  sha256: ByteString([
-    0xFA, 0x06, 0xE2, 0xA3, 0x2D, 0x45, 0xB9, 0xBB, 0x95, 0x9A, 0x89, 0x64, 0x3F, 0x6D, 0xAF, 0x1C,
-    0xF5, 0x49, 0xFC, 0x34, 0x59, 0xC5, 0xE0, 0xA6, 0x01, 0x59, 0xEB, 0x0C, 0xE6, 0xB2, 0x0B, 0x0C,
-  ])
+  sha256: devDependencySHA256
 )
 
 struct Dev: ParsableCommand {
@@ -40,7 +37,7 @@ struct Dev: ParsableCommand {
   @Flag(help: "When specified, build in the release mode.")
   var release = false
 
-  static var configuration = CommandConfiguration(
+  static let configuration = CommandConfiguration(
     abstract: "Watch the current directory, host the app, rebuild on change."
   )
 

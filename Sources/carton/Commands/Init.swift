@@ -18,7 +18,7 @@ import SwiftToolchain
 import TSCBasic
 
 struct Init: ParsableCommand {
-  static var configuration = CommandConfiguration(
+  static let configuration = CommandConfiguration(
     abstract: "Create a Swift package for a new SwiftWasm project.",
     subcommands: [ListTemplates.self]
   )
@@ -49,9 +49,9 @@ struct Init: ParsableCommand {
     terminal.write(" in ")
     terminal.write("\(name)\n", inColor: .cyan)
 
-    guard let packagePath = self.name == nil ? 
-      localFileSystem.currentWorkingDirectory : 
-      AbsolutePath(name, relativeTo: currentDir) 
+    guard let packagePath = self.name == nil ?
+      localFileSystem.currentWorkingDirectory :
+      AbsolutePath(name, relativeTo: currentDir)
     else {
       terminal.write("Path to project could be created.\n", inColor: .red)
       return

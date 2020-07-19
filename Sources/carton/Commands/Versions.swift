@@ -17,7 +17,7 @@ import SwiftToolchain
 import TSCBasic
 
 struct Versions: ParsableCommand {
-  static var configuration = CommandConfiguration(
+  static let configuration = CommandConfiguration(
     abstract: "Lists all installed toolchains/SDKs"
   )
 

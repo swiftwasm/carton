@@ -9,7 +9,7 @@ let package = Package(
     .executable(name: "TestApp", targets: ["TestApp"]),
   ],
   dependencies: [
-    .package(url: "https://github.com/kateinoigakukun/JavaScriptKit", .revision("85b8617")),
+    .package(url: "https://github.com/kateinoigakukun/JavaScriptKit", .revision("c90e82f")),
   ],
   targets: [
     // Targets are the basic building blocks of a package. A target can define a module or a test suite.
