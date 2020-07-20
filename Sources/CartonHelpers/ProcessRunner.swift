@@ -21,6 +21,17 @@ import OpenCombine
 #endif
 import TSCBasic
 
+extension Subscribers.Completion {
+  var result: Result<(), Failure> {
+    switch self {
+    case let .failure(error):
+      return .failure(error)
+    case .finished:
+      return .success(())
+    }
+  }
+}
+
 struct ProcessRunnerError: Error, CustomStringConvertible {
   let description: String
 }
@@ -105,7 +116,7 @@ public final class ProcessRunner {
     try await { completion in
       subscription = publisher
         .sink(
-          receiveCompletion: { _ in completion(Result<(), Never>.success(())) },
+          receiveCompletion: { completion($0.result) },
           receiveValue: { _ in }
         )
     }
