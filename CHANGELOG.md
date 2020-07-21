@@ -2,6 +2,10 @@
 
 This release adds a few major features, namely `carton init` and `carton test` commands, `carton sdk local` subcommand, and enables support for linking with Foundation automatically.
 
+Thanks to [@carson-katri](https://github.com/carson-katri),
+[@RayZhao1998](https://github.com/RayZhao1998), [@JaapWijnen](https://github.com/JaapWijnen) and
+[@broadwaylamb](https://github.com/broadwaylamb) for their contributions to this release!
+
 **New features:**
 
 Firstly, `carton dev` no longer requires a `--destination` flag with a manually crafted
@@ -22,10 +26,6 @@ environment. Unfortunately, this currently requires a presence of `LinuxMain.swi
 explicit test manifests, `--enable-test-discovery` flag is not supported yet. Projects that can
 build their test suite on macOS can use `swift test --generate-linuxmain` command to generate this
 file.
-
-Thanks to [@carson-katri](https://github.com/carson-katri),
-[@RayZhao1998](https://github.com/RayZhao1998), [@JaapWijnen](https://github.com/JaapWijnen) and
-[@broadwaylamb](https://github.com/broadwaylamb) for their contributions to this release!
 
 **Breaking changes:**
 
