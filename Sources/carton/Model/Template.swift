@@ -89,7 +89,6 @@ extension Template {
       import PackageDescription
       let package = Package(
           name: "\(project.name)",
-          platforms: [.macOS(.v10_15)],
           products: [
               .executable(name: "\(project.name)", targets: ["\(project.name)"])
           ],
