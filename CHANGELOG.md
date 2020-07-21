@@ -1,3 +1,108 @@
+# 0.4.0 (21 July 2020)
+
+This release adds a few major features, namely `carton init` and `carton test` commands, `carton sdk local` subcommand, and enables support for linking with Foundation automatically.
+
+**New features:**
+
+Firstly, `carton dev` no longer requires a `--destination` flag with a manually crafted
+`destination.json` file to link with Foundation. If your project has `import Foundation` anywhere in
+its source code, a subset of Foundation provided with SwiftWasm is automatically linked. Please
+check [the list of Foundation types currently unavailable in
+SwiftWasm](https://github.com/swiftwasm/swift-corelibs-foundation/blob/23ec1a2948b823e324d8e88e446c9a2db012acfd/Sources/Foundation/CMakeLists.txt#L3)
+for more details on Foundation compatibility (mostly filesystem, socket, multi-threading, and APIs
+depending on those are disabled).
+
+The new `carton init` command initializes a new SwiftWasm project for you (similarly to `swift package init`) with multiple templates available at your choice. `carton init --template tokamak`
+creates a new [Tokamak](tokamak.dev/) project, while `carton init --template basic` (equivalent to
+`carton init`) creates an empty SwiftWasm project with no dependencies. Also, `carton init list-templates` provides a complete list of templates (with only `basic` and `tokamak` available
+currently).
+
+The new `carton test` command runs your test suite in the [`wasmer`](https://wasmer.io/)
+environment. Unfortunately, this currently requires a presence of `LinuxMain.swift` file and
+explicit test manifests, `--enable-test-discovery` flag is not supported yet. Projects that can
+build their test suite on macOS can use `swift test --generate-linuxmain` command to generate this
+file.
+
+Thanks to [@carson-katri](https://github.com/carson-katri),
+[@RayZhao1998](https://github.com/RayZhao1998), [@JaapWijnen](https://github.com/JaapWijnen) and
+[@broadwaylamb](https://github.com/broadwaylamb) for their contributions to this release!
+
+**Breaking changes:**
+
+The bundled `carton dev` JavaScript entrypoint has been updated to fix runtime issues in the
+Swift-to-JavaScript bridge API. Because of this, projects that depend on
+[JavaScriptKit](https://github.com/swiftwasm/JavaScriptKit) should specify `c90e82f` revision as a
+dependency:
+
+```swift
+  dependencies: [
+    .package(url: "https://github.com/kateinoigakukun/JavaScriptKit", .revision("c90e82f")),
+  ],
+```
+
+Unfortunately, specifying a JavaScriptKit version in `Package.swift` as a dependency is not
+supported by SwiftPM due to the use of unsafe flags, see
+[swiftwasm/JavaScriptKit#6](https://github.com/swiftwasm/JavaScriptKit/issues/6) for more details.
+
+**Closed issues:**
+
+- Avoid running the tests if can't build them ([#56](https://github.com/swiftwasm/carton/issues/56))
+- Verify SDK is already installed before installing the same version
+  ([#45](https://github.com/swiftwasm/carton/issues/45))
+- Automatically create destination JSON to allow linking Foundation
+  ([#4](https://github.com/swiftwasm/carton/issues/4))
+- Watcher should detect custom paths in Package.swift
+  ([#1](https://github.com/swiftwasm/carton/issues/1))
+
+**Merged pull requests:**
+
+- Propagate test build/run failures in the exit code
+  ([#61](https://github.com/swiftwasm/carton/pull/61)) via
+  [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update static.zip, automate its release process
+  ([#60](https://github.com/swiftwasm/carton/pull/60)) via
+  [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Upgrade JavaScriptKit to 0.5.0 ([#59](https://github.com/swiftwasm/carton/pull/59)) via
+  [@carson-katri](https://github.com/carson-katri)
+- Add `carton init` command ([#54](https://github.com/swiftwasm/carton/pull/54)) via
+  [@carson-katri](https://github.com/carson-katri)
+- Fix `carton test` output skipping lines ([#53](https://github.com/swiftwasm/carton/pull/53)) via
+  [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Implement `carton sdk local` subcommand ([#40](https://github.com/swiftwasm/carton/pull/40)) via
+  [@RayZhao1998](https://github.com/RayZhao1998)
+- Add `list` flag and `testCases` argument to `test`
+  ([#52](https://github.com/swiftwasm/carton/pull/52)) via
+  [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Implement simple wasmer runner for `test` command
+  ([#51](https://github.com/swiftwasm/carton/pull/51)) via
+  [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Always pass --enable-test-discovery to swift build
+  ([#49](https://github.com/swiftwasm/carton/pull/49)) via
+  [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Fix watcher missing root directories ([#48](https://github.com/swiftwasm/carton/pull/48)) via
+  [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update to Vapor 4.15.2, fix formatting ([#47](https://github.com/swiftwasm/carton/pull/47)) via
+  [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Add sources to watcher per target ([#46](https://github.com/swiftwasm/carton/pull/46)) via
+  [@JaapWijnen](https://github.com/JaapWijnen)
+- Avoid displaying destination files as SDK versions
+  ([#44](https://github.com/swiftwasm/carton/pull/44)) via
+  [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Automatically link Foundation w/ destination.json
+  ([#41](https://github.com/swiftwasm/carton/pull/41)) via
+  [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Use Combine instead of OpenCombine where possible
+  ([#39](https://github.com/swiftwasm/carton/pull/39)) via
+  [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Add separate CartonHelpers/SwiftToolchain modules
+  ([#35](https://github.com/swiftwasm/carton/pull/35)) via
+  [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Use `from` instead of `upToNextMinor` for OpenCombine
+  ([#34](https://github.com/swiftwasm/carton/pull/34)) via
+  [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Bump OpenCombine version to 0.10.0 ([#33](https://github.com/swiftwasm/carton/pull/33)) via
+  [@broadwaylamb](https://github.com/broadwaylamb)
+
 # 0.3.1 (7 July 2020)
 
 This is a bugfix release that fixes SwiftWasm backtrace reporting in certain cases and also enables
