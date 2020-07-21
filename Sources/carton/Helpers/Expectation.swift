@@ -18,6 +18,9 @@ public struct ExpectationError: Error, CustomStringConvertible {
   public let description: String
 }
 
+/** Implements throwing equality assertions, as compared to standard assertions that trap
+ in debug mode.
+ */
 struct Equality<T: Equatable, C> {
   let description: (_ x: T, _ y: T, _ context: C) -> String
 
