@@ -153,7 +153,7 @@ extension Templates {
           .init(
             name: "Tokamak",
             url: "https://github.com/swiftwasm/Tokamak",
-            version: .branch("main")
+            version: .from("0.2.0")
           ),
         ],
         targetDepencencies: [
