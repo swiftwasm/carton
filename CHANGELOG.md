@@ -1,8 +1,8 @@
 # 0.4.1 (22 July 2020)
 
-This release modifies the `tokamak` template used in `carton init` to use the `main` branch of
-[Tokamak](https://tokamak.dev), which fixes dependency resolution issues caused by the use of unsafe
-flags in JavaScriptKit. Please see
+This release modifies the `tokamak` template for `carton init` to use the `main` branch of
+[Tokamak](https://tokamak.dev). This fixes dependency resolution issues caused by unsafe build flags
+in JavaScriptKit. Please see
 [swiftwasm/JavaScriptKit#6](https://github.com/swiftwasm/JavaScriptKit/issues/6) for more details.
 
 # 0.4.0 (21 July 2020)
