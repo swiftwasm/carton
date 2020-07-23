@@ -17,6 +17,10 @@ import TSCBasic
 
 extension FileSystem {
   func traverseRecursively(_ root: AbsolutePath) throws -> [AbsolutePath] {
+    guard exists(root, followSymlink: true) else {
+      return []
+    }
+
     var result = [root]
 
     guard isDirectory(root) else {
