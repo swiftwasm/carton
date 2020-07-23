@@ -17,7 +17,7 @@ import TSCBasic
 
 extension FileSystem {
   func traverseRecursively(_ root: AbsolutePath) throws -> [AbsolutePath] {
-    precondition(isDirectory(root))
+    precondition(isDirectory(root), "Path \(root) is expected to be a directory")
     var result = [root]
 
     var pathsToTraverse = [root]
