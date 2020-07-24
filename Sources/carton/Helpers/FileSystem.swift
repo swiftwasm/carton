@@ -16,18 +16,18 @@ import Foundation
 import TSCBasic
 
 extension FileSystem {
-  func traverseRecursively(_ root: AbsolutePath) throws -> [AbsolutePath] {
-    guard exists(root, followSymlink: true) else {
+  func traverseRecursively(_ traversalRoot: AbsolutePath) throws -> [AbsolutePath] {
+    guard exists(traversalRoot, followSymlink: true) else {
       return []
     }
 
-    var result = [root]
+    var result = [traversalRoot]
 
-    guard isDirectory(root) else {
+    guard isDirectory(traversalRoot) else {
       return result
     }
 
-    var pathsToTraverse = [root]
+    var pathsToTraverse = [traversalRoot]
     while let currentDirectory = pathsToTraverse.popLast() {
       let directoryContents = try getDirectoryContents(currentDirectory)
         .map(currentDirectory.appending)

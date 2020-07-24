@@ -44,7 +44,10 @@ enum ToolchainError: Error, CustomStringConvertible {
     case .failedToBuildTestBundle:
       return "Failed to build the test bundle"
     case .missingPackage:
-      return "No package found"
+      return """
+      The `Package.swift` manifest file could not be found. Please navigate to a directory that \
+      contains `Package.swift` and restart.
+      """
     }
   }
 }
@@ -118,8 +121,30 @@ public final class Toolchain {
     }
   }
 
+  private func inferManifestDirectory() throws -> AbsolutePath {
+    guard package != nil, var cwd = fileSystem.currentWorkingDirectory else {
+      throw ToolchainError.missingPackage
+    }
+
+    // FIXME: this won't work on Windows
+    let root = AbsolutePath("/")
+
+    repeat {
+      guard !fileSystem.isFile(cwd.appending(component: "Package.swift")) else {
+        return cwd
+      }
+
+      // `parentDirectory` just returns `self` if it's `root`
+      cwd = cwd.parentDirectory
+    } while cwd != root
+
+    throw ToolchainError.missingPackage
+  }
+
   public func inferSourcesPaths() throws -> [AbsolutePath] {
-    let package = try Package(with: swiftPath, terminal)
+    guard let package = package else {
+      throw ToolchainError.missingPackage
+    }
 
     let targetPaths = package.targets.compactMap { target -> String? in
       guard let path = target.path else {
@@ -133,8 +158,10 @@ public final class Toolchain {
       return path
     }
 
+    let manifestDirectory = try inferManifestDirectory()
+
     return try targetPaths.compactMap {
-      try fileSystem.currentWorkingDirectory?.appending(RelativePath(validating: $0))
+      try manifestDirectory.appending(RelativePath(validating: $0))
     }
   }
 
