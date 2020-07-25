@@ -126,9 +126,6 @@ public final class Toolchain {
       throw ToolchainError.missingPackage
     }
 
-    // FIXME: this won't work on Windows
-    let root = AbsolutePath("/")
-
     repeat {
       guard !fileSystem.isFile(cwd.appending(component: "Package.swift")) else {
         return cwd
@@ -136,7 +133,7 @@ public final class Toolchain {
 
       // `parentDirectory` just returns `self` if it's `root`
       cwd = cwd.parentDirectory
-    } while cwd != root
+    } while !cwd.isRoot
 
     throw ToolchainError.missingPackage
   }
