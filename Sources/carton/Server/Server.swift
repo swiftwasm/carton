@@ -43,11 +43,12 @@ final class Server {
     builderArguments: [String],
     pathsToWatch: [AbsolutePath],
     mainWasmPath: String,
+    verbose: Bool,
     _ terminal: TerminalController
   ) throws {
     watcher = try Watcher(pathsToWatch)
 
-    var env = Environment(name: "development", arguments: ["vapor"])
+    var env = Environment(name: verbose ? "development" : "production", arguments: ["vapor"])
     try LoggingSystem.bootstrap(from: &env)
     app = Application(env)
     app.configure(
@@ -62,6 +63,9 @@ final class Server {
 
     watcher.publisher
       .flatMap(maxPublishers: .max(1)) { changes -> AnyPublisher<String, Never> in
+        if !verbose {
+          terminal.homeAndClear()
+        }
         terminal.write("\nThese paths have changed, rebuilding...\n", inColor: .yellow)
         for change in changes.map(\.pathString) {
           terminal.write("- \(change)\n", inColor: .cyan)
