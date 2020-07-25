@@ -59,7 +59,11 @@ public final class ProcessRunner {
         }, receiveCompletion: {
           switch $0 {
           case .finished:
-            terminal.write("\nProcess completed successfully\n", inColor: .green, bold: false)
+            terminal.write(
+              "\n`\(AbsolutePath(arguments[0]).basename)` process finished successfully\n",
+              inColor: .green,
+              bold: false
+            )
           case let .failure(error):
             let errorString = String(describing: error)
             if errorString.isEmpty {

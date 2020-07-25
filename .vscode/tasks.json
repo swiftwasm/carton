@@ -34,6 +34,11 @@
       "command": "swift build && cd TestApp && ../.build/debug/carton dev --product TestApp"
     },
     {
+      "label": "build and run dev in subdirectory",
+      "type": "shell",
+      "command": "swift build && cd TestApp/Sources/TestApp && ../../../.build/debug/carton dev --product TestApp"
+    },
+    {
       "label": "build and run test",
       "type": "shell",
       "command": "swift build && cd TestApp && ../.build/debug/carton test"

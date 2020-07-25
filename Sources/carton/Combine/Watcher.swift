@@ -28,6 +28,8 @@ final class Watcher {
   init(_ paths: [AbsolutePath]) throws {
     publisher = subject.eraseToAnyPublisher()
 
+    guard !paths.isEmpty else { return }
+
     fsWatch = FSWatch(paths: paths, latency: 0.1) { [weak self] in
       self?.subject.send($0)
     }
