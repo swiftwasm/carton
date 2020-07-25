@@ -27,7 +27,7 @@ extension FileSystem {
       return result
     }
 
-    var pathsToTraverse = [traversalRoot]
+    var pathsToTraverse = result
     while let currentDirectory = pathsToTraverse.popLast() {
       let directoryContents = try getDirectoryContents(currentDirectory)
         .map(currentDirectory.appending)
