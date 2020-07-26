@@ -37,6 +37,9 @@ struct Dev: ParsableCommand {
   @Flag(help: "When specified, build in the release mode.")
   var release = false
 
+  @Flag(name: .shortAndLong, help: "Don't clear terminal window after files change.")
+  var verbose = false
+
   static let configuration = CommandConfiguration(
     abstract: "Watch the current directory, host the app, rebuild on change."
   )
@@ -57,6 +60,10 @@ struct Dev: ParsableCommand {
 
     let paths = try toolchain.inferSourcesPaths()
 
+    if !verbose {
+      terminal.clearWindow()
+      terminal.homeAndClear()
+    }
     terminal.write("\nWatching these directories for changes:\n", inColor: .green)
     paths.forEach { terminal.logLookup("", $0) }
     terminal.write("\n")
@@ -67,6 +74,7 @@ struct Dev: ParsableCommand {
       builderArguments: arguments,
       pathsToWatch: sources,
       mainWasmPath: mainWasmPath.pathString,
+      verbose: verbose,
       terminal
     ).run()
   }

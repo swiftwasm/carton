@@ -14,9 +14,24 @@
 
 import TSCBasic
 
+private extension String {
+  static var home = "\u{001B}[H"
+  static var clearScreen = "\u{001B}[2J"
+  static var clear = "\u{001B}[J"
+}
+
 public extension TerminalController {
   func logLookup<T: CustomStringConvertible>(_ description: String, _ target: T) {
     write(description)
     write("\(target)\n", inColor: .cyan, bold: true)
+  }
+
+  func clearWindow() {
+    write(.clearScreen)
+  }
+
+  func homeAndClear() {
+    write(.home)
+    write(.clear)
   }
 }
