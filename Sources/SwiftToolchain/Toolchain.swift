@@ -209,6 +209,7 @@ public final class Toolchain {
     let builderArguments = try [
       swiftPath.pathString, "build", "-c", isRelease ? "release" : "debug", "--build-tests",
       "--destination", inferDestinationPath().pathString,
+      "-Xswiftc", "-color-diagnostics",
     ]
 
     try ProcessRunner(builderArguments, terminal).waitUntilFinished()

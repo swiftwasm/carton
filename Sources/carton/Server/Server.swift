@@ -76,6 +76,7 @@ final class Server {
             guard case .finished = $0 else { return }
 
             terminal.write("\nBuild completed successfully\n", inColor: .green, bold: false)
+            terminal.logLookup("The app is currently hosted at ", "http://127.0.0.1:8080/")
             self?.connections.forEach { $0.send("reload") }
           })
           .catch { _ in Empty().eraseToAnyPublisher() }
