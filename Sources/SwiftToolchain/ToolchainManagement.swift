@@ -128,8 +128,7 @@ extension FileSystem {
       client.execute(request: request).map { response -> Release? in
         guard let body = response.body else { return nil }
 
-        // swiftlint:disable:next force_try
-        return try! decoder.decode(Release.self, from: body)
+        return try? decoder.decode(Release.self, from: body)
       }.whenComplete($0)
     }) else { return nil }
 
@@ -231,7 +230,8 @@ extension FileSystem {
     } else if let inferredURL = try inferDownloadURL(from: swiftVersion, client, terminal) {
       downloadURL = inferredURL
     } else {
-      fatalError("Failed to infer download URL for version \(swiftVersion)")
+      terminal.write("The Swift version \(swiftVersion) not found\n", inColor: .red)
+      throw ToolchainError.invalidVersion(version: swiftVersion)
     }
 
     terminal.write(
