@@ -230,7 +230,7 @@ extension FileSystem {
     } else if let inferredURL = try inferDownloadURL(from: swiftVersion, client, terminal) {
       downloadURL = inferredURL
     } else {
-      terminal.write("The Swift version \(swiftVersion) not found\n", inColor: .red)
+      terminal.write("The Swift version \(swiftVersion) was not found\n", inColor: .red)
       throw ToolchainError.invalidVersion(version: swiftVersion)
     }
 
