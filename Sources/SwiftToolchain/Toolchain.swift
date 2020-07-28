@@ -26,6 +26,7 @@ enum ToolchainError: Error, CustomStringConvertible {
   case failedToBuild(product: String)
   case failedToBuildTestBundle
   case missingPackage
+  case invalidVersion(version: String)
 
   var description: String {
     switch self {
@@ -48,6 +49,8 @@ enum ToolchainError: Error, CustomStringConvertible {
       The `Package.swift` manifest file could not be found. Please navigate to a directory that \
       contains `Package.swift` and restart.
       """
+    case let .invalidVersion(version):
+      return "Invalid version \(version)"
     }
   }
 }
