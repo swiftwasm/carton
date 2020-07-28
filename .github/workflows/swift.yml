@@ -12,15 +12,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Build
-        run: swift build
+      - name: Build on macOS 10.15 with Swift 5.2
+        run: |
+          sudo xcode-select --switch /Applications/Xcode_11.6.app/Contents/Developer
+          swift build
 
   linux_build:
     runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v2
-      - name: Test on Ubuntu with Swift 5.2
-        uses: Didstopia/SwiftAction@v1.0.2
-        with:
-          swift-action: build -Xswiftc -Xfrontend -Xswiftc -validate-tbd-against-ir=none
+      - name: Build on Ubuntu 20.04 with Swift 5.2
+        run: |
+          swift build
