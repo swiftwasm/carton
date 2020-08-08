@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/swift-server/async-http-client.git",
         "state": {
           "branch": null,
-          "revision": "037b70291941fe43de668066eb6fb802c5e181d2",
-          "version": "1.1.1"
+          "revision": "c9a9bf061d713c91ee9974fa8a6afe413acfd0e9",
+          "version": "1.2.0"
         }
       },
       {
@@ -51,8 +51,8 @@
         "repositoryURL": "https://github.com/apple/swift-argument-parser",
         "state": {
           "branch": null,
-          "revision": "7255fd547f70468e19abbac5f7964f1ef309ad92",
-          "version": "0.2.1"
+          "revision": "3e7d2fe99da091dcc1e4a7dd22fc3cfc2dca7937",
+          "version": "0.2.2"
         }
       },
       {
@@ -114,8 +114,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-http2.git",
         "state": {
           "branch": null,
-          "revision": "c76a9a5085bfc22882f8cff88189662af30806e8",
-          "version": "1.12.3"
+          "revision": "e9627350bdb85bde7e0dc69a29799e40961ced72",
+          "version": "1.13.0"
         }
       },
       {
@@ -125,6 +125,15 @@
           "branch": null,
           "revision": "8a137b72a9339f295bc8bb95cd2fafe207f1df0d",
           "version": "2.9.0"
+        }
+      },
+      {
+        "package": "swift-nio-transport-services",
+        "repositoryURL": "https://github.com/apple/swift-nio-transport-services.git",
+        "state": {
+          "branch": null,
+          "revision": "d40a5e34e5b35f4f961cb34aeb2e0a02f42a945f",
+          "version": "1.8.0"
         }
       },
       {
@@ -141,8 +150,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "281b50935a7c3ac86916f69cb2851e55915ddf07",
-          "version": "4.27.1"
+          "revision": "c4861a4bf1a254280d402a66d4751d1a150e0ade",
+          "version": "4.27.2"
         }
       },
       {
