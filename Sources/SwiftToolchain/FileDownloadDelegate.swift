@@ -50,7 +50,8 @@ final class FileDownloadDelegate: HTTPClientResponseDelegate {
     reportHead?(head)
 
     if let totalBytesString = head.headers.first(name: "Content-Length"),
-      let totalBytes = Int(totalBytesString) {
+      let totalBytes = Int(totalBytesString)
+    {
       self.totalBytes = totalBytes
     }
 
