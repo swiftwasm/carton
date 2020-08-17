@@ -29,9 +29,11 @@ enum Templates: String, CaseIterable {
 
 protocol Template {
   static var description: String { get }
-  static func create(on fileSystem: FileSystem,
-                     project: Project,
-                     _ terminal: TerminalController) throws
+  static func create(
+    on fileSystem: FileSystem,
+    project: Project,
+    _ terminal: TerminalController
+  ) throws
 }
 
 enum TemplateError: Error {
@@ -70,19 +72,23 @@ struct TargetDependency: CustomStringConvertible {
 }
 
 extension Template {
-  static func createPackage(type: PackageType,
-                            fileSystem: FileSystem,
-                            project: Project,
-                            _ terminal: TerminalController) throws {
+  static func createPackage(
+    type: PackageType,
+    fileSystem: FileSystem,
+    project: Project,
+    _ terminal: TerminalController
+  ) throws {
     try Toolchain(fileSystem, terminal)
       .packageInit(name: project.name, type: type, inPlace: project.inPlace)
   }
 
-  static func createManifest(fileSystem: FileSystem,
-                             project: Project,
-                             dependencies: [PackageDependency] = [],
-                             targetDepencencies: [TargetDependency] = [],
-                             _ terminal: TerminalController) throws {
+  static func createManifest(
+    fileSystem: FileSystem,
+    project: Project,
+    dependencies: [PackageDependency] = [],
+    targetDepencencies: [TargetDependency] = [],
+    _ terminal: TerminalController
+  ) throws {
     try fileSystem.writeFileContents(project.path.appending(component: "Package.swift")) {
       """
       // swift-tools-version:5.3
@@ -118,17 +124,28 @@ extension Templates {
   struct Basic: Template {
     static let description: String = "A simple SwiftWasm project."
 
-    static func create(on fileSystem: FileSystem,
-                       project: Project,
-                       _ terminal: TerminalController) throws {
+    static func create(
+      on fileSystem: FileSystem,
+      project: Project,
+      _ terminal: TerminalController
+    ) throws {
       try fileSystem.changeCurrentWorkingDirectory(to: project.path)
-      try createPackage(type: .executable,
-                        fileSystem: fileSystem,
-                        project: project,
-                        terminal)
-      try createManifest(fileSystem: fileSystem,
-                         project: project,
-                         terminal)
+      try createPackage(type: .executable, fileSystem: fileSystem, project: project, terminal)
+      try createManifest(
+        fileSystem: fileSystem,
+        project: project,
+        dependencies: [
+          .init(
+            name: "JavaScriptKit",
+            url: "https://github.com/swiftwasm/JavaScriptKit",
+            version: .from("0.5.0")
+          ),
+        ],
+        targetDepencencies: [
+          .init(name: "JavaScriptKit", package: "JavaScriptKit"),
+        ],
+        terminal
+      )
     }
   }
 }
@@ -137,9 +154,11 @@ extension Templates {
   struct Tokamak: Template {
     static let description: String = "A simple Tokamak project."
 
-    static func create(on fileSystem: FileSystem,
-                       project: Project,
-                       _ terminal: TerminalController) throws {
+    static func create(
+      on fileSystem: FileSystem,
+      project: Project,
+      _ terminal: TerminalController
+    ) throws {
       try fileSystem.changeCurrentWorkingDirectory(to: project.path)
       try createPackage(type: .executable,
                         fileSystem: fileSystem,
@@ -152,7 +171,7 @@ extension Templates {
           .init(
             name: "Tokamak",
             url: "https://github.com/swiftwasm/Tokamak",
-            version: .branch("main")
+            version: .from("0.3.1")
           ),
         ],
         targetDepencencies: [
@@ -166,24 +185,15 @@ extension Templates {
         "main.swift"
       )) {
         """
-        import TokamakDOM
-        import JavaScriptKit
+        import TokamakShim
 
-        let document = JSObjectRef.global.document.object!
-        let body = document.body.object!
-        body.style = "margin: 0;"
-
-        let div = document.createElement!("div").object!
-        let renderer = DOMRenderer(ContentView(), div)
-        _ = body.appendChild!(div)
-        """
-        .write(to: $0)
-      }
-      try fileSystem.writeFileContents(
-        project.path.appending(components: "Sources", project.name, "ContentView.swift")
-      ) {
-        """
-        import TokamakDOM
+        struct TokamakApp: App {
+            var body: some Scene {
+                WindowGroup("Tokamak App") {
+                    ContentView()
+                }
+            }
+        }
 
         struct ContentView: View {
             var body: some View {
