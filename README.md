@@ -79,12 +79,9 @@ browsers and receiving test results back to the HTTP server, so that test result
 This was blocked by [`XCTest` not allowing customized test report formats](https://bugs.swift.org/browse/SR-8436),
 which is now partially resolved with [a new argument available on
 `XCTMain`](https://github.com/apple/swift-corelibs-xctest/pull/306) and a custom [JSON test
-reporter](https://github.com/MaxDesiatov/XCTestJSONObserver/). After [a few other
-issues](https://github.com/swiftwasm/swift/pull/1233) are resolved with the SwiftWasm toolchain, I'll get
-`carton test` fully working with XCTest.
+reporter](https://github.com/MaxDesiatov/XCTestJSONObserver/).
 
-There are a few more commands on the roadmap to be implemented, such as `carton init` for initializing
-basic SwiftWasm projects (potentially with configurable templates), `carton bundle` to produce an
+There are a few more commands on the roadmap to be implemented, such as `carton bundle` to produce an
 optimized production deployment bundle, SwiftPM resources support for bundled assets, and much more.
 
 As cross-compiling to WebAssembly and running apps and tests remotely is not too dissimilar to Android
