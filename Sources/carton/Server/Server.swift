@@ -90,8 +90,5 @@ final class Server {
   func run() throws {
     defer { app.shutdown() }
     try app.run()
-    for conn in connections {
-      try conn.close().wait()
-    }
   }
 }

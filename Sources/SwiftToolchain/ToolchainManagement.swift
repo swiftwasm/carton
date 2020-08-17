@@ -78,8 +78,7 @@ extension FileSystem {
     if let versionSpec = versionSpec {
       if let url = URL(string: versionSpec),
         let filename = url.pathComponents.last,
-        let match = versionRegEx.matchGroups(in: filename).first?.first
-      {
+        let match = versionRegEx.matchGroups(in: filename).first?.first {
         terminal.logLookup("Inferred swift version: ", match)
         return match
       } else {
