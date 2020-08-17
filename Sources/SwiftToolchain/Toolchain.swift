@@ -188,8 +188,7 @@ public final class Toolchain {
     let package = try self.package.get()
 
     if let jsKit = package.dependencies?.first(where: { $0.name == "JavaScriptKit" }),
-      jsKit.requirement.revision != ["c90e82f"]
-    {
+      jsKit.requirement.revision != ["c90e82f"] {
       let version = jsKit.requirement.revision.flatMap { " (\($0[0]))" } ?? ""
 
       terminal.write(
