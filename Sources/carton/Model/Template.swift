@@ -171,11 +171,11 @@ extension Templates {
           .init(
             name: "Tokamak",
             url: "https://github.com/swiftwasm/Tokamak",
-            version: .from("0.3.1")
+            version: .from("0.3.0")
           ),
         ],
         targetDepencencies: [
-          .init(name: "TokamakDOM", package: "Tokamak"),
+          .init(name: "TokamakShim", package: "Tokamak"),
         ],
         terminal
       )
