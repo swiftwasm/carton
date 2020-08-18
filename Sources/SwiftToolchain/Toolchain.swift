@@ -26,7 +26,6 @@ enum ToolchainError: Error, CustomStringConvertible {
   case failedToBuild(product: String)
   case failedToBuildTestBundle
   case missingPackageManifest
-  case processFailed(output: [UInt8])
   case invalidVersion(version: String)
 
   var description: String {
@@ -50,14 +49,6 @@ enum ToolchainError: Error, CustomStringConvertible {
       The `Package.swift` manifest file could not be found. Please navigate to a directory that \
       contains `Package.swift` and restart.
       """
-    case let .processFailed(output: output):
-      if let description = ByteString(output).validDescription {
-        return """
-        Process failed with following output:
-        \(description)
-        """
-      }
-      return "Process failed with no text output"
     case let .invalidVersion(version):
       return "Invalid version \(version)"
     }
