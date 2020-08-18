@@ -24,9 +24,9 @@ development workflow such as toolchain and SDK installations.
 ## Requirements
 
 - macOS 10.15 and Xcode 11.4/11.5/11.6 for macOS. Xcode betas are currently not supported. You can have
-those installed, but please make sure you use 
-[`xcode-select`](https://developer.apple.com/library/archive/technotes/tn2339/_index.html#//apple_ref/doc/uid/DTS40014588-CH1-HOW_DO_I_SELECT_THE_DEFAULT_VERSION_OF_XCODE_TO_USE_FOR_MY_COMMAND_LINE_TOOLS_) 
-to point it to a release version of Xcode.
+  those installed, but please make sure you use
+  [`xcode-select`](https://developer.apple.com/library/archive/technotes/tn2339/_index.html#//apple_ref/doc/uid/DTS40014588-CH1-HOW_DO_I_SELECT_THE_DEFAULT_VERSION_OF_XCODE_TO_USE_FOR_MY_COMMAND_LINE_TOOLS_)
+  to point it to a release version of Xcode.
 - [Swift 5.2 or later](https://swift.org/download/) for Linux users.
 
 ## Installation
@@ -45,7 +45,7 @@ directory after that.
 `carton` automatically installs the required SwiftWasm toolchain and SDK when you build
 your project with `carton dev`. You can however install SwiftWasm separately if needed,
 either by passing an archive URL to `carton sdk install` directly, or just specifying the snapshot
-version, like `carton sdk install wasm-DEVELOPMENT-SNAPSHOT-2020-06-07-a`. `carton dev` can
+version, like `carton sdk install wasm-5.3-SNAPSHOT-2020-08-15-a`. `carton dev` can
 also detect existing installations of `swiftenv`, so if you already have SwiftWasm installed
 via `swiftenv`, you don't have to do anything on top of that to start using `carton`.
 
@@ -69,6 +69,7 @@ for WebAssembly and served when you start `carton dev` in the directory where `P
 thanks to everyone supporting and maintaining those projects!)
 
 ### Running `carton dev` with the `release` configuration
+
 By default `carton dev` will compile in the `debug` configuration. Add the `--release` flag to compile in the `release` configuration.
 
 ## Roadmap
