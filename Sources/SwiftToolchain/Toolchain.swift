@@ -65,6 +65,10 @@ extension Package.Dependency.Requirement {
     return revision == [compatibleJSKitRevision] ||
       exact?.compactMap { Version(string: $0) } == [compatibleJSKitVersion]
   }
+
+  var version: String {
+    revision?.first ?? range?.first?.lowerBound ?? ""
+  }
 }
 
 public final class Toolchain {
@@ -193,14 +197,14 @@ public final class Toolchain {
       let jsKit = package.dependencies?.first(where: { $0.name == "JavaScriptKit" }),
       !jsKit.requirement.isJavaScriptKitCompatible
     {
-      let version = jsKit.requirement.revision.flatMap { " (\($0[0]))" } ?? ""
+      let version = jsKit.requirement.version
 
       terminal.write(
         """
 
-        This revision of JavaScriptKit\(version) is not known to be compatible with \
-        carton \(cartonVersion). Please specify a JavaScriptKit dependency to revision \
-        \(compatibleJSKitRevision) in your `Package.swift`.\n
+        This version of JavaScriptKit \(version) is not known to be compatible with \
+        carton \(cartonVersion). Please specify a JavaScriptKit dependency on version \
+        \(compatibleJSKitVersion) in your `Package.swift`.\n
 
         """,
         inColor: .red
