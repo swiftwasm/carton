@@ -60,7 +60,7 @@ enum ToolchainError: Error, CustomStringConvertible {
 extension Package.Dependency.Requirement {
   var isJavaScriptKitCompatible: Bool {
     if let upperBound = range?.first?.upperBound, let version = Version(string: upperBound) {
-      return version >= Version(0, 5, 0)
+      return version >= compatibleJSKitVersion
     }
     return revision == [compatibleJSKitRevision] ||
       exact?.compactMap { Version(string: $0) } == [compatibleJSKitVersion]
@@ -191,7 +191,8 @@ public final class Toolchain {
 
     if let package = package,
       let jsKit = package.dependencies?.first(where: { $0.name == "JavaScriptKit" }),
-      !jsKit.requirement.isJavaScriptKitCompatible {
+      !jsKit.requirement.isJavaScriptKitCompatible
+    {
       let version = jsKit.requirement.revision.flatMap { " (\($0[0]))" } ?? ""
 
       terminal.write(
