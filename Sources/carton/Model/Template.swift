@@ -70,19 +70,23 @@ struct TargetDependency: CustomStringConvertible {
 }
 
 extension Template {
-  static func createPackage(type: PackageType,
-                            fileSystem: FileSystem,
-                            project: Project,
-                            _ terminal: TerminalController) throws {
+  static func createPackage(
+    type: PackageType,
+    fileSystem: FileSystem,
+    project: Project,
+    _ terminal: TerminalController
+  ) throws {
     try Toolchain(fileSystem, terminal)
       .packageInit(name: project.name, type: type, inPlace: project.inPlace)
   }
 
-  static func createManifest(fileSystem: FileSystem,
-                             project: Project,
-                             dependencies: [PackageDependency] = [],
-                             targetDepencencies: [TargetDependency] = [],
-                             _ terminal: TerminalController) throws {
+  static func createManifest(
+    fileSystem: FileSystem,
+    project: Project,
+    dependencies: [PackageDependency] = [],
+    targetDepencencies: [TargetDependency] = [],
+    _ terminal: TerminalController
+  ) throws {
     try fileSystem.writeFileContents(project.path.appending(component: "Package.swift")) {
       """
       // swift-tools-version:5.3
@@ -118,9 +122,11 @@ extension Templates {
   struct Basic: Template {
     static let description: String = "A simple SwiftWasm project."
 
-    static func create(on fileSystem: FileSystem,
-                       project: Project,
-                       _ terminal: TerminalController) throws {
+    static func create(
+      on fileSystem: FileSystem,
+      project: Project,
+      _ terminal: TerminalController
+    ) throws {
       try fileSystem.changeCurrentWorkingDirectory(to: project.path)
       try createPackage(type: .executable,
                         fileSystem: fileSystem,
@@ -137,9 +143,11 @@ extension Templates {
   struct Tokamak: Template {
     static let description: String = "A simple Tokamak project."
 
-    static func create(on fileSystem: FileSystem,
-                       project: Project,
-                       _ terminal: TerminalController) throws {
+    static func create(
+      on fileSystem: FileSystem,
+      project: Project,
+      _ terminal: TerminalController
+    ) throws {
       try fileSystem.changeCurrentWorkingDirectory(to: project.path)
       try createPackage(type: .executable,
                         fileSystem: fileSystem,
