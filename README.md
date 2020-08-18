@@ -5,7 +5,7 @@
 The main goal of `carton` is to provide a smooth zero-config experience when developing for WebAssembly.
 It is still in development, but it aims to support these features (🐥 means "ready to use"):
 
-- 🥚 Creating basic package boilerplate for apps built with SwiftWasm with `carton init`.
+- 🐥 Creating basic package boilerplate for apps built with SwiftWasm with `carton init`.
 - 🐥 Watching the app for source code changes and reloading it in your browser with `carton dev`.
 - 🐣 Running your XCTest suite in the full JavaScript/DOM environment with `carton test`.
 - 🥚 Optimizing and packaging the app for distribution with `carton bundle`.
@@ -21,15 +21,14 @@ trying to make its config file work, looking for appropriate plugins. I'm convin
 you can avoid using `webpack` altogether. `carton` also simplifies a few other things in your SwiftWasm
 development workflow such as toolchain and SDK installations.
 
-## Requirements
+## Getting started
 
-- macOS 10.15 and Xcode 11.4/11.5/11.6 for macOS. Xcode betas are currently not supported. You can have
-those installed, but please make sure you use 
-[`xcode-select`](https://developer.apple.com/library/archive/technotes/tn2339/_index.html#//apple_ref/doc/uid/DTS40014588-CH1-HOW_DO_I_SELECT_THE_DEFAULT_VERSION_OF_XCODE_TO_USE_FOR_MY_COMMAND_LINE_TOOLS_) 
-to point it to a release version of Xcode.
+### Requirements
+
+- macOS 10.15 and Xcode 11.4 or later.
 - [Swift 5.2 or later](https://swift.org/download/) for Linux users.
 
-## Installation
+### Installation
 
 On macOS `carton` can be installed with [Homebrew](https://brew.sh/). Make sure you have Homebrew
 installed and then run:
@@ -42,12 +41,33 @@ You'll have to build `carton` from sources on Linux. Clone the repository and ru
 `swift build -c release`, the `carton` binary will be located in the `.build/release/carton`
 directory after that.
 
-`carton` automatically installs the required SwiftWasm toolchain and SDK when you build
-your project with `carton dev`. You can however install SwiftWasm separately if needed,
-either by passing an archive URL to `carton sdk install` directly, or just specifying the snapshot
-version, like `carton sdk install wasm-DEVELOPMENT-SNAPSHOT-2020-06-07-a`. `carton dev` can
-also detect existing installations of `swiftenv`, so if you already have SwiftWasm installed
-via `swiftenv`, you don't have to do anything on top of that to start using `carton`.
+### Usage
+
+The `carton init` command initializes a new SwiftWasm project for you (similarly to `swift package init`) with multiple templates available at your choice. `carton init --template tokamak` creates a
+new [Tokamak](https://tokamak.dev/) project, while `carton init --template basic` (equivalent to
+`carton init`) creates an empty SwiftWasm project with no dependencies. Also, `carton init list-templates` provides a complete list of templates (with only `basic` and `tokamak` available
+currently).
+
+The `carton dev` command builds your project with the SwiftWasm toolchain and starts an HTTP server
+that hosts your WebAssembly executable and a corresponding JavaScript entrypoint that loads it. Open
+[http://127.0.0.1:8080/](http://127.0.0.1:8080/) in your browser to see the app running. You can
+edit the app source code in your favorite editor and save it, `carton` will immediately rebuild the
+app and reload all browser tabs that have the app open.
+
+The `carton test` command runs your test suite in the [`wasmer`](https://wasmer.io/) environment.
+Unfortunately, this currently requires a presence of `LinuxMain.swift` file and explicit test
+manifests, `--enable-test-discovery` flag is not supported yet. Projects that can build their test
+suite on macOS can use `swift test --generate-linuxmain` command to generate this file.
+
+The `carton sdk` command and its subcommands allow you to manage installed SwiftWasm toolchains, but
+is rarely needed, as `carton dev` install the recommended version of SwiftWasm automatically.
+`carton sdk versions` lists all installed versions, and `carton sdk local` prints the version
+specified for the current project in the `.swift-version` file. You can however install SwiftWasm
+separately if needed, either by passing an archive URL to `carton sdk install` directly, or just
+specifying the snapshot version, like `carton sdk install wasm-DEVELOPMENT-SNAPSHOT-2020-06-07-a`.
+
+`carton dev` can also detect existing installations of `swiftenv`, so if you already have SwiftWasm
+installed via `swiftenv`, you don't have to do anything on top of that to start using `carton`.
 
 ## How does it work?
 
@@ -69,6 +89,7 @@ for WebAssembly and served when you start `carton dev` in the directory where `P
 thanks to everyone supporting and maintaining those projects!)
 
 ### Running `carton dev` with the `release` configuration
+
 By default `carton dev` will compile in the `debug` configuration. Add the `--release` flag to compile in the `release` configuration.
 
 ## Roadmap
