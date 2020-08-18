@@ -5,6 +5,7 @@ disabled_rules:
   - operator_whitespace
   - nesting
   - cyclomatic_complexity
+  - opening_brace
 
 line_length: 100
 
