@@ -52,7 +52,9 @@ The `carton dev` command builds your project with the SwiftWasm toolchain and st
 that hosts your WebAssembly executable and a corresponding JavaScript entrypoint that loads it. Open
 [http://127.0.0.1:8080/](http://127.0.0.1:8080/) in your browser to see the app running. You can
 edit the app source code in your favorite editor and save it, `carton` will immediately rebuild the
-app and reload all browser tabs that have the app open.
+app and reload all browser tabs that have the app open. You can also pass a `--verbose` flag to
+keep the build process output available, otherwise stale output is cleaned up from your terminal
+screen by default.
 
 The `carton test` command runs your test suite in the [`wasmer`](https://wasmer.io/) environment.
 Unfortunately, this currently requires a presence of `LinuxMain.swift` file and explicit test
@@ -68,6 +70,9 @@ specifying the snapshot version, like `carton sdk install wasm-DEVELOPMENT-SNAPS
 
 `carton dev` can also detect existing installations of `swiftenv`, so if you already have SwiftWasm
 installed via `swiftenv`, you don't have to do anything on top of that to start using `carton`.
+
+All of these commands and subcommands can be passed a `--help` flag that prints usage info and
+information about all available options.
 
 ## How does it work?
 
