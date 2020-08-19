@@ -138,7 +138,7 @@ extension Templates {
           .init(
             name: "JavaScriptKit",
             url: "https://github.com/swiftwasm/JavaScriptKit",
-            version: .from("0.5.0")
+            version: .from(compatibleJSKitVersion.description)
           ),
         ],
         targetDepencencies: [
