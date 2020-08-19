@@ -27,7 +27,7 @@ enum ToolchainError: Error, CustomStringConvertible {
   case noExecutableProduct
   case failedToBuild(product: String)
   case failedToBuildTestBundle
-  case missingPackage
+  case missingPackageManifest
   case invalidVersion(version: String)
 
   var description: String {
@@ -46,7 +46,7 @@ enum ToolchainError: Error, CustomStringConvertible {
       return "Failed to build executable product \(product)"
     case .failedToBuildTestBundle:
       return "Failed to build the test bundle"
-    case .missingPackage:
+    case .missingPackageManifest:
       return """
       The `Package.swift` manifest file could not be found. Please navigate to a directory that \
       contains `Package.swift` and restart.
@@ -77,17 +77,19 @@ public final class Toolchain {
 
   private let version: String
   private let swiftPath: AbsolutePath
-  private let package: Package?
+  private let package: Result<Package, Error>
 
   public init(
     for versionSpec: String? = nil,
     _ fileSystem: FileSystem,
     _ terminal: TerminalController
   ) throws {
-    (swiftPath, version) = try fileSystem.inferSwiftPath(from: versionSpec, terminal)
+    let (swiftPath, version) = try fileSystem.inferSwiftPath(from: versionSpec, terminal)
+    self.swiftPath = swiftPath
+    self.version = version
     self.fileSystem = fileSystem
     self.terminal = terminal
-    package = try? Package(with: swiftPath, terminal)
+    package = Result { try Package(with: swiftPath, terminal) }
   }
 
   private func inferBinPath() throws -> AbsolutePath {
@@ -102,9 +104,8 @@ public final class Toolchain {
   }
 
   private func inferDevProduct(hint: String?) throws -> String? {
-    guard let package = package else {
-      throw ToolchainError.missingPackage
-    }
+    let package = try self.package.get()
+
     var candidateProducts = package.products
       .filter { $0.type.library == nil }
       .map(\.name)
@@ -141,8 +142,8 @@ public final class Toolchain {
   }
 
   private func inferManifestDirectory() throws -> AbsolutePath {
-    guard package != nil, var cwd = fileSystem.currentWorkingDirectory else {
-      throw ToolchainError.missingPackage
+    guard (try? package.get()) != nil, var cwd = fileSystem.currentWorkingDirectory else {
+      throw ToolchainError.missingPackageManifest
     }
 
     repeat {
@@ -154,13 +155,11 @@ public final class Toolchain {
       cwd = cwd.parentDirectory
     } while !cwd.isRoot
 
-    throw ToolchainError.missingPackage
+    throw ToolchainError.missingPackageManifest
   }
 
   public func inferSourcesPaths() throws -> [AbsolutePath] {
-    guard let package = package else {
-      throw ToolchainError.missingPackage
-    }
+    let package = try self.package.get()
 
     let targetPaths = package.targets.compactMap { target -> String? in
       guard let path = target.path else {
@@ -193,8 +192,8 @@ public final class Toolchain {
     guard let product = try inferDevProduct(hint: product)
     else { throw ToolchainError.noExecutableProduct }
 
-    if let package = package,
-      let jsKit = package.dependencies?.first(where: { $0.name == "JavaScriptKit" }),
+    let package = try self.package.get()
+    if let jsKit = package.dependencies?.first(where: { $0.name == "JavaScriptKit" }),
       !jsKit.requirement.isJavaScriptKitCompatible
     {
       let version = jsKit.requirement.version
@@ -238,9 +237,7 @@ public final class Toolchain {
 
   /// Returns an absolute path to the resulting test bundle
   public func buildTestBundle(isRelease: Bool) throws -> AbsolutePath {
-    guard let package = package else {
-      throw ToolchainError.missingPackage
-    }
+    let package = try self.package.get()
     let binPath = try inferBinPath()
     let testBundlePath = binPath.appending(component: "\(package.name)PackageTests.xctest")
     terminal.logLookup("- test bundle to run: ", testBundlePath.pathString)
