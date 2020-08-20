@@ -1,3 +1,75 @@
+# 0.5.0 (20 August 2020)
+
+This release updates both `basic` and `tokamak` templates in `carton init` for compatibility with
+the latest [JavaScriptKit](https://github.com/swiftwasm/JavaScriptKit) and
+[Tokamak](https://tokamak.dev) versions. Additionally, `carton dev` now cleans build logs from
+previous builds when its watcher is triggered. New `--verbose` flag was added, which restores the
+previous behavior with all build logs listed on the same screen.
+
+`carton dev` and `carton test` now install 5.3 SwiftWasm snapshots by default, which in general are
+more stable than the previously used SwiftWasm development snapshots, and are compatible with Xcode
+12 betas. You can now also add direct dependencies on a specific JavaScriptKit version instead of a
+revision with these 5.3 snapshots, as they contain a workaround for [the unsafe flags
+issue](https://github.com/swiftwasm/JavaScriptKit/issues/6) reproducible with SwiftWasm development
+snapshots.
+
+Allowing `carton` to select a default snapshot is now the recommended approach, so in general we
+suggest avoiding `.swif-version` files in projects that use `carton`.
+
+The issue where `carton dev` hangs on exit after establishing at least one WebSocket connection with
+a browser is now fixed in our Vapor dependency. Kudos to
+[@tanner0101](https://github.com/tanner0101) for diagnosing and fixing the issue!
+
+Thanks to [@carson-katri](https://github.com/carson-katri),
+[@RayZhao1998](https://github.com/RayZhao1998) for their contributions to this release!
+
+**Closed issues:**
+
+- Compiling swift packages that depend on Darwin or Glibc
+  ([#89](https://github.com/swiftwasm/carton/issues/89))
+- Detect the currently selected version of Xcode and warn if it's 12 beta
+  ([#81](https://github.com/swiftwasm/carton/issues/81))
+- Print the error output of `swift package dump-package`
+  ([#78](https://github.com/swiftwasm/carton/issues/78))
+- JavaScriptKit dependency missing in the `basic` template
+  ([#77](https://github.com/swiftwasm/carton/issues/77))
+- `carton sdk install` crashes when passed an invalid version
+  ([#72](https://github.com/swiftwasm/carton/issues/72))
+- No package found when invoking `carton dev` ([#71](https://github.com/swiftwasm/carton/issues/71))
+- Xcode 12 beta 3 compatibility ([#65](https://github.com/swiftwasm/carton/issues/65))
+- Delay on Ctrl-C with error: Could not stop HTTP server
+  ([#7](https://github.com/swiftwasm/carton/issues/7))
+
+**Merged pull requests:**
+
+- Update `README.md` to reflect the current feature set
+  ([#90](https://github.com/swiftwasm/carton/pull/90)) via
+  [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Fix broken `carton init` templates ([#88](https://github.com/swiftwasm/carton/pull/88)) via
+  [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Propagate package manifest parsing errors ([#86](https://github.com/swiftwasm/carton/pull/86)) via
+  [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update default toolchain version ([#87](https://github.com/swiftwasm/carton/pull/87)) via
+  [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Close WebSocket connections after HTTP server exits
+  ([#85](https://github.com/swiftwasm/carton/pull/85)) via
+  [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Fix crash caused by use of `try!` while installing invalid version
+  ([#73](https://github.com/swiftwasm/carton/pull/73)) via
+  [@RayZhao1998](https://github.com/RayZhao1998)
+- Update TSC and add sqlite dependency ([#74](https://github.com/swiftwasm/carton/pull/74)) via
+  [@ie-ahm-robox](https://github.com/ie-ahm-robox)
+- Avoid using 3rd-party action for the Linux build
+  ([#75](https://github.com/swiftwasm/carton/pull/75)) via
+  [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Add verbose/concise logging levels ([#69](https://github.com/swiftwasm/carton/pull/69)) via
+  [@carson-katri](https://github.com/carson-katri)
+- Fix watcher crashing in package subdirectories
+  ([#67](https://github.com/swiftwasm/carton/pull/67)) via
+  [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Warn against Xcode 12 betas in `README.md` ([#66](https://github.com/swiftwasm/carton/pull/66))
+  via [@MaxDesiatov](https://github.com/MaxDesiatov)
+
 # 0.4.1 (22 July 2020)
 
 This release modifies the `tokamak` template for `carton init` to use the `main` branch of
