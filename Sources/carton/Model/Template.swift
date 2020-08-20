@@ -29,9 +29,11 @@ enum Templates: String, CaseIterable {
 
 protocol Template {
   static var description: String { get }
-  static func create(on fileSystem: FileSystem,
-                     project: Project,
-                     _ terminal: TerminalController) throws
+  static func create(
+    on fileSystem: FileSystem,
+    project: Project,
+    _ terminal: TerminalController
+  ) throws
 }
 
 enum TemplateError: Error {
@@ -128,13 +130,22 @@ extension Templates {
       _ terminal: TerminalController
     ) throws {
       try fileSystem.changeCurrentWorkingDirectory(to: project.path)
-      try createPackage(type: .executable,
-                        fileSystem: fileSystem,
-                        project: project,
-                        terminal)
-      try createManifest(fileSystem: fileSystem,
-                         project: project,
-                         terminal)
+      try createPackage(type: .executable, fileSystem: fileSystem, project: project, terminal)
+      try createManifest(
+        fileSystem: fileSystem,
+        project: project,
+        dependencies: [
+          .init(
+            name: "JavaScriptKit",
+            url: "https://github.com/swiftwasm/JavaScriptKit",
+            version: .from(compatibleJSKitVersion.description)
+          ),
+        ],
+        targetDepencencies: [
+          .init(name: "JavaScriptKit", package: "JavaScriptKit"),
+        ],
+        terminal
+      )
     }
   }
 }
@@ -160,11 +171,11 @@ extension Templates {
           .init(
             name: "Tokamak",
             url: "https://github.com/swiftwasm/Tokamak",
-            version: .branch("main")
+            version: .from("0.3.0")
           ),
         ],
         targetDepencencies: [
-          .init(name: "TokamakDOM", package: "Tokamak"),
+          .init(name: "TokamakShim", package: "Tokamak"),
         ],
         terminal
       )
@@ -174,30 +185,26 @@ extension Templates {
         "main.swift"
       )) {
         """
-        import TokamakDOM
-        import JavaScriptKit
+        import TokamakShim
 
-        let document = JSObjectRef.global.document.object!
-        let body = document.body.object!
-        body.style = "margin: 0;"
-
-        let div = document.createElement!("div").object!
-        let renderer = DOMRenderer(ContentView(), div)
-        _ = body.appendChild!(div)
-        """
-        .write(to: $0)
-      }
-      try fileSystem.writeFileContents(
-        project.path.appending(components: "Sources", project.name, "ContentView.swift")
-      ) {
-        """
-        import TokamakDOM
+        struct TokamakApp: App {
+            var body: some Scene {
+                WindowGroup("Tokamak App") {
+                    ContentView()
+                }
+            }
+        }
 
         struct ContentView: View {
             var body: some View {
                 Text("Hello, world!")
             }
         }
+
+        // @main attribute is not supported in SwiftPM apps.
+        // See https://bugs.swift.org/browse/SR-12683 for more details.
+        TokamakApp.main()
+
         """
         .write(to: $0)
       }

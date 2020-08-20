@@ -15,8 +15,10 @@
 import CartonHelpers
 import Foundation
 import TSCBasic
+import TSCUtility
 
 private let compatibleJSKitRevision = "c90e82f"
+public let compatibleJSKitVersion = Version(0, 5, 0)
 
 enum ToolchainError: Error, CustomStringConvertible {
   case directoryDoesNotExist(AbsolutePath)
@@ -52,6 +54,20 @@ enum ToolchainError: Error, CustomStringConvertible {
     case let .invalidVersion(version):
       return "Invalid version \(version)"
     }
+  }
+}
+
+extension Package.Dependency.Requirement {
+  var isJavaScriptKitCompatible: Bool {
+    if let upperBound = range?.first?.upperBound, let version = Version(string: upperBound) {
+      return version >= compatibleJSKitVersion
+    }
+    return revision == [compatibleJSKitRevision] ||
+      exact?.compactMap { Version(string: $0) } == [compatibleJSKitVersion]
+  }
+
+  var version: String {
+    revision?.first ?? range?.first?.lowerBound ?? ""
   }
 }
 
@@ -177,17 +193,17 @@ public final class Toolchain {
     else { throw ToolchainError.noExecutableProduct }
 
     let package = try self.package.get()
-
     if let jsKit = package.dependencies?.first(where: { $0.name == "JavaScriptKit" }),
-      jsKit.requirement.revision != ["c90e82f"] {
-      let version = jsKit.requirement.revision.flatMap { " (\($0[0]))" } ?? ""
+      !jsKit.requirement.isJavaScriptKitCompatible
+    {
+      let version = jsKit.requirement.version
 
       terminal.write(
         """
 
-        This revision of JavaScriptKit\(version) is not known to be compatible with \
-        carton \(cartonVersion). Please specify a JavaScriptKit dependency to revision \
-        \(compatibleJSKitRevision) in your `Package.swift`.\n
+        This version of JavaScriptKit \(version) is not known to be compatible with \
+        carton \(cartonVersion). Please specify a JavaScriptKit dependency on version \
+        \(compatibleJSKitVersion) in your `Package.swift`.\n
 
         """,
         inColor: .red
