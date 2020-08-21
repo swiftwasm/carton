@@ -96,8 +96,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio.git",
         "state": {
           "branch": null,
-          "revision": "acf5465b5e7fb9aeda54a34d16fb44c31a399715",
-          "version": "2.20.2"
+          "revision": "cf6f2b1807219643270616e03de697b96c46384c",
+          "version": "2.21.0"
         }
       },
       {
@@ -105,8 +105,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-extras.git",
         "state": {
           "branch": null,
-          "revision": "d525d3bbd1321fa928948065fd9a8dc109d5d45b",
-          "version": "1.6.0"
+          "revision": "0b9eb87b227b37544e5b79090bd69e2156efcd24",
+          "version": "1.6.1"
         }
       },
       {
@@ -114,8 +114,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-http2.git",
         "state": {
           "branch": null,
-          "revision": "e9627350bdb85bde7e0dc69a29799e40961ced72",
-          "version": "1.13.0"
+          "revision": "9f4eff06038a9d1301e939a55a0db935634a2f6e",
+          "version": "1.14.0"
         }
       },
       {
@@ -150,8 +150,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "7d1e0b162f61fd4b34c4a7e575cfaef14e65484a",
-          "version": "4.28.0"
+          "revision": "d910be46835c4c0c5a432de5012b61bdea4695bb",
+          "version": "4.29.0"
         }
       },
       {
