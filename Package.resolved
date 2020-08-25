@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/swift-server/async-http-client.git",
         "state": {
           "branch": null,
-          "revision": "c9a9bf061d713c91ee9974fa8a6afe413acfd0e9",
-          "version": "1.2.0"
+          "revision": "4b4d6605aa2e4f0c2ae3c7563795ae3bec259fff",
+          "version": "1.2.1"
         }
       },
       {
