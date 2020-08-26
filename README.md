@@ -38,7 +38,7 @@ brew install swiftwasm/tap/carton
 ```
 
 You'll have to build `carton` from sources on Linux. Clone the repository and run
-`swift build -c release`, the `carton` binary will be located in the `.build/release/carton`
+`swift build -c release`, the `carton` binary will be located in the `.build/release`
 directory after that.
 
 ### Usage
