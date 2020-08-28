@@ -39,6 +39,7 @@ struct Dependency {
 
   func paths(
     on fileSystem: FileSystem
+    // swiftlint:disable:next large_tuple
   ) -> (cartonDir: AbsolutePath, staticDir: AbsolutePath, filePath: AbsolutePath) {
     let cartonDir = fileSystem.homeDirectory.appending(component: ".carton")
     let staticDir = cartonDir.appending(component: "static")
