@@ -277,4 +277,10 @@ public final class Toolchain {
     try ProcessRunner(initArgs, terminal)
       .waitUntilFinished()
   }
+
+  public func runPackage(_ arguments: [String]) throws {
+    let args = [swiftPath.pathString, "package"] + arguments
+    try ProcessRunner(args, terminal)
+      .waitUntilFinished()
+  }
 }

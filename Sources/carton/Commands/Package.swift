@@ -13,12 +13,22 @@
 // limitations under the License.
 
 import ArgumentParser
-import CartonHelpers
+import SwiftToolchain
+import TSCBasic
 
-struct Carton: ParsableCommand {
-  static let configuration = CommandConfiguration(
-    abstract: "📦 Watcher, bundler, and test runner for your SwiftWasm apps.",
-    version: cartonVersion,
-    subcommands: [Init.self, Dev.self, SDK.self, Test.self, Package.self]
-  )
+/// Proxy swift-package command to locally pinned toolchain version.
+struct Package: ParsableCommand {
+  static let configuration = CommandConfiguration(abstract: """
+  Perform operations on Swift packages.
+  """)
+
+  @Argument(wrappedValue: [], parsing: .remaining)
+  var arguments: [String]
+
+  func run() throws {
+    guard let terminal = TerminalController(stream: stdoutStream)
+    else { fatalError("failed to create an instance of `TerminalController`") }
+    let toolchain = try Toolchain(localFileSystem, terminal)
+    try toolchain.runPackage(arguments)
+  }
 }
