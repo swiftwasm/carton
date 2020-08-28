@@ -98,3 +98,7 @@ node_modules
 # carton
 static
 static.zip
+TestApp/Bundle
+
+# macOS
+.DS_Store

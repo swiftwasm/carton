@@ -18,7 +18,7 @@ import TSCBasic
 import TSCUtility
 
 private let staticArchiveURL =
-  "https://github.com/swiftwasm/carton/releases/download/0.3.1/static.zip"
+  "https://github.com/swiftwasm/carton/releases/download/0.5.0/static.zip"
 
 private let verifyHash = Equality<ByteString, String> {
   """
@@ -37,14 +37,20 @@ struct Dependency {
   let fileName: String
   let sha256: ByteString
 
-  func check(on fileSystem: FileSystem, _ terminal: TerminalController) throws {
+  func paths(
+    on fileSystem: FileSystem
+  ) -> (cartonDir: AbsolutePath, staticDir: AbsolutePath, filePath: AbsolutePath) {
     let cartonDir = fileSystem.homeDirectory.appending(component: ".carton")
     let staticDir = cartonDir.appending(component: "static")
-    let devPolyfill = cartonDir.appending(components: "static", fileName)
+    return (cartonDir, staticDir, staticDir.appending(component: fileName))
+  }
 
-    // If dev.js hash fails, download the `static.zip` archive and unpack it/
-    if try !fileSystem.exists(devPolyfill) || SHA256().hash(
-      fileSystem.readFileContents(devPolyfill)
+  func check(on fileSystem: FileSystem, _ terminal: TerminalController) throws {
+    let (cartonDir, staticDir, filePath) = paths(on: fileSystem)
+
+    // If hash check fails, download the `static.zip` archive and unpack it
+    if try !fileSystem.exists(filePath) || SHA256().hash(
+      fileSystem.readFileContents(filePath)
     ) != sha256 {
       terminal.logLookup("Directory doesn't exist or contains outdated polyfills: ", staticDir)
       try fileSystem.removeFileTree(cartonDir)
@@ -78,9 +84,9 @@ struct Dependency {
       }
     }
 
-    let unpackedPolyfillHash = try SHA256().hash(fileSystem.readFileContents(devPolyfill))
+    let unpackedDependencyHash = try SHA256().hash(fileSystem.readFileContents(filePath))
     // Nothing we can do after the hash doesn't match after unpacking
-    try verifyHash(unpackedPolyfillHash, sha256, context: devPolyfill.pathString)
-    terminal.logLookup("Polyfill integrity verified: ", devPolyfill)
+    try verifyHash(unpackedDependencyHash, sha256, context: filePath.pathString)
+    terminal.logLookup("Dependency integrity verified: ", filePath)
   }
 }

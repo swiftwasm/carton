@@ -29,17 +29,7 @@ extension Application {
 
     // register routes
     get { _ in
-      HTML(value: #"""
-      <html>
-        <head>
-            <meta charset="utf-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1" />
-            <script type="text/javascript" src="dev.js"></script>
-        </head>
-        <body>
-        </body>
-      </html>
-      """#)
+      HTML(value: HTML.indexPage(entrypointName: "dev.js"))
     }
 
     webSocket("watcher") { _, ws in

@@ -45,6 +45,8 @@ struct Formula: ParsableCommand {
 
       depends_on :xcode => "11.4"
       depends_on "wasmer"
+      depends_on "binaryen"
+      depends_on "wabt"
 
       stable do
         version "\#(version)"

@@ -59,8 +59,10 @@ public final class ProcessRunner {
         }, receiveCompletion: {
           switch $0 {
           case .finished:
+            let processName = arguments[0].first == "/" ?
+              AbsolutePath(arguments[0]).basename : arguments[0]
             terminal.write(
-              "\n`\(AbsolutePath(arguments[0]).basename)` process finished successfully\n",
+              "\n`\(processName)` process finished successfully\n",
               inColor: .green,
               bold: false
             )
