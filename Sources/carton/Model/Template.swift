@@ -170,7 +170,7 @@ extension Templates {
         dependencies: [
           .init(
             name: "Tokamak",
-            url: "https://github.com/swiftwasm/Tokamak",
+            url: "https://github.com/TokamakUI/Tokamak",
             version: .from("0.3.0")
           ),
         ],
