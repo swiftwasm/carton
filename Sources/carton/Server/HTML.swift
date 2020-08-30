@@ -12,7 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import TSCBasic
 import Vapor
+
+enum HTMLError: String, Error {
+  case customIndexPageWithoutHead = """
+  The custom `index.html` page does not have a `<head></head>` element to allow entrypoint injection
+  """
+}
 
 struct HTML {
   let value: String
@@ -27,8 +34,31 @@ extension HTML: ResponseEncodable {
     ))
   }
 
-  static func indexPage(entrypointName: String) -> String {
-    #"""
+  static func readCustomIndexPage(at path: String?, on fileSystem: FileSystem) throws -> String? {
+    if let customIndexPage = path {
+      let content = try localFileSystem.readFileContents(
+        AbsolutePath(localFileSystem.currentWorkingDirectory!, customIndexPage)
+      ).description
+
+      guard content.contains("</head>") else {
+        throw HTMLError.customIndexPageWithoutHead
+      }
+
+      return content
+    } else {
+      return nil
+    }
+  }
+
+  static func indexPage(customContent: String?, entrypointName: String) -> String {
+    if let customContent = customContent {
+      return customContent.replacingOccurrences(
+        of: "</head>",
+        with: #"<script type="text/javascript" src="\#(entrypointName)"></script></head>"#
+      )
+    }
+
+    return #"""
     <html>
       <head>
           <meta charset="utf-8" />

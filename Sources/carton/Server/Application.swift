@@ -18,6 +18,7 @@ import Vapor
 extension Application {
   func configure(
     mainWasmPath: String,
+    customIndexContent: String?,
     onWebSocketOpen: @escaping (WebSocket) -> (),
     onWebSocketClose: @escaping (WebSocket) -> ()
   ) {
@@ -29,7 +30,7 @@ extension Application {
 
     // register routes
     get { _ in
-      HTML(value: HTML.indexPage(entrypointName: "dev.js"))
+      HTML(value: HTML.indexPage(customContent: customIndexContent, entrypointName: "dev.js"))
     }
 
     webSocket("watcher") { _, ws in

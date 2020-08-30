@@ -34,6 +34,9 @@ struct Dev: ParsableCommand {
   @Option(help: "Specify name of a json destination file to be passed to `swift build`.")
   var destination: String?
 
+  @Option(help: "Specify a path to a custom `index.html` file to be used for your app.")
+  var customIndexPage: String?
+
   @Flag(help: "When specified, build in the release mode.")
   var release = false
 
@@ -74,6 +77,7 @@ struct Dev: ParsableCommand {
       builderArguments: arguments,
       pathsToWatch: sources,
       mainWasmPath: mainWasmPath.pathString,
+      customIndexContent: HTML.readCustomIndexPage(at: customIndexPage, on: localFileSystem),
       verbose: verbose,
       terminal
     ).run()

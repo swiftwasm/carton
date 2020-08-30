@@ -27,6 +27,9 @@ struct Bundle: ParsableCommand {
   @Option(help: "Specify name of an executable product to produce the bundle for.")
   var product: String?
 
+  @Option(help: "Specify a path to a custom `index.html` file to be used for your app.")
+  var customIndexPage: String?
+
   @Flag(help: "When specified, build in the debug mode.")
   var debug = false
 
@@ -100,7 +103,10 @@ struct Bundle: ParsableCommand {
 
     try localFileSystem.writeFileContents(
       AbsolutePath(bundleDir, "index.html"),
-      bytes: ByteString(encodingAsUTF8: HTML.indexPage(entrypointName: entrypointName))
+      bytes: ByteString(encodingAsUTF8: HTML.indexPage(
+        customContent: HTML.readCustomIndexPage(at: customIndexPage, on: localFileSystem),
+        entrypointName: entrypointName
+      ))
     )
 
     terminal.write("\nBundle generation finished successfully", inColor: .green, bold: true)

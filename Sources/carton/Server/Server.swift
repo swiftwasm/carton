@@ -43,6 +43,7 @@ final class Server {
     builderArguments: [String],
     pathsToWatch: [AbsolutePath],
     mainWasmPath: String,
+    customIndexContent: String?,
     verbose: Bool,
     _ terminal: TerminalController
   ) throws {
@@ -53,6 +54,7 @@ final class Server {
     app = Application(env)
     app.configure(
       mainWasmPath: mainWasmPath,
+      customIndexContent: customIndexContent,
       onWebSocketOpen: { [weak self] in
         self?.connections.insert($0)
       },
