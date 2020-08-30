@@ -54,7 +54,8 @@ that hosts your WebAssembly executable and a corresponding JavaScript entrypoint
 edit the app source code in your favorite editor and save it, `carton` will immediately rebuild the
 app and reload all browser tabs that have the app open. You can also pass a `--verbose` flag to
 keep the build process output available, otherwise stale output is cleaned up from your terminal
-screen by default.
+screen by default. If you have a custom `index.html` page you'd like to use when serving, pass a
+path to it with a `--custom-index-page` option.
 
 The `carton test` command runs your test suite in the [`wasmer`](https://wasmer.io/) environment.
 Unfortunately, this currently requires a presence of `LinuxMain.swift` file and explicit test
@@ -76,7 +77,8 @@ pass the `--debug` flag to it to change that), and copies all required assets to
 directory. You can then use a static file hosting (e.g. [GitHub Pages](https://pages.github.com/))
 or any other server with support for static files to deploy your application. All resulting bundle
 files except `index.html` are named by their content hashes to enable [cache
-busting](https://www.keycdn.com/support/what-is-cache-busting).
+busting](https://www.keycdn.com/support/what-is-cache-busting). As with `carton dev`, a custom
+`index.html` page can be provided through the `--custom-index-page` option.
 
 All of these commands and subcommands can be passed a `--help` flag that prints usage info and
 information about all available options.
