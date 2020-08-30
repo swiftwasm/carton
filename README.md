@@ -8,7 +8,7 @@ It is still in development, but it aims to support these features (🐥 means "r
 - 🐥 Creating basic package boilerplate for apps built with SwiftWasm with `carton init`.
 - 🐥 Watching the app for source code changes and reloading it in your browser with `carton dev`.
 - 🐣 Running your XCTest suite in the full JavaScript/DOM environment with `carton test`.
-- 🥚 Optimizing and packaging the app for distribution with `carton bundle`.
+- 🐥 Optimizing and packaging the app for distribution with `carton bundle`.
 - 🐥 Managing SwiftWasm toolchain and SDK installations with `carton sdk`.
 
 It is currently work in progress, so watch the repository for imminent updates!
@@ -70,6 +70,13 @@ specifying the snapshot version, like `carton sdk install wasm-DEVELOPMENT-SNAPS
 
 `carton dev` can also detect existing installations of `swiftenv`, so if you already have SwiftWasm
 installed via `swiftenv`, you don't have to do anything on top of that to start using `carton`.
+
+The `carton bundle` command builds your project using the `release` configuration (although you can
+pass the `--debug` flag to it to change that), and copies all required assets to the `Bundle`
+directory. You can then use a static file hosting (e.g. [GitHub Pages](https://pages.github.com/))
+or any other server with support for static files to deploy your application. All resulting bundle
+files except `index.html` are named by their content hashes to enable [cache
+busting](https://www.keycdn.com/support/what-is-cache-busting).
 
 All of these commands and subcommands can be passed a `--help` flag that prints usage info and
 information about all available options.
