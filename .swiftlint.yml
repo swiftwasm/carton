@@ -6,6 +6,7 @@ disabled_rules:
   - nesting
   - cyclomatic_complexity
   - opening_brace
+  - todo
 
 line_length: 100
 
