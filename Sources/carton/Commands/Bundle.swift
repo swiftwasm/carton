@@ -27,6 +27,12 @@ struct Bundle: ParsableCommand {
   @Option(help: "Specify name of an executable product to produce the bundle for.")
   var product: String?
 
+  @Option(
+    help: "Specify a path to a custom `index.html` file to be used for your app.",
+    completion: .file(extensions: [".html"])
+  )
+  var customIndexPage: String?
+
   @Flag(help: "When specified, build in the debug mode.")
   var debug = false
 
@@ -72,9 +78,7 @@ struct Bundle: ParsableCommand {
     )
 
     // Rename the final binary to use a part of its hash to bust browsers and CDN caches.
-    let optimizedHash = try ByteString(SHA256.hash(data:
-      localFileSystem.readFileContents(optimizedPath).contents
-    )).hexadecimalRepresentation.prefix(16)
+    let optimizedHash = try localFileSystem.readFileContents(optimizedPath).hexSHA256.prefix(16)
     let mainModuleName = "\(optimizedHash).wasm"
     let mainModulePath = AbsolutePath(bundleDir, mainModuleName)
     try localFileSystem.move(from: optimizedPath, to: mainModulePath)
@@ -89,10 +93,7 @@ struct Bundle: ParsableCommand {
           with: mainModuleName
         )
     )
-    let entrypointName =
-      """
-      \(ByteString(SHA256.hash(data: entrypoint.contents)).hexadecimalRepresentation.prefix(16)).js
-      """
+    let entrypointName = "\(entrypoint.hexSHA256.prefix(16)).js"
     try localFileSystem.writeFileContents(
       AbsolutePath(bundleDir, entrypointName),
       bytes: entrypoint
@@ -100,7 +101,10 @@ struct Bundle: ParsableCommand {
 
     try localFileSystem.writeFileContents(
       AbsolutePath(bundleDir, "index.html"),
-      bytes: ByteString(encodingAsUTF8: HTML.indexPage(entrypointName: entrypointName))
+      bytes: ByteString(encodingAsUTF8: HTML.indexPage(
+        customContent: HTML.readCustomIndexPage(at: customIndexPage, on: localFileSystem),
+        entrypointName: entrypointName
+      ))
     )
 
     terminal.write("\nBundle generation finished successfully", inColor: .green, bold: true)

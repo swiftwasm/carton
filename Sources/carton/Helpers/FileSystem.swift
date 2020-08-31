@@ -15,6 +15,10 @@
 import Foundation
 import TSCBasic
 
+extension String {
+  var isAbsolutePath: Bool { first == "/" }
+}
+
 extension FileSystem {
   func traverseRecursively(_ traversalRoot: AbsolutePath) throws -> [AbsolutePath] {
     guard exists(traversalRoot, followSymlink: true) else {

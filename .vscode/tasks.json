@@ -34,6 +34,11 @@
       "command": "swift build && cd TestApp && ../.build/debug/carton dev --product TestApp"
     },
     {
+      "label": "build and run dev w/ custom index",
+      "type": "shell",
+      "command": "swift build && cd TestApp && ../.build/debug/carton dev --product TestApp --custom-index-page index.html"
+    },
+    {
       "label": "build and run dev in subdirectory",
       "type": "shell",
       "command": "swift build && cd TestApp/Sources/TestApp && ../../../.build/debug/carton dev --product TestApp"
@@ -62,6 +67,11 @@
       "label": "build and run bundle",
       "type": "shell",
       "command": "swift build && cd TestApp && ../.build/debug/carton bundle"
+    },
+    {
+      "label": "build and run bundle w/ custom index",
+      "type": "shell",
+      "command": "swift build && cd TestApp && ../.build/debug/carton bundle --custom-index-page index.html"
     },
     {
       "type": "npm",
