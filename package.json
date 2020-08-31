@@ -4,12 +4,13 @@
   "description": "📦 Watcher, bundler, and test runner for your SwiftWasm apps ",
   "main": "index.js",
   "scripts": {
-    "build": "webpack",
+    "build": "webpack --config dev.config.js",
+    "bundle": "webpack --config bundle.config.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MaxDesiatov/carton.git"
+    "url": "git+https://github.com/swiftwasm/carton.git"
   },
   "keywords": [
     "swift",
@@ -20,9 +21,9 @@
   "author": "Max Desiatov",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/MaxDesiatov/carton/issues"
+    "url": "https://github.com/swiftwasm/carton/issues"
   },
-  "homepage": "https://github.com/MaxDesiatov/carton#readme",
+  "homepage": "https://github.com/swiftwasm/carton#readme",
   "devDependencies": {
     "@wasmer/wasi": "^0.11.2",
     "@wasmer/wasmfs": "^0.11.2",

@@ -54,12 +54,29 @@
       "command": "swift build && cd TestApp && ../.build/debug/carton test Tests.Test/testTrivial"
     },
     {
+      "label": "build and hash static dependencies",
+      "type": "shell",
+      "command": "swift run carton-release hash-archive"
+    },
+    {
+      "label": "build and run bundle",
+      "type": "shell",
+      "command": "swift build && cd TestApp && ../.build/debug/carton bundle"
+    },
+    {
       "type": "npm",
       "script": "build",
       "group": "build",
       "problemMatcher": [],
       "label": "npm: build",
       "detail": "webpack"
+    },
+    {
+      "type": "npm",
+      "script": "bundle",
+      "problemMatcher": [],
+      "label": "npm: bundle",
+      "detail": "webpack --config bundle.config.js"
     }
   ]
 }

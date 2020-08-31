@@ -40,9 +40,16 @@ struct HashArchive: ParsableCommand {
     let cwd = localFileSystem.currentWorkingDirectory!
 
     try ProcessRunner(["npm", "run", "build"], terminal).waitUntilFinished()
+    try ProcessRunner(["npm", "run", "bundle"], terminal).waitUntilFinished()
+
+    let staticPath = AbsolutePath(cwd, "static")
 
     let devHash = try SHA256().hash(
-      localFileSystem.readFileContents(AbsolutePath(cwd, RelativePath("static/dev.js")))
+      localFileSystem.readFileContents(AbsolutePath(staticPath, "dev.js"))
+    ).hexadecimalRepresentation.uppercased()
+
+    let bundleHash = try SHA256().hash(
+      localFileSystem.readFileContents(AbsolutePath(staticPath, "bundle.js"))
     ).hexadecimalRepresentation.uppercased()
 
     try ProcessRunner(["zip", "static.zip", "static/*"], terminal).waitUntilFinished()
@@ -59,6 +66,10 @@ struct HashArchive: ParsableCommand {
 
     let devDependencySHA256 = ByteString([
     \(arrayString(from: devHash))
+    ])
+
+    let bundleDependencySHA256 = ByteString([
+    \(arrayString(from: bundleHash))
     ])
 
     let staticArchiveHash = ByteString([

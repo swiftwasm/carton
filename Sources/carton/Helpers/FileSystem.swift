@@ -38,4 +38,11 @@ extension FileSystem {
 
     return result
   }
+
+  func humanReadableFileSize(_ path: AbsolutePath) throws -> String {
+    precondition(isFile(path))
+
+    // FIXME: should use `UnitInformationStorage`, but it's unavailable in open-source Foundation
+    return try String(format: "%.2f MB", Double(getFileInfo(path).size) / 1024 / 1024)
+  }
 }

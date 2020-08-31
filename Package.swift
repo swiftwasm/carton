@@ -24,6 +24,7 @@ let package = Package(
     ),
     .package(url: "https://github.com/OpenCombine/OpenCombine.git", from: "0.10.0"),
     .package(url: "https://github.com/vapor/vapor.git", from: "4.15.2"),
+    .package(url: "https://github.com/apple/swift-crypto.git", from: "1.0.2"),
   ],
   targets: [
     // Targets are the basic building blocks of a package. A target can define a module
@@ -34,6 +35,7 @@ let package = Package(
       dependencies: [
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
+        .product(name: "Crypto", package: "swift-crypto"),
         .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
         .product(name: "Vapor", package: "vapor"),
         "CartonHelpers",
