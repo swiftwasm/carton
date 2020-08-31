@@ -27,7 +27,10 @@ struct Bundle: ParsableCommand {
   @Option(help: "Specify name of an executable product to produce the bundle for.")
   var product: String?
 
-  @Option(help: "Specify a path to a custom `index.html` file to be used for your app.")
+  @Option(
+    help: "Specify a path to a custom `index.html` file to be used for your app.",
+    completion: .file(extensions: [".html"])
+  )
   var customIndexPage: String?
 
   @Flag(help: "When specified, build in the debug mode.")
