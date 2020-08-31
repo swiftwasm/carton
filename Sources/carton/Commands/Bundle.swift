@@ -78,9 +78,7 @@ struct Bundle: ParsableCommand {
     )
 
     // Rename the final binary to use a part of its hash to bust browsers and CDN caches.
-    let optimizedHash = try ByteString(SHA256.hash(data:
-      localFileSystem.readFileContents(optimizedPath).contents
-    )).hexadecimalRepresentation.prefix(16)
+    let optimizedHash = try localFileSystem.readFileContents(optimizedPath).hexSHA256.prefix(16)
     let mainModuleName = "\(optimizedHash).wasm"
     let mainModulePath = AbsolutePath(bundleDir, mainModuleName)
     try localFileSystem.move(from: optimizedPath, to: mainModulePath)
@@ -95,10 +93,7 @@ struct Bundle: ParsableCommand {
           with: mainModuleName
         )
     )
-    let entrypointName =
-      """
-      \(ByteString(SHA256.hash(data: entrypoint.contents)).hexadecimalRepresentation.prefix(16)).js
-      """
+    let entrypointName = "\(entrypoint.hexSHA256.prefix(16)).js"
     try localFileSystem.writeFileContents(
       AbsolutePath(bundleDir, entrypointName),
       bytes: entrypoint
