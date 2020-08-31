@@ -16,7 +16,7 @@ let package = Package(
     .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.1.1"),
     .package(
       url: "https://github.com/apple/swift-argument-parser",
-      .upToNextMinor(from: "0.2.0")
+      .upToNextMinor(from: "0.3.0")
     ),
     .package(
       url: "https://github.com/apple/swift-tools-support-core.git",
