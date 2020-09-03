@@ -51,7 +51,8 @@ struct Bundle: ParsableCommand {
     let (_, mainWasmPath) = try toolchain.buildCurrentProject(
       product: product,
       destination: nil,
-      isRelease: !debug
+      // FIXME: change to `!debug` after https://github.com/swiftwasm/swift/issues/1679 is resolved
+      isRelease: false
     )
     try terminal.logLookup(
       "Right after building the main binary size is ",
