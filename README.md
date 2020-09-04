@@ -116,9 +116,6 @@ which is now partially resolved with [a new argument available on
 `XCTMain`](https://github.com/apple/swift-corelibs-xctest/pull/306) and a custom [JSON test
 reporter](https://github.com/MaxDesiatov/XCTestJSONObserver/).
 
-There are a few more commands on the roadmap to be implemented, such as `carton bundle` to produce an
-optimized production deployment bundle, SwiftPM resources support for bundled assets, and much more.
-
 As cross-compiling to WebAssembly and running apps and tests remotely is not too dissimilar to Android
 development, or even development on macOS for Linux through Docker, `carton` could potentially become
 a generic tool for cross-platform Swift developers. I'm not developing any Android apps currently, but
