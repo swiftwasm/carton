@@ -77,7 +77,7 @@ public final class Toolchain {
 
   private let version: String
   private let swiftPath: AbsolutePath
-  private let package: Result<Package, Error>
+  public let package: Result<Package, Error>
 
   public init(
     for versionSpec: String? = nil,

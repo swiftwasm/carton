@@ -18,6 +18,7 @@ import Combine
 #else
 import OpenCombine
 #endif
+import SwiftToolchain
 import TSCBasic
 import Vapor
 
@@ -42,8 +43,9 @@ final class Server {
   init(
     builderArguments: [String],
     pathsToWatch: [AbsolutePath],
-    mainWasmPath: String,
+    mainWasmPath: AbsolutePath,
     customIndexContent: String?,
+    package: SwiftToolchain.Package,
     verbose: Bool,
     _ terminal: TerminalController
   ) throws {
@@ -55,6 +57,7 @@ final class Server {
     app.configure(
       mainWasmPath: mainWasmPath,
       customIndexContent: customIndexContent,
+      package: package,
       onWebSocketOpen: { [weak self] in
         self?.connections.insert($0)
       },

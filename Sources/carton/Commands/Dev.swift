@@ -76,8 +76,10 @@ struct Dev: ParsableCommand {
     try Server(
       builderArguments: arguments,
       pathsToWatch: sources,
-      mainWasmPath: mainWasmPath.pathString,
+      mainWasmPath: mainWasmPath,
       customIndexContent: HTML.readCustomIndexPage(at: customIndexPage, on: localFileSystem),
+      // swiftlint:disable:next force_try
+      package: try! toolchain.package.get(),
       verbose: verbose,
       terminal
     ).run()
