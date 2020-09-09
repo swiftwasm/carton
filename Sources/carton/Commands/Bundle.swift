@@ -107,6 +107,6 @@ struct Bundle: ParsableCommand {
       ))
     )
 
-    terminal.write("\nBundle generation finished successfully", inColor: .green, bold: true)
+    terminal.write("\nBundle generation finished successfully\n", inColor: .green, bold: true)
   }
 }
