@@ -17,7 +17,7 @@ import Foundation
 import JavaScriptKit
 import TestLibrary
 
-let document = JSObjectRef.global.document.object!
+let document = JSObject.global.document.object!
 
 let button = document.createElement!("button").object!
 button.innerText = .string("Crash!")
@@ -33,8 +33,10 @@ func crash() {
 }
 
 let buttonNode = document.getElementsByTagName!("button").object![0].object!
-buttonNode.onclick = .function { _ in
+let handler = JSValue.function { _ in
   print(text)
   crash()
   return .undefined
 }
+
+buttonNode.onclick = handler

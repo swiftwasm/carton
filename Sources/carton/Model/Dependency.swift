@@ -17,8 +17,11 @@ import Foundation
 import TSCBasic
 import TSCUtility
 
+/** The `static.zip` archive is always uploaded to release assets of a previous release
+ instead of the forthcoming release, because the corresponding new release tag doesn't exist yet.
+ */
 private let staticArchiveURL =
-  "https://github.com/swiftwasm/carton/releases/download/0.5.0/static.zip"
+  "https://github.com/swiftwasm/carton/releases/download/0.4.1/static.zip"
 
 private let verifyHash = Equality<ByteString, String> {
   """
@@ -80,8 +83,10 @@ struct Dependency {
       try fileSystem.writeFileContents(archiveFile, bytes: downloadedArchive)
       terminal.logLookup("Unpacking the archive: ", archiveFile)
 
+      let staticDir = cartonDir.appending(component: "static")
+      try fileSystem.createDirectory(staticDir)
       try await {
-        ZipArchiver().extract(from: archiveFile, to: cartonDir, completion: $0)
+        ZipArchiver().extract(from: archiveFile, to: staticDir, completion: $0)
       }
     }
 

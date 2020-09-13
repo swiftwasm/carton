@@ -3,11 +3,11 @@
     "pins": [
       {
         "package": "JavaScriptKit",
-        "repositoryURL": "https://github.com/kateinoigakukun/JavaScriptKit",
+        "repositoryURL": "https://github.com/swiftwasm/JavaScriptKit",
         "state": {
-          "branch": "c90e82f",
-          "revision": "c90e82fe1d576a2ccd1aae798380bf80be7885fb",
-          "version": null
+          "branch": null,
+          "revision": "ad1544ff312e31a22d05426320913f24593ce838",
+          "version": "0.6.0"
         }
       }
     ]
