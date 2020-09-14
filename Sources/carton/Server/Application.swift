@@ -13,12 +13,15 @@
 // limitations under the License.
 
 import Foundation
+import SwiftToolchain
+import TSCBasic
 import Vapor
 
 extension Application {
   func configure(
-    mainWasmPath: String,
+    mainWasmPath: AbsolutePath,
     customIndexContent: String?,
+    package: SwiftToolchain.Package,
     onWebSocketOpen: @escaping (WebSocket) -> (),
     onWebSocketClose: @escaping (WebSocket) -> ()
   ) {
@@ -38,9 +41,20 @@ extension Application {
       ws.onClose.whenComplete { _ in onWebSocketClose(ws) }
     }
 
-    get("main.wasm") { (request: Request) in
+    get("main.wasm") {
       // stream the file
-      request.eventLoop.makeSucceededFuture(request.fileio.streamFile(at: mainWasmPath))
+      $0.eventLoop.makeSucceededFuture($0.fileio.streamFile(at: mainWasmPath.pathString))
+    }
+
+    let buildDirectory = mainWasmPath.parentDirectory
+    for target in package.targets where target.type == .regular && !target.resources.isEmpty {
+      let resourcesPath = "\(package.name)_\(target.name).resources"
+      get(.constant(resourcesPath), "**") {
+        $0.eventLoop.makeSucceededFuture($0.fileio.streamFile(at: AbsolutePath(
+          buildDirectory.appending(component: resourcesPath),
+          $0.parameters.getCatchall().joined(separator: "/")
+        ).pathString))
+      }
     }
   }
 }

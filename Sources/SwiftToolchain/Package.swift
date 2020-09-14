@@ -19,13 +19,13 @@ import TSCBasic
 /**
  Simple Package structure from package dump
  */
-struct Package: Codable {
-  let name: String
-  let products: [Product]
-  let targets: [Target]
-  let dependencies: [Dependency]?
+public struct Package: Codable {
+  public let name: String
+  public let products: [Product]
+  public let targets: [Target]
+  public let dependencies: [Dependency]?
 
-  struct Dependency: Codable {
+  public struct Dependency: Codable {
     let name: String
     let requirement: Requirement
 
@@ -59,20 +59,31 @@ struct ProductType: Codable {
 /**
  Simple Product structure from package dump
  */
-struct Product: Codable {
+public struct Product: Codable {
   let name: String
   let type: ProductType
 }
 
-enum TargetType: String, Codable {
+public enum TargetType: String, Codable {
   case regular
   case test
 }
 
-struct Target: Codable {
-  let name: String
-  let type: TargetType
-  let path: String?
+public struct Target: Codable {
+  public let name: String
+  public let type: TargetType
+  public let path: String?
+  public let resources: [Resource]
+}
+
+public struct Resource: Codable {
+  public let path: String
+  public let rule: Rule
+
+  public enum Rule: String, Codable {
+    case copy
+    case process
+  }
 }
 
 public enum PackageType: String {
