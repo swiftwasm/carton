@@ -53,6 +53,7 @@ struct HashArchive: ParsableCommand {
     ).hexadecimalRepresentation.uppercased()
 
     let archiveSources = try localFileSystem.traverseRecursively(staticPath)
+      // `traverseRecursively` also returns the `staticPath` directory itself, dropping it here
       .dropFirst()
       .map(\.pathString)
 
