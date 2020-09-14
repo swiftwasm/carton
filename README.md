@@ -67,7 +67,7 @@ is rarely needed, as `carton dev` install the recommended version of SwiftWasm a
 `carton sdk versions` lists all installed versions, and `carton sdk local` prints the version
 specified for the current project in the `.swift-version` file. You can however install SwiftWasm
 separately if needed, either by passing an archive URL to `carton sdk install` directly, or just
-specifying the snapshot version, like `carton sdk install wasm-DEVELOPMENT-SNAPSHOT-2020-06-07-a`.
+specifying the snapshot version, like `carton sdk install wasm-5.3-SNAPSHOT-2020-09-03-a`.
 
 `carton dev` can also detect existing installations of `swiftenv`, so if you already have SwiftWasm
 installed via `swiftenv`, you don't have to do anything on top of that to start using `carton`.
@@ -115,9 +115,6 @@ This was blocked by [`XCTest` not allowing customized test report formats](https
 which is now partially resolved with [a new argument available on
 `XCTMain`](https://github.com/apple/swift-corelibs-xctest/pull/306) and a custom [JSON test
 reporter](https://github.com/MaxDesiatov/XCTestJSONObserver/).
-
-There are a few more commands on the roadmap to be implemented, such as `carton bundle` to produce an
-optimized production deployment bundle, SwiftPM resources support for bundled assets, and much more.
 
 As cross-compiling to WebAssembly and running apps and tests remotely is not too dissimilar to Android
 development, or even development on macOS for Linux through Docker, `carton` could potentially become

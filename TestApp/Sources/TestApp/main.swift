@@ -40,3 +40,9 @@ let handler = JSValue.function { _ in
 }
 
 buttonNode.onclick = handler
+
+let div = document.createElement!("div").object!
+div.innerHTML = .string(#"""
+<a href=\#(Bundle.module.path(forResource: "data", ofType: "json")!)>Link to a static resource</a>
+"""#)
+_ = body.appendChild!(div)
