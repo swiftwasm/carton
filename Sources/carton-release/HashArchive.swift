@@ -52,7 +52,12 @@ struct HashArchive: ParsableCommand {
       localFileSystem.readFileContents(AbsolutePath(staticPath, "bundle.js"))
     ).hexadecimalRepresentation.uppercased()
 
-    try ProcessRunner(["zip", "static.zip", "static/*"], terminal).waitUntilFinished()
+    let archiveSources = try localFileSystem.traverseRecursively(staticPath)
+      // `traverseRecursively` also returns the `staticPath` directory itself, dropping it here
+      .dropFirst()
+      .map(\.pathString)
+
+    try ProcessRunner(["zip", "-j", "static.zip"] + archiveSources, terminal).waitUntilFinished()
 
     let archiveHash = try SHA256().hash(
       localFileSystem.readFileContents(AbsolutePath(
@@ -75,6 +80,7 @@ struct HashArchive: ParsableCommand {
     let staticArchiveHash = ByteString([
     \(arrayString(from: archiveHash)),
     ])
+
     """
 
     try localFileSystem.writeFileContents(
