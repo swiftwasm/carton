@@ -48,7 +48,7 @@ extension Application {
 
     let buildDirectory = mainWasmPath.parentDirectory
     for target in package.targets where target.type == .regular && !target.resources.isEmpty {
-      let resourcesPath = "\(package.name)_\(target.name).resources"
+      let resourcesPath = package.resourcesPath(for: target)
       get(.constant(resourcesPath), "**") {
         $0.eventLoop.makeSucceededFuture($0.fileio.streamFile(at: AbsolutePath(
           buildDirectory.appending(component: resourcesPath),

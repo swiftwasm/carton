@@ -49,6 +49,10 @@ public struct Package: Codable {
 
     self = try JSONDecoder().decode(Package.self, from: output)
   }
+
+  public func resourcesPath(for target: Target) -> String {
+    "\(name)_\(target.name).resources"
+  }
 }
 
 struct ProductType: Codable {
