@@ -92,10 +92,11 @@ public final class Toolchain {
     package = Result { try Package(with: swiftPath, terminal) }
   }
 
-  private func inferBinPath() throws -> AbsolutePath {
+  private func inferBinPath(isRelease: Bool) throws -> AbsolutePath {
     guard
       let output = try processStringOutput([
-        swiftPath.pathString, "build", "--triple", "wasm32-unknown-wasi", "--show-bin-path",
+        swiftPath.pathString, "build", "-c", isRelease ? "release" : "debug",
+        "--triple", "wasm32-unknown-wasi", "--show-bin-path",
       ])?.components(separatedBy: CharacterSet.newlines),
       let binPath = output.first
     else { fatalError("failed to decode UTF8 output of the `swift build` invocation") }
@@ -210,7 +211,7 @@ public final class Toolchain {
       )
     }
 
-    let binPath = try inferBinPath()
+    let binPath = try inferBinPath(isRelease: isRelease)
     let mainWasmPath = binPath.appending(component: product)
     terminal.logLookup("- development binary to serve: ", mainWasmPath.pathString)
 
@@ -238,7 +239,7 @@ public final class Toolchain {
   /// Returns an absolute path to the resulting test bundle
   public func buildTestBundle(isRelease: Bool) throws -> AbsolutePath {
     let package = try self.package.get()
-    let binPath = try inferBinPath()
+    let binPath = try inferBinPath(isRelease: isRelease)
     let testBundlePath = binPath.appending(component: "\(package.name)PackageTests.xctest")
     terminal.logLookup("- test bundle to run: ", testBundlePath.pathString)
 
