@@ -135,7 +135,7 @@ struct Bundle: ParsableCommand {
       let targetDirectory = bundleDirectory.appending(component: targetPath)
 
       guard localFileSystem.exists(resourcesPath) else { continue }
-      terminal.logLookup("Copying resources to ", targetDirectory, newline: true)
+      terminal.logLookup("Copying resources to ", targetDirectory)
       try localFileSystem.copy(from: resourcesPath, to: targetDirectory)
     }
   }
