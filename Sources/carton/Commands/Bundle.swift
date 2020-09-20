@@ -55,32 +55,53 @@ struct Bundle: ParsableCommand {
     )
     try terminal.logLookup(
       "Right after building the main binary size is ",
-      localFileSystem.humanReadableFileSize(mainWasmPath)
+      localFileSystem.humanReadableFileSize(mainWasmPath),
+      newline: true
     )
 
     try ProcessRunner(["wasm-strip", mainWasmPath.pathString], terminal).waitUntilFinished()
     try terminal.logLookup(
       "After applying `wasm-strip` the main binary size is ",
-      localFileSystem.humanReadableFileSize(mainWasmPath)
+      localFileSystem.humanReadableFileSize(mainWasmPath),
+      newline: true
     )
 
-    let bundleDir = AbsolutePath(localFileSystem.currentWorkingDirectory!, "Bundle")
-    try localFileSystem.removeFileTree(bundleDir)
-    try localFileSystem.createDirectory(bundleDir)
-    let optimizedPath = AbsolutePath(bundleDir, "main.wasm")
+    let bundleDirectory = AbsolutePath(localFileSystem.currentWorkingDirectory!, "Bundle")
+    try localFileSystem.removeFileTree(bundleDirectory)
+    try localFileSystem.createDirectory(bundleDirectory)
+    let optimizedPath = AbsolutePath(bundleDirectory, "main.wasm")
     try ProcessRunner(
       ["wasm-opt", "-Os", mainWasmPath.pathString, "-o", optimizedPath.pathString],
       terminal
     ).waitUntilFinished()
     try terminal.logLookup(
       "After applying `wasm-opt` the main binary size is ",
-      localFileSystem.humanReadableFileSize(optimizedPath)
+      localFileSystem.humanReadableFileSize(optimizedPath),
+      newline: true
     )
 
+    try copyToBundle(
+      terminal: terminal,
+      optimizedPath: optimizedPath,
+      buildDirectory: mainWasmPath.parentDirectory,
+      bundleDirectory: bundleDirectory,
+      toolchain: toolchain
+    )
+
+    terminal.write("Bundle generation finished successfully\n", inColor: .green, bold: true)
+  }
+
+  func copyToBundle(
+    terminal: TerminalController,
+    optimizedPath: AbsolutePath,
+    buildDirectory: AbsolutePath,
+    bundleDirectory: AbsolutePath,
+    toolchain: Toolchain
+  ) throws {
     // Rename the final binary to use a part of its hash to bust browsers and CDN caches.
     let optimizedHash = try localFileSystem.readFileContents(optimizedPath).hexSHA256.prefix(16)
     let mainModuleName = "\(optimizedHash).wasm"
-    let mainModulePath = AbsolutePath(bundleDir, mainModuleName)
+    let mainModulePath = AbsolutePath(bundleDirectory, mainModuleName)
     try localFileSystem.move(from: optimizedPath, to: mainModulePath)
 
     // Copy the bundle entrypoint, point to the binary, and give it a cachebuster name.
@@ -95,18 +116,27 @@ struct Bundle: ParsableCommand {
     )
     let entrypointName = "\(entrypoint.hexSHA256.prefix(16)).js"
     try localFileSystem.writeFileContents(
-      AbsolutePath(bundleDir, entrypointName),
+      AbsolutePath(bundleDirectory, entrypointName),
       bytes: entrypoint
     )
 
     try localFileSystem.writeFileContents(
-      AbsolutePath(bundleDir, "index.html"),
+      AbsolutePath(bundleDirectory, "index.html"),
       bytes: ByteString(encodingAsUTF8: HTML.indexPage(
         customContent: HTML.readCustomIndexPage(at: customIndexPage, on: localFileSystem),
         entrypointName: entrypointName
       ))
     )
 
-    terminal.write("\nBundle generation finished successfully\n", inColor: .green, bold: true)
+    let package = try toolchain.package.get()
+    for target in package.targets where target.type == .regular && !target.resources.isEmpty {
+      let targetPath = package.resourcesPath(for: target)
+      let resourcesPath = buildDirectory.appending(component: targetPath)
+      let targetDirectory = bundleDirectory.appending(component: targetPath)
+
+      guard localFileSystem.exists(resourcesPath) else { continue }
+      terminal.logLookup("Copying resources to ", targetDirectory)
+      try localFileSystem.copy(from: resourcesPath, to: targetDirectory)
+    }
   }
 }

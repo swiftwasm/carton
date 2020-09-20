@@ -21,9 +21,14 @@ private extension String {
 }
 
 public extension TerminalController {
-  func logLookup<T: CustomStringConvertible>(_ description: String, _ target: T) {
+  func logLookup<T>(_ description: String, _ target: T, newline: Bool = false)
+    where T: CustomStringConvertible
+  {
     write(description)
     write("\(target)\n", inColor: .cyan, bold: true)
+    if newline {
+      write("\n")
+    }
   }
 
   func clearWindow() {
