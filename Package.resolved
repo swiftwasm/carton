@@ -51,8 +51,8 @@
         "repositoryURL": "https://github.com/apple/swift-argument-parser",
         "state": {
           "branch": null,
-          "revision": "15351c1cd009eba0b6e438bfef55ea9847a8dc4a",
-          "version": "0.3.0"
+          "revision": "3e7d2fe99da091dcc1e4a7dd22fc3cfc2dca7937",
+          "version": "0.2.2"
         }
       },
       {
@@ -69,8 +69,8 @@
         "repositoryURL": "https://github.com/apple/swift-crypto.git",
         "state": {
           "branch": null,
-          "revision": "9b9d1868601a199334da5d14f4ab2d37d4f8d0c5",
-          "version": "1.0.2"
+          "revision": "afe4c9b5f65b612a2bd4b1cb5ac70eb5841f278e",
+          "version": "1.1.0"
         }
       },
       {
@@ -96,8 +96,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio.git",
         "state": {
           "branch": null,
-          "revision": "5fc24345f92ec4c274121776c215ab0aa1ed4d50",
-          "version": "2.22.0"
+          "revision": "96db8838be60fcbb993fa738e1120fb7f4b99c43",
+          "version": "2.22.1"
         }
       },
       {
@@ -114,8 +114,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-http2.git",
         "state": {
           "branch": null,
-          "revision": "1e68e51752be0b43c5a0ef35818c1dd24d13e77c",
-          "version": "1.14.1"
+          "revision": "c7ad256b3e6f8d1da1e5d7ffc495d8fe2461f818",
+          "version": "1.14.2"
         }
       },
       {
