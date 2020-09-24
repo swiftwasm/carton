@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  macos_swift5_2_build:
+  macos-swift5_2:
     runs-on: macos-10.15
 
     steps:
@@ -16,10 +16,8 @@ jobs:
         run: |
           sudo xcode-select --switch /Applications/Xcode_11.7.app/Contents/Developer
           swift build
-          brew bundle
-          cd TestApp && ../.build/debug/carton bundle
 
-  macos_swift5_3_build:
+  macos-swift5_3:
     runs-on: macos-10.15
 
     steps:
@@ -28,8 +26,6 @@ jobs:
         run: |
           sudo xcode-select --switch /Applications/Xcode_12.app/Contents/Developer
           swift build
-          brew bundle
-          cd TestApp && ../.build/debug/carton bundle
 
   linux-5_3:
     runs-on: ubuntu-20.04
