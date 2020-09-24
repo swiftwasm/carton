@@ -16,6 +16,7 @@ import CustomPathTarget
 import Foundation
 import JavaScriptKit
 import TestLibrary
+import WASILibc
 
 let document = JSObject.global.document.object!
 
@@ -25,6 +26,7 @@ let body = document.body.object!
 _ = body.appendChild!(button)
 
 print("Number of seconds since epoch: \(Date().timeIntervalSince1970)")
+print("cos(M_PI) is \(cos(M_PI))")
 print(customTargetText)
 
 func crash() {
