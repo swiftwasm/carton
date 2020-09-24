@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  macos_build:
+  macos_swift5_2_build:
     runs-on: macos-10.15
 
     steps:
@@ -17,11 +17,34 @@ jobs:
           sudo xcode-select --switch /Applications/Xcode_11.6.app/Contents/Developer
           swift build
 
-  linux_build:
-    runs-on: ubuntu-20.04
+  macos_swift5_3_build:
+    runs-on: macos-10.15
 
     steps:
       - uses: actions/checkout@v2
-      - name: Build on Ubuntu 20.04 with Swift 5.2
+      - name: Build on macOS 10.15 with Swift 5.3
         run: |
+          sudo xcode-select --switch /Applications/Xcode_12.app/Contents/Developer
           swift build
+
+  linux-5_2:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Test on Linux with Swift 5.2
+        uses: Didstopia/SwiftAction@v1.0.2
+        with:
+          swift-action: build
+
+  linux-5_3:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Test on Linux with Swift 5.3
+        uses: Didstopia/SwiftAction@v1.0.3
+        with:
+          swift-action: build
