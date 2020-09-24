@@ -33,6 +33,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Ubuntu 20.04 with Swift 5.2
+      - name: Build on Ubuntu 20.04 with Swift 5.2
         run: |
           swift build
