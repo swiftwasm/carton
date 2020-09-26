@@ -125,13 +125,17 @@ extension FileSystem {
     terminal.logLookup("Fetching release assets from ", releaseURL)
     let decoder = JSONDecoder()
     let request = try HTTPClient.Request.get(url: releaseURL)
-    guard let release = try await({
-      client.execute(request: request).map { response -> Release? in
-        guard let body = response.body else { return nil }
+    let release = try await {
+      client.execute(request: request).flatMapResult { response -> Result<Release, Error> in
+        terminal.logLookup("Received response for url ", releaseURL)
+        guard let body = response.body else {
+          return .failure(ToolchainError.absentResponseBody(url: releaseURL))
+        }
+        terminal.write("Response contained body, parsing it now...\n", inColor: .green)
 
-        return try? decoder.decode(Release.self, from: body)
+        return Result { try decoder.decode(Release.self, from: body) }
       }.whenComplete($0)
-    }) else { return nil }
+    }
 
     #if os(macOS)
     let platformSuffixes = ["osx", "catalina"]
@@ -139,6 +143,10 @@ extension FileSystem {
     let platformSuffixes = ["linux", "ubuntu18.04"]
     #endif
 
+    terminal.logLookup(
+      "Response succesfully parsed, choosing from this number of assets: ",
+      release.assets.count
+    )
     return release.assets.map(\.url).filter { url in
       platformSuffixes.contains { url.absoluteString.contains($0) }
     }.first

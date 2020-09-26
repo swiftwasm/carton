@@ -29,6 +29,7 @@ enum ToolchainError: Error, CustomStringConvertible {
   case failedToBuildTestBundle
   case missingPackageManifest
   case invalidVersion(version: String)
+  case absentResponseBody(url: String)
 
   var description: String {
     switch self {
@@ -53,6 +54,8 @@ enum ToolchainError: Error, CustomStringConvertible {
       """
     case let .invalidVersion(version):
       return "Invalid version \(version)"
+    case let .absentResponseBody(url: url):
+      return "Response from \(url) didn't contain body"
     }
   }
 }
