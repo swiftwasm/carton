@@ -16,6 +16,7 @@ jobs:
         run: |
           sudo xcode-select --switch /Applications/Xcode_11.7.app/Contents/Developer
           swift build
+          cd TestApp && ../.build/debug/carton test
 
   macos-swift5_3:
     runs-on: macos-10.15
@@ -26,13 +27,15 @@ jobs:
         run: |
           sudo xcode-select --switch /Applications/Xcode_12.app/Contents/Developer
           swift build
+          cd TestApp && ../.build/debug/carton test
 
   linux-swift5_3:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-18.04
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Build on Ubuntu 20.04 with Swift 5.2
+      - name: Build on Ubuntu 18.04 with Swift 5.3
         run: |
           swift build
+          cd TestApp && ../.build/debug/carton test
