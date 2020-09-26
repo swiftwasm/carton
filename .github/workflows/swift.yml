@@ -37,5 +37,6 @@ jobs:
 
       - name: Build on Ubuntu 18.04 with Swift 5.3
         run: |
+          curl https://get.wasmer.io -sSfL | sh
           swift build
           cd TestApp && ../.build/debug/carton test
