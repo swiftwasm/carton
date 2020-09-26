@@ -35,8 +35,7 @@ struct Test: ParsableCommand {
   var testCases = [String]()
 
   func run() throws {
-    guard let terminal = TerminalController(stream: stdoutStream)
-    else { fatalError("failed to create an instance of `TerminalController`") }
+    let terminal = InteractiveWriter.stdout
 
     let toolchain = try Toolchain(localFileSystem, terminal)
     let testBundlePath = try toolchain.buildTestBundle(isRelease: release)

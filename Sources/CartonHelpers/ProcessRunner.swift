@@ -44,7 +44,7 @@ public final class ProcessRunner {
   public init(
     _ arguments: [String],
     clearOutputLines: Bool = true,
-    _ terminal: TerminalController
+    _ terminal: InteractiveWriter
   ) {
     let subject = PassthroughSubject<String, Error>()
     publisher = subject

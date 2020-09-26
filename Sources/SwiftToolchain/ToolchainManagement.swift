@@ -73,7 +73,7 @@ extension FileSystem {
 
   func inferSwiftVersion(
     from versionSpec: String? = nil,
-    _ terminal: TerminalController
+    _ terminal: InteractiveWriter
   ) throws -> String {
     if let versionSpec = versionSpec {
       if let url = URL(string: versionSpec),
@@ -97,7 +97,7 @@ extension FileSystem {
   private func checkAndLog(
     swiftVersion: String,
     _ prefix: AbsolutePath,
-    _ terminal: TerminalController
+    _ terminal: InteractiveWriter
   ) throws -> AbsolutePath? {
     let swiftPath = prefix.appending(components: swiftVersion, "usr", "bin", "swift")
 
@@ -115,7 +115,7 @@ extension FileSystem {
   private func inferDownloadURL(
     from version: String,
     _ client: HTTPClient,
-    _ terminal: TerminalController
+    _ terminal: InteractiveWriter
   ) throws -> Foundation.URL? {
     let releaseURL = """
     https://api.github.com/repos/swiftwasm/swift/releases/tags/\
@@ -198,7 +198,7 @@ extension FileSystem {
    */
   func inferSwiftPath(
     from versionSpec: String? = nil,
-    _ terminal: TerminalController
+    _ terminal: InteractiveWriter
   ) throws -> (AbsolutePath, String) {
     let specURL = versionSpec.flatMap { (string: String) -> Foundation.URL? in
       guard
@@ -260,7 +260,7 @@ extension FileSystem {
     from url: Foundation.URL,
     to sdkPath: AbsolutePath,
     _ client: HTTPClient,
-    _ terminal: TerminalController
+    _ terminal: InteractiveWriter
   ) throws -> AbsolutePath {
     if !exists(sdkPath, followSymlink: true) {
       try createDirectory(sdkPath, recursive: true)
@@ -302,8 +302,7 @@ extension FileSystem {
 
       subject
         .handle(
-          with: PercentProgressAnimation(stream: stdoutStream, header: "Downloading the archive"),
-          terminal
+          with: PercentProgressAnimation(stream: stdoutStream, header: "Downloading the archive")
         )
         .sink(
           receiveCompletion: {

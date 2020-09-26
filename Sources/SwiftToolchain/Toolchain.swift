@@ -73,7 +73,7 @@ extension Package.Dependency.Requirement {
 
 public final class Toolchain {
   private let fileSystem: FileSystem
-  private let terminal: TerminalController
+  private let terminal: InteractiveWriter
 
   private let version: String
   private let swiftPath: AbsolutePath
@@ -82,7 +82,7 @@ public final class Toolchain {
   public init(
     for versionSpec: String? = nil,
     _ fileSystem: FileSystem,
-    _ terminal: TerminalController
+    _ terminal: InteractiveWriter
   ) throws {
     let (swiftPath, version) = try fileSystem.inferSwiftPath(from: versionSpec, terminal)
     self.swiftPath = swiftPath

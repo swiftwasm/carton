@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import ArgumentParser
+import CartonHelpers
 import Foundation
 #if canImport(Combine)
 import Combine
@@ -48,8 +49,7 @@ struct Dev: ParsableCommand {
   )
 
   func run() throws {
-    guard let terminal = TerminalController(stream: stdoutStream)
-    else { fatalError("failed to create an instance of `TerminalController`") }
+    let terminal = InteractiveWriter.stdout
 
     try dependency.check(on: localFileSystem, terminal)
 

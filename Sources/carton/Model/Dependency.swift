@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import AsyncHTTPClient
+import CartonHelpers
 import Foundation
 import TSCBasic
 import TSCUtility
@@ -49,7 +50,7 @@ struct Dependency {
     return (cartonDir, staticDir, staticDir.appending(component: fileName))
   }
 
-  func check(on fileSystem: FileSystem, _ terminal: TerminalController) throws {
+  func check(on fileSystem: FileSystem, _ terminal: InteractiveWriter) throws {
     let (cartonDir, staticDir, filePath) = paths(on: fileSystem)
 
     // If hash check fails, download the `static.zip` archive and unpack it

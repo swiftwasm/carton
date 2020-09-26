@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import ArgumentParser
+import CartonHelpers
 import Foundation
 import SwiftToolchain
 import TSCBasic
@@ -32,8 +33,7 @@ struct Init: ParsableCommand {
           help: "The name of the project") var name: String?
 
   func run() throws {
-    guard let terminal = TerminalController(stream: stdoutStream)
-    else { fatalError("failed to create an instance of `TerminalController`") }
+    let terminal = InteractiveWriter.stdout
 
     guard let name = name ?? localFileSystem.currentWorkingDirectory?.basename else {
       terminal.write("Project name could not be inferred\n", inColor: .red)

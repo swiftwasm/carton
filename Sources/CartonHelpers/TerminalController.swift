@@ -20,7 +20,7 @@ private extension String {
   static var clear = "\u{001B}[J"
 }
 
-public extension TerminalController {
+public extension InteractiveWriter {
   func logLookup<T>(_ description: String, _ target: T, newline: Bool = false)
     where T: CustomStringConvertible
   {
