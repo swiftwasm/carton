@@ -3,11 +3,18 @@
 
 import PackageDescription
 
-let openCombineProduct: Target.Dependency = .product(
-  name: "OpenCombine",
-  package: "OpenCombine",
-  condition: .when(platforms: [.linux])
-)
+let openCombineProducts: [Target.Dependency] = [
+  .product(
+    name: "OpenCombine",
+    package: "OpenCombine",
+    condition: .when(platforms: [.linux])
+  ),
+  .product(
+    name: "OpenCombineDispatch",
+    package: "OpenCombine",
+    condition: .when(platforms: [.linux])
+  ),
+]
 
 let package = Package(
   name: "carton",
@@ -39,9 +46,8 @@ let package = Package(
         .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
         .product(name: "Vapor", package: "vapor"),
         "CartonHelpers",
-        openCombineProduct,
         "SwiftToolchain",
-      ]
+      ] + openCombineProducts
     ),
     .target(
       name: "SwiftToolchain",
@@ -49,16 +55,14 @@ let package = Package(
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
         .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
         "CartonHelpers",
-        openCombineProduct,
-      ]
+      ] + openCombineProducts
     ),
     .target(
       name: "CartonHelpers",
       dependencies: [
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
         .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
-        openCombineProduct,
-      ]
+      ] + openCombineProducts
     ),
     // This target is used only for release automation tasks and
     // should not be installed by `carton` users.

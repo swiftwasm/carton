@@ -44,6 +44,7 @@ let package = Package(
         .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
         "CartonHelpers",
         "OpenCombine",
+        "OpenCombineDispatch",
       ]
     ),
     .target(
