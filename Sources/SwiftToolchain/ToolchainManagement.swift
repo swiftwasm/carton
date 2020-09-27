@@ -128,6 +128,7 @@ extension FileSystem {
     let release = try await {
       client.execute(request: request).flatMapResult { response -> Result<Release, Error> in
         terminal.logLookup("Received response for url ", releaseURL)
+        terminal.logLookup("Response status is ", "\(response.status)")
         guard let body = response.body else {
           return .failure(ToolchainError.absentResponseBody(url: releaseURL))
         }
