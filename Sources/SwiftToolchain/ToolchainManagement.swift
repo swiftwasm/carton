@@ -310,8 +310,14 @@ extension FileSystem {
         subject.send(completion: .finished)
       }
 
+      #if canImport(Combine)
+      let scheduler = DispatchQueue.main
+      #else
+      let scheduler = DispatchQueue.main.ocombine
+      #endif
+
       subject
-        .debounce(for: .seconds(0.5), scheduler: RunLoop.main)
+        .debounce(for: .seconds(0.5), scheduler: scheduler)
         .handle(
           with: PercentProgressAnimation(stream: stdoutStream, header: "Downloading the archive")
         )
