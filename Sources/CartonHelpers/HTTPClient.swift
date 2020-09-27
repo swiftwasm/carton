@@ -23,6 +23,9 @@ public extension HTTPClient.Request {
   static func get(url: String) throws -> Self {
     var request = try HTTPClient.Request(url: url)
     request.headers.add(name: "User-Agent", value: "carton \(cartonVersion)")
+    if let token = ProcessInfo.processInfo.environment["GITHUB_TOKEN"] {
+      request.headers.add(name: "Authorization", value: "Bearer \(token)")
+    }
     return request
   }
 }

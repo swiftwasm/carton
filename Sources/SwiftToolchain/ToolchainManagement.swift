@@ -127,10 +127,11 @@ extension FileSystem {
     let request = try HTTPClient.Request.get(url: releaseURL)
     let release = try await {
       client.execute(request: request).flatMapResult { response -> Result<Release, Error> in
-        terminal.logLookup("Received response for url ", releaseURL)
-        terminal.logLookup("Response status is ", "\(response.status)")
-        guard let body = response.body else {
-          return .failure(ToolchainError.absentResponseBody(url: releaseURL))
+        guard (200..<300).contains(response.status.code), let body = response.body else {
+          return .failure(ToolchainError.invalidResponse(
+            url: releaseURL,
+            status: response.status.code
+          ))
         }
         terminal.write("Response contained body, parsing it now...\n", inColor: .green)
 
