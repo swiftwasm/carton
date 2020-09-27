@@ -19,6 +19,7 @@ import Foundation
 import Combine
 #else
 import OpenCombine
+import OpenCombineDispatch
 #endif
 import TSCBasic
 import TSCUtility
@@ -265,6 +266,32 @@ extension FileSystem {
     return (path, swiftVersion)
   }
 
+  private func downloadDelegate(
+    path: String,
+    _ terminal: InteractiveWriter
+  ) throws -> (FileDownloadDelegate, PassthroughSubject<Progress, Error>) {
+    let subject = PassthroughSubject<Progress, Error>()
+    return try (FileDownloadDelegate(
+      path: path,
+      reportHead: {
+        guard $0.status == .ok,
+          let totalBytes = $0.headers.first(name: "Content-Length").flatMap(Int.init)
+        else {
+          subject.send(completion: .failure(ToolchainError.invalidResponseCode($0.status.code)))
+          return
+        }
+        terminal.write("Archive size is \(totalBytes / 1_000_000) MB\n", inColor: .yellow)
+      },
+      reportProgress: {
+        subject.send(.init(
+          step: $1,
+          total: $0 ?? expectedArchiveSize,
+          text: "saving to \(path)"
+        ))
+      }
+    ), subject)
+  }
+
   private func installSDK(
     version: String,
     from url: Foundation.URL,
@@ -280,27 +307,8 @@ extension FileSystem {
       throw ToolchainError.directoryDoesNotExist(sdkPath)
     }
 
-    let subject = PassthroughSubject<Progress, Error>()
     let archivePath = sdkPath.appending(component: "\(version).tar.gz")
-    let delegate = try FileDownloadDelegate(
-      path: archivePath.pathString,
-      reportHead: {
-        guard $0.status == .ok,
-          let totalBytes = $0.headers.first(name: "Content-Length").flatMap(Int.init)
-        else {
-          subject.send(completion: .failure(ToolchainError.invalidResponseCode($0.status.code)))
-          return
-        }
-        terminal.write("Archive size is \(totalBytes / 1_000_000) MB\n", inColor: .yellow)
-      },
-      reportProgress: {
-        subject.send(.init(
-          step: $1,
-          total: $0 ?? expectedArchiveSize,
-          text: "saving to \(archivePath)"
-        ))
-      }
-    )
+    let (delegate, subject) = try downloadDelegate(path: archivePath.pathString, terminal)
 
     var subscriptions = [AnyCancellable]()
     let request = try HTTPClient.Request.get(url: url)
