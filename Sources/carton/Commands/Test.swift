@@ -37,6 +37,12 @@ struct Test: ParsableCommand {
   func run() throws {
     let terminal = InteractiveWriter.stdout
 
+    // FIXME: dependency checks delete the whole `~/.carton` directory if `~/.carton/static`
+    // subdirectory is not found. This is fine since we do want this directory to be cleaned up
+    // from time to time to prevent it from growing too much from installed toolchains. Here though
+    // we're checking for a `Dev` entrypoint, not for a `Test` entrypoint, which doesn't exist yet.
+    // That's because we don't run tests in browsers yet.
+    try Dev.dependency.check(on: localFileSystem, terminal)
     let toolchain = try Toolchain(localFileSystem, terminal)
     let testBundlePath = try toolchain.buildTestBundle(isRelease: release)
 

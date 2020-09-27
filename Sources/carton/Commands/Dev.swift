@@ -23,12 +23,12 @@ import OpenCombine
 import SwiftToolchain
 import TSCBasic
 
-private let dependency = Dependency(
-  fileName: "dev.js",
-  sha256: devDependencySHA256
-)
-
 struct Dev: ParsableCommand {
+  static let dependency = Dependency(
+    fileName: "dev.js",
+    sha256: devDependencySHA256
+  )
+
   @Option(help: "Specify name of an executable product in development.")
   var product: String?
 
@@ -51,7 +51,7 @@ struct Dev: ParsableCommand {
   func run() throws {
     let terminal = InteractiveWriter.stdout
 
-    try dependency.check(on: localFileSystem, terminal)
+    try Self.dependency.check(on: localFileSystem, terminal)
 
     let toolchain = try Toolchain(localFileSystem, terminal)
 
