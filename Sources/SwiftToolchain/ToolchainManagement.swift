@@ -19,7 +19,6 @@ import Foundation
 import Combine
 #else
 import OpenCombine
-import OpenCombineDispatch
 #endif
 import TSCBasic
 import TSCUtility
@@ -318,14 +317,11 @@ extension FileSystem {
         subject.send(completion: .finished)
       }
 
-      #if canImport(Combine)
-      let scheduler = DispatchQueue.main
-      #else
-      let scheduler = DispatchQueue.main.ocombine
-      #endif
-
       subject
-        .debounce(for: .seconds(0.5), scheduler: scheduler)
+        .removeDuplicates {
+          // only report values that differ in more than 1%
+          $1.step - $0.step < ($0.total / 100)
+        }
         .handle(
           with: PercentProgressAnimation(stream: stdoutStream, header: "Downloading the archive")
         )
