@@ -311,6 +311,7 @@ extension FileSystem {
       }
 
       subject
+        .debounce(for: .seconds(0.5), scheduler: RunLoop.main)
         .handle(
           with: PercentProgressAnimation(stream: stdoutStream, header: "Downloading the archive")
         )
