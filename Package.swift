@@ -3,7 +3,7 @@
 
 import PackageDescription
 
-let openCombineProduct: Target.Dependency = .product(
+let openCombineProduct = Target.Dependency.product(
   name: "OpenCombine",
   package: "OpenCombine",
   condition: .when(platforms: [.linux])

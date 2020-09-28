@@ -7,3 +7,4 @@
 --stripunusedargs closure-only
 --disable andOperator
 --swiftversion 5.2
+--maxwidth 100

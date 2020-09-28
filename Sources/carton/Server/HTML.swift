@@ -38,8 +38,7 @@ extension HTML: ResponseEncodable {
     if let customIndexPage = path {
       let content = try localFileSystem.readFileContents(customIndexPage.isAbsolutePath ?
         AbsolutePath(customIndexPage) :
-        AbsolutePath(localFileSystem.currentWorkingDirectory!, customIndexPage)
-      ).description
+        AbsolutePath(localFileSystem.currentWorkingDirectory!, customIndexPage)).description
 
       guard content.contains("</head>") else {
         throw HTMLError.customIndexPageWithoutHead

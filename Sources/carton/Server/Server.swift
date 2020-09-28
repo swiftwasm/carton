@@ -47,7 +47,7 @@ final class Server {
     customIndexContent: String?,
     package: SwiftToolchain.Package,
     verbose: Bool,
-    _ terminal: TerminalController
+    _ terminal: InteractiveWriter
   ) throws {
     watcher = try Watcher(pathsToWatch)
 

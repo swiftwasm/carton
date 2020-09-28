@@ -73,7 +73,7 @@ extension FileSystem {
 
   func inferSwiftVersion(
     from versionSpec: String? = nil,
-    _ terminal: TerminalController
+    _ terminal: InteractiveWriter
   ) throws -> String {
     if let versionSpec = versionSpec {
       if let url = URL(string: versionSpec),
@@ -97,7 +97,7 @@ extension FileSystem {
   private func checkAndLog(
     swiftVersion: String,
     _ prefix: AbsolutePath,
-    _ terminal: TerminalController
+    _ terminal: InteractiveWriter
   ) throws -> AbsolutePath? {
     let swiftPath = prefix.appending(components: swiftVersion, "usr", "bin", "swift")
 
@@ -115,7 +115,7 @@ extension FileSystem {
   private func inferDownloadURL(
     from version: String,
     _ client: HTTPClient,
-    _ terminal: TerminalController
+    _ terminal: InteractiveWriter
   ) throws -> Foundation.URL? {
     let releaseURL = """
     https://api.github.com/repos/swiftwasm/swift/releases/tags/\
@@ -125,13 +125,19 @@ extension FileSystem {
     terminal.logLookup("Fetching release assets from ", releaseURL)
     let decoder = JSONDecoder()
     let request = try HTTPClient.Request.get(url: releaseURL)
-    guard let release = try await({
-      client.execute(request: request).map { response -> Release? in
-        guard let body = response.body else { return nil }
+    let release = try await {
+      client.execute(request: request).flatMapResult { response -> Result<Release, Error> in
+        guard (200..<300).contains(response.status.code), let body = response.body else {
+          return .failure(ToolchainError.invalidResponse(
+            url: releaseURL,
+            status: response.status.code
+          ))
+        }
+        terminal.write("Response contained body, parsing it now...\n", inColor: .green)
 
-        return try? decoder.decode(Release.self, from: body)
+        return Result { try decoder.decode(Release.self, from: body) }
       }.whenComplete($0)
-    }) else { return nil }
+    }
 
     #if os(macOS)
     let platformSuffixes = ["osx", "catalina"]
@@ -139,6 +145,10 @@ extension FileSystem {
     let platformSuffixes = ["linux", "ubuntu18.04"]
     #endif
 
+    terminal.logLookup(
+      "Response succesfully parsed, choosing from this number of assets: ",
+      release.assets.count
+    )
     return release.assets.map(\.url).filter { url in
       platformSuffixes.contains { url.absoluteString.contains($0) }
     }.first
@@ -198,7 +208,7 @@ extension FileSystem {
    */
   func inferSwiftPath(
     from versionSpec: String? = nil,
-    _ terminal: TerminalController
+    _ terminal: InteractiveWriter
   ) throws -> (AbsolutePath, String) {
     let specURL = versionSpec.flatMap { (string: String) -> Foundation.URL? in
       guard
@@ -255,25 +265,13 @@ extension FileSystem {
     return (path, swiftVersion)
   }
 
-  private func installSDK(
-    version: String,
-    from url: Foundation.URL,
-    to sdkPath: AbsolutePath,
-    _ client: HTTPClient,
-    _ terminal: TerminalController
-  ) throws -> AbsolutePath {
-    if !exists(sdkPath, followSymlink: true) {
-      try createDirectory(sdkPath, recursive: true)
-    }
-
-    guard isDirectory(sdkPath) else {
-      throw ToolchainError.directoryDoesNotExist(sdkPath)
-    }
-
+  private func downloadDelegate(
+    path: String,
+    _ terminal: InteractiveWriter
+  ) throws -> (FileDownloadDelegate, PassthroughSubject<Progress, Error>) {
     let subject = PassthroughSubject<Progress, Error>()
-    let archivePath = sdkPath.appending(component: "\(version).tar.gz")
-    let delegate = try FileDownloadDelegate(
-      path: archivePath.pathString,
+    return try (FileDownloadDelegate(
+      path: path,
       reportHead: {
         guard $0.status == .ok,
           let totalBytes = $0.headers.first(name: "Content-Length").flatMap(Int.init)
@@ -287,10 +285,29 @@ extension FileSystem {
         subject.send(.init(
           step: $1,
           total: $0 ?? expectedArchiveSize,
-          text: "saving to \(archivePath)"
+          text: "saving to \(path)"
         ))
       }
-    )
+    ), subject)
+  }
+
+  private func installSDK(
+    version: String,
+    from url: Foundation.URL,
+    to sdkPath: AbsolutePath,
+    _ client: HTTPClient,
+    _ terminal: InteractiveWriter
+  ) throws -> AbsolutePath {
+    if !exists(sdkPath, followSymlink: true) {
+      try createDirectory(sdkPath, recursive: true)
+    }
+
+    guard isDirectory(sdkPath) else {
+      throw ToolchainError.directoryDoesNotExist(sdkPath)
+    }
+
+    let archivePath = sdkPath.appending(component: "\(version).tar.gz")
+    let (delegate, subject) = try downloadDelegate(path: archivePath.pathString, terminal)
 
     var subscriptions = [AnyCancellable]()
     let request = try HTTPClient.Request.get(url: url)
@@ -301,9 +318,12 @@ extension FileSystem {
       }
 
       subject
+        .removeDuplicates {
+          // only report values that differ in more than 1%
+          $1.step - $0.step < ($0.total / 100)
+        }
         .handle(
-          with: PercentProgressAnimation(stream: stdoutStream, header: "Downloading the archive"),
-          terminal
+          with: PercentProgressAnimation(stream: stdoutStream, header: "Downloading the archive")
         )
         .sink(
           receiveCompletion: {

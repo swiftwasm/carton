@@ -29,6 +29,7 @@ enum ToolchainError: Error, CustomStringConvertible {
   case failedToBuildTestBundle
   case missingPackageManifest
   case invalidVersion(version: String)
+  case invalidResponse(url: String, status: UInt)
 
   var description: String {
     switch self {
@@ -53,6 +54,8 @@ enum ToolchainError: Error, CustomStringConvertible {
       """
     case let .invalidVersion(version):
       return "Invalid version \(version)"
+    case let .invalidResponse(url: url, status: status):
+      return "Response from \(url) had invalid status \(status) or didn't contain body"
     }
   }
 }
@@ -73,7 +76,7 @@ extension Package.Dependency.Requirement {
 
 public final class Toolchain {
   private let fileSystem: FileSystem
-  private let terminal: TerminalController
+  private let terminal: InteractiveWriter
 
   private let version: String
   private let swiftPath: AbsolutePath
@@ -82,7 +85,7 @@ public final class Toolchain {
   public init(
     for versionSpec: String? = nil,
     _ fileSystem: FileSystem,
-    _ terminal: TerminalController
+    _ terminal: InteractiveWriter
   ) throws {
     let (swiftPath, version) = try fileSystem.inferSwiftPath(from: versionSpec, terminal)
     self.swiftPath = swiftPath

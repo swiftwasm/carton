@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import ArgumentParser
+import CartonHelpers
 import Foundation
 #if canImport(Combine)
 import Combine
@@ -22,12 +23,12 @@ import OpenCombine
 import SwiftToolchain
 import TSCBasic
 
-private let dependency = Dependency(
-  fileName: "dev.js",
-  sha256: devDependencySHA256
-)
-
 struct Dev: ParsableCommand {
+  static let dependency = Dependency(
+    fileName: "dev.js",
+    sha256: devDependencySHA256
+  )
+
   @Option(help: "Specify name of an executable product in development.")
   var product: String?
 
@@ -48,10 +49,9 @@ struct Dev: ParsableCommand {
   )
 
   func run() throws {
-    guard let terminal = TerminalController(stream: stdoutStream)
-    else { fatalError("failed to create an instance of `TerminalController`") }
+    let terminal = InteractiveWriter.stdout
 
-    try dependency.check(on: localFileSystem, terminal)
+    try Self.dependency.check(on: localFileSystem, terminal)
 
     let toolchain = try Toolchain(localFileSystem, terminal)
 

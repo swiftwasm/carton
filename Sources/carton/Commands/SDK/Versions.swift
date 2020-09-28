@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import ArgumentParser
+import CartonHelpers
 import SwiftToolchain
 import TSCBasic
 
@@ -22,8 +23,7 @@ struct Versions: ParsableCommand {
   )
 
   func run() throws {
-    guard let terminal = TerminalController(stream: stdoutStream)
-    else { fatalError("failed to create an instance of `TerminalController`") }
+    let terminal = InteractiveWriter.stdout
 
     let versions = try localFileSystem.fetchAllSwiftVersions()
     let localVersion = try localFileSystem.fetchLocalSwiftVersion()

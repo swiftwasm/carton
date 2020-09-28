@@ -69,6 +69,11 @@
       "command": "swift build && cd TestApp && ../.build/debug/carton bundle"
     },
     {
+      "label": "build and run bundle, log to file",
+      "type": "shell",
+      "command": "swift build && cd TestApp && ../.build/debug/carton bundle > .build/log"
+    },
+    {
       "label": "build and run bundle w/ custom index",
       "type": "shell",
       "command": "swift build && cd TestApp && ../.build/debug/carton bundle --custom-index-page index.html"

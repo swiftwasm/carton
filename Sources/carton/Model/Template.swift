@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import CartonHelpers
 import SwiftToolchain
 import TSCBasic
 
@@ -32,7 +33,7 @@ protocol Template {
   static func create(
     on fileSystem: FileSystem,
     project: Project,
-    _ terminal: TerminalController
+    _ terminal: InteractiveWriter
   ) throws
 }
 
@@ -76,7 +77,7 @@ extension Template {
     type: PackageType,
     fileSystem: FileSystem,
     project: Project,
-    _ terminal: TerminalController
+    _ terminal: InteractiveWriter
   ) throws {
     try Toolchain(fileSystem, terminal)
       .packageInit(name: project.name, type: type, inPlace: project.inPlace)
@@ -87,7 +88,7 @@ extension Template {
     project: Project,
     dependencies: [PackageDependency] = [],
     targetDepencencies: [TargetDependency] = [],
-    _ terminal: TerminalController
+    _ terminal: InteractiveWriter
   ) throws {
     try fileSystem.writeFileContents(project.path.appending(component: "Package.swift")) {
       """
@@ -127,7 +128,7 @@ extension Templates {
     static func create(
       on fileSystem: FileSystem,
       project: Project,
-      _ terminal: TerminalController
+      _ terminal: InteractiveWriter
     ) throws {
       try fileSystem.changeCurrentWorkingDirectory(to: project.path)
       try createPackage(type: .executable, fileSystem: fileSystem, project: project, terminal)
@@ -157,7 +158,7 @@ extension Templates {
     static func create(
       on fileSystem: FileSystem,
       project: Project,
-      _ terminal: TerminalController
+      _ terminal: InteractiveWriter
     ) throws {
       try fileSystem.changeCurrentWorkingDirectory(to: project.path)
       try createPackage(type: .executable,

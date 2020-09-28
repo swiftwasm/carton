@@ -41,8 +41,7 @@ struct Bundle: ParsableCommand {
   )
 
   func run() throws {
-    guard let terminal = TerminalController(stream: stdoutStream)
-    else { fatalError("failed to create an instance of `TerminalController`") }
+    let terminal = InteractiveWriter.stdout
 
     try dependency.check(on: localFileSystem, terminal)
 
@@ -92,7 +91,7 @@ struct Bundle: ParsableCommand {
   }
 
   func copyToBundle(
-    terminal: TerminalController,
+    terminal: InteractiveWriter,
     optimizedPath: AbsolutePath,
     buildDirectory: AbsolutePath,
     bundleDirectory: AbsolutePath,

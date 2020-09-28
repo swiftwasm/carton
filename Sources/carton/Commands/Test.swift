@@ -35,9 +35,11 @@ struct Test: ParsableCommand {
   var testCases = [String]()
 
   func run() throws {
-    guard let terminal = TerminalController(stream: stdoutStream)
-    else { fatalError("failed to create an instance of `TerminalController`") }
+    let terminal = InteractiveWriter.stdout
 
+    // FIXME: We're checking for a `Dev` entrypoint, not for a `Test` entrypoint, which doesn't
+    // exist yet. That's because we don't run tests in browsers yet.
+    try Dev.dependency.check(on: localFileSystem, terminal)
     let toolchain = try Toolchain(localFileSystem, terminal)
     let testBundlePath = try toolchain.buildTestBundle(isRelease: release)
 

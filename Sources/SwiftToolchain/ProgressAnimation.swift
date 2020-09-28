@@ -28,8 +28,7 @@ struct Progress {
 
 extension Publisher where Output == Progress {
   func handle(
-    with progressAnimation: ProgressAnimationProtocol,
-    _ terminal: TerminalController
+    with progressAnimation: ProgressAnimationProtocol
   ) -> Publishers.HandleEvents<Self> {
     handleEvents(
       receiveOutput: {

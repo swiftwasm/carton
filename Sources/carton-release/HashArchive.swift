@@ -36,7 +36,7 @@ struct HashArchive: ParsableCommand {
   }
 
   func run() throws {
-    let terminal = TerminalController(stream: stdoutStream)!
+    let terminal = InteractiveWriter.stdout
     let cwd = localFileSystem.currentWorkingDirectory!
 
     try ProcessRunner(["npm", "run", "build"], terminal).waitUntilFinished()

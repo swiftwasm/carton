@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import AsyncHTTPClient
+import CartonHelpers
 import Foundation
 import TSCBasic
 import TSCUtility
@@ -49,7 +50,7 @@ struct Dependency {
     return (cartonDir, staticDir, staticDir.appending(component: fileName))
   }
 
-  func check(on fileSystem: FileSystem, _ terminal: TerminalController) throws {
+  func check(on fileSystem: FileSystem, _ terminal: InteractiveWriter) throws {
     let (cartonDir, staticDir, filePath) = paths(on: fileSystem)
 
     // If hash check fails, download the `static.zip` archive and unpack it
@@ -57,7 +58,9 @@ struct Dependency {
       fileSystem.readFileContents(filePath)
     ) != sha256 {
       terminal.logLookup("Directory doesn't exist or contains outdated polyfills: ", staticDir)
-      try fileSystem.removeFileTree(cartonDir)
+      let archiveFile = cartonDir.appending(component: "static.zip")
+      try fileSystem.removeFileTree(staticDir)
+      try fileSystem.removeFileTree(archiveFile)
 
       let client = HTTPClient(eventLoopGroupProvider: .createNew)
       let request = try HTTPClient.Request.get(url: staticArchiveURL)
@@ -78,12 +81,10 @@ struct Dependency {
       let downloadedHash = SHA256().hash(downloadedArchive)
       try verifyHash(downloadedHash, staticArchiveHash, context: staticArchiveURL)
 
-      let archiveFile = cartonDir.appending(component: "static.zip")
       try fileSystem.createDirectory(cartonDir, recursive: true)
       try fileSystem.writeFileContents(archiveFile, bytes: downloadedArchive)
       terminal.logLookup("Unpacking the archive: ", archiveFile)
 
-      let staticDir = cartonDir.appending(component: "static")
       try fileSystem.createDirectory(staticDir)
       try await {
         ZipArchiver().extract(from: archiveFile, to: staticDir, completion: $0)
