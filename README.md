@@ -63,11 +63,11 @@ manifests, `--enable-test-discovery` flag is not supported yet. Projects that ca
 suite on macOS can use `swift test --generate-linuxmain` command to generate this file.
 
 The `carton sdk` command and its subcommands allow you to manage installed SwiftWasm toolchains, but
-is rarely needed, as `carton dev` install the recommended version of SwiftWasm automatically.
+is rarely needed, as `carton dev` installs the recommended version of SwiftWasm automatically.
 `carton sdk versions` lists all installed versions, and `carton sdk local` prints the version
 specified for the current project in the `.swift-version` file. You can however install SwiftWasm
 separately if needed, either by passing an archive URL to `carton sdk install` directly, or just
-specifying the snapshot version, like `carton sdk install wasm-5.3-SNAPSHOT-2020-09-03-a`.
+specifying the snapshot version, like `carton sdk install wasm-5.3-SNAPSHOT-2020-09-25-a`.
 
 `carton dev` can also detect existing installations of `swiftenv`, so if you already have SwiftWasm
 installed via `swiftenv`, you don't have to do anything on top of that to start using `carton`.

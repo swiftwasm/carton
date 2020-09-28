@@ -1,3 +1,54 @@
+# 0.6.0 (28 September 2020)
+
+This release introduces a new `carton bundle` command that produces an optimized build of your app
+and writes it to the `Bundle` subdirectory of your package. Additionally, [SwiftPM
+resources](https://github.com/apple/swift-evolution/blob/main/proposals/0271-package-manager-resources.md)
+are supported by both `carton dev` (served as static files) and `carton bundle` (copied with the
+rest of the assets), if any package resources are declared in your `Package.swift`.
+
+New `carton package` command is introduced, which proxies its subcommands to `swift package`
+invocations on the currently-installed toolchain. This may be useful in situations where you'd like
+to generate an Xcode project file for your app with something like `carton package generate-xcodeproj`. It would be equivalent to `swift package generate-xcodeproj`, but invoked with
+the SwiftWasm toolchain instead of the toolchain supplied by Xcode. Many thanks to
+[@kateinoigakukun](https://github.com/kateinoigakukun) for the implementation!
+
+Compatibility with Safari 14 is fixed for `carton dev` and is maintained for the new `carton bundle`
+command as well.
+
+This version of `carton` ships with new JavaScript runtime compatible with [JavaScriptKit
+0.7](https://github.com/swiftwasm/JavaScriptKit/releases/tag/0.7.0). You should update JavaScriptKit
+dependency to 0.7 if you had an older version specified in `Package.swift` of your project.
+
+A regression in `carton test` was fixed in the latest 5.3 toolchain snapshot, which became the
+default snapshot version in this version of `carton`. In general we advise against having a
+`.swift-version` file in your project, but if you need one, please specify
+`wasm-5.3-SNAPSHOT-2020-09-25-a` snapshot or a later one from the 5.3 branch in this file for
+`carton test` to work.
+
+**Closed issues:**
+
+- `carton` crashes when it fails to instantiate `TerminalController` ([#112](https://github.com/swiftwasm/carton/issues/112))
+- Allow carton to use a provided HTML template file ([#100](https://github.com/swiftwasm/carton/issues/100))
+- Add static file support ([#38](https://github.com/swiftwasm/carton/issues/38))
+- Demo cannot be run on Safari 14 ([#25](https://github.com/swiftwasm/carton/issues/25))
+- Implement `carton bundle` command ([#16](https://github.com/swiftwasm/carton/issues/16))
+
+**Merged pull requests:**
+
+- Use raw stdout if `TerminalController` is unavailable ([#113](https://github.com/swiftwasm/carton/pull/113)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Bump JavaScriptKit to 0.7.2 ([#115](https://github.com/swiftwasm/carton/pull/115)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Bump dependencies and default toolchain snapshot ([#111](https://github.com/swiftwasm/carton/pull/111)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Implement resources copying in `carton bundle` ([#109](https://github.com/swiftwasm/carton/pull/109)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update node.js dependencies, including wasmer.js ([#108](https://github.com/swiftwasm/carton/pull/108)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Bump JavaScriptKit dependency to 0.6.0 ([#107](https://github.com/swiftwasm/carton/pull/107)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Implement support for static resources in `carton dev` ([#104](https://github.com/swiftwasm/carton/pull/104)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Bump default toolchain version, fix release builds ([#106](https://github.com/swiftwasm/carton/pull/106)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Bump bl from 4.0.2 to 4.0.3 ([#102](https://github.com/swiftwasm/carton/pull/102)) via [@dependabot[bot]](https://github.com/dependabot[bot])
+- Implement `--custom-index-page` option ([#101](https://github.com/swiftwasm/carton/pull/101)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Implement `carton bundle` command ([#97](https://github.com/swiftwasm/carton/pull/97)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update `tokamak` template for the new TokamakUI org ([#98](https://github.com/swiftwasm/carton/pull/98)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Add `carton package` cmd ([#96](https://github.com/swiftwasm/carton/pull/96)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+
 # 0.5.0 (20 August 2020)
 
 This release updates both `basic` and `tokamak` templates in `carton init` for compatibility with
