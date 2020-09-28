@@ -48,3 +48,13 @@ div.innerHTML = .string(#"""
 <a href=\#(Bundle.module.path(forResource: "data", ofType: "json")!)>Link to a static resource</a>
 """#)
 _ = body.appendChild!(div)
+
+let timerElement = document.createElement!("p").object!
+_ = body.appendChild!(timerElement)
+let timer = JSTimer(millisecondsDelay: 1000, isRepeating: true) {
+  let date = JSDate()
+  timerElement.innerText = .string("""
+  Current date is \(date.toLocaleDateString())
+  Current time is \(date.toLocaleTimeString())
+  """)
+}
