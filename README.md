@@ -80,6 +80,12 @@ files except `index.html` are named by their content hashes to enable [cache
 busting](https://www.keycdn.com/support/what-is-cache-busting). As with `carton dev`, a custom
 `index.html` page can be provided through the `--custom-index-page` option.
 
+The `carton package` command proxies its subcommands to `swift package` invocations on the
+currently-installed toolchain. This may be useful in situations where you'd like to generate an
+Xcode project file for your app with something like `carton package generate-xcodeproj`. It would be
+equivalent to `swift package generate-xcodeproj`, but invoked with the SwiftWasm toolchain instead
+of the toolchain supplied by Xcode.
+
 All of these commands and subcommands can be passed a `--help` flag that prints usage info and
 information about all available options.
 
