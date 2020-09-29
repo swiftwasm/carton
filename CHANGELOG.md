@@ -1,3 +1,8 @@
+# 0.6.1 (29 September 2020)
+
+This release fixes basic `carton init` template that was pulling an incompatible version of
+JavaScriptKit in `carton` 0.6.0.
+
 # 0.6.0 (28 September 2020)
 
 This release introduces a new `carton bundle` command that produces an optimized build of your app

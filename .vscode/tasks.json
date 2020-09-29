@@ -31,7 +31,7 @@
     {
       "label": "build and run dev",
       "type": "shell",
-      "command": "swift build && cd TestApp && ../.build/debug/carton dev --product TestApp"
+      "command": "swift build && cd TestApp && ../.build/debug/carton dev"
     },
     {
       "label": "build and run dev w/ custom index",
