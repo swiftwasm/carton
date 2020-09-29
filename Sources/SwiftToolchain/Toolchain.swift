@@ -17,8 +17,8 @@ import Foundation
 import TSCBasic
 import TSCUtility
 
-private let compatibleJSKitRevision = "ad1544f"
-public let compatibleJSKitVersion = Version(0, 6, 0)
+private let compatibleJSKitRevision = "6e84a70"
+public let compatibleJSKitVersion = Version(0, 7, 2)
 
 enum ToolchainError: Error, CustomStringConvertible {
   case directoryDoesNotExist(AbsolutePath)
