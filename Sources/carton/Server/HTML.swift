@@ -50,11 +50,18 @@ extension HTML: ResponseEncodable {
     }
   }
 
-  static func indexPage(customContent: String?, entrypointName: String) -> String {
+  static func indexPage(customContent: String?, entrypointName: String, port: Int? = nil) -> String {
+    let portAttribute: String
+    if let port = port {
+        portAttribute = #" data-port="\#(port)""#
+    } else {
+        portAttribute = ""
+    }
+    let scriptTag = #"<script type="text/javascript" src="\#(entrypointName)" \#(portAttribute)></script>"#
     if let customContent = customContent {
       return customContent.replacingOccurrences(
         of: "</head>",
-        with: #"<script type="text/javascript" src="\#(entrypointName)"></script></head>"#
+        with: "\(scriptTag)</head>"
       )
     }
 
@@ -63,7 +70,7 @@ extension HTML: ResponseEncodable {
       <head>
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <script type="text/javascript" src="\#(entrypointName)"></script>
+          \#(scriptTag)
       </head>
       <body>
       </body>

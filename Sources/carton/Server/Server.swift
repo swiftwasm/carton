@@ -47,7 +47,8 @@ final class Server {
     customIndexContent: String?,
     package: SwiftToolchain.Package,
     verbose: Bool,
-    _ terminal: InteractiveWriter
+    _ terminal: InteractiveWriter,
+    port: Int
   ) throws {
     watcher = try Watcher(pathsToWatch)
 
@@ -55,6 +56,7 @@ final class Server {
     try LoggingSystem.bootstrap(from: &env)
     app = Application(env)
     app.configure(
+      port: port,
       mainWasmPath: mainWasmPath,
       customIndexContent: customIndexContent,
       package: package,
@@ -81,7 +83,7 @@ final class Server {
             guard case .finished = $0 else { return }
 
             terminal.write("\nBuild completed successfully\n", inColor: .green, bold: false)
-            terminal.logLookup("The app is currently hosted at ", "http://127.0.0.1:8080/")
+            terminal.logLookup("The app is currently hosted at ", "http://127.0.0.1:\(port)/")
             self?.connections.forEach { $0.send("reload") }
           })
           .catch { _ in Empty().eraseToAnyPublisher() }
