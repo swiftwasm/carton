@@ -33,7 +33,6 @@ const wasi = new WASI({
   },
 });
 
-const port = document.currentScript.getAttribute("data-port") || 8080;
 const socket = new ReconnectingWebSocket(`ws://${location.host}/watcher`);
 
 socket.addEventListener("message", (message) => {

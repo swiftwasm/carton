@@ -36,7 +36,7 @@ extension Application {
 
     // register routes
     get { _ in
-      HTML(value: HTML.indexPage(customContent: customIndexContent, entrypointName: "dev.js", port: port))
+      HTML(value: HTML.indexPage(customContent: customIndexContent, entrypointName: "dev.js"))
     }
 
     webSocket("watcher") { _, ws in
