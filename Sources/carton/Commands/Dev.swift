@@ -44,6 +44,9 @@ struct Dev: ParsableCommand {
   @Flag(name: .shortAndLong, help: "Don't clear terminal window after files change.")
   var verbose = false
 
+  @Option(name: .shortAndLong, help: "Set the HTTP port the app will run on.")
+  var port = 8080
+
   static let configuration = CommandConfiguration(
     abstract: "Watch the current directory, host the app, rebuild on change."
   )
@@ -81,7 +84,8 @@ struct Dev: ParsableCommand {
       // swiftlint:disable:next force_try
       package: try! toolchain.package.get(),
       verbose: verbose,
-      terminal
+      terminal,
+      port: port
     ).run()
   }
 }

@@ -19,12 +19,15 @@ import Vapor
 
 extension Application {
   func configure(
+    port: Int,
     mainWasmPath: AbsolutePath,
     customIndexContent: String?,
     package: SwiftToolchain.Package,
     onWebSocketOpen: @escaping (WebSocket) -> (),
     onWebSocketClose: @escaping (WebSocket) -> ()
   ) {
+    http.server.configuration.port = port
+    
     let directory = FileManager.default.homeDirectoryForCurrentUser
       .appendingPathComponent(".carton")
       .appendingPathComponent("static")

@@ -33,7 +33,7 @@ const wasi = new WASI({
   },
 });
 
-const socket = new ReconnectingWebSocket("ws://127.0.0.1:8080/watcher");
+const socket = new ReconnectingWebSocket(`ws://${location.host}/watcher`);
 
 socket.addEventListener("message", (message) => {
   if (message.data === "reload") {

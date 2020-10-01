@@ -51,10 +51,11 @@ extension HTML: ResponseEncodable {
   }
 
   static func indexPage(customContent: String?, entrypointName: String) -> String {
+    let scriptTag = #"<script type="text/javascript" src="\#(entrypointName)"></script>"#
     if let customContent = customContent {
       return customContent.replacingOccurrences(
         of: "</head>",
-        with: #"<script type="text/javascript" src="\#(entrypointName)"></script></head>"#
+        with: "\(scriptTag)</head>"
       )
     }
 
@@ -63,7 +64,7 @@ extension HTML: ResponseEncodable {
       <head>
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <script type="text/javascript" src="\#(entrypointName)"></script>
+          \#(scriptTag)
       </head>
       <body>
       </body>
