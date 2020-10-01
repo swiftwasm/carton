@@ -34,6 +34,11 @@
       "command": "swift build && cd TestApp && ../.build/debug/carton dev"
     },
     {
+      "label": "build and run dev on 9090 port",
+      "type": "shell",
+      "command": "swift build && cd TestApp && ../.build/debug/carton dev --port 9090"
+    },
+    {
       "label": "build and run dev w/ custom index",
       "type": "shell",
       "command": "swift build && cd TestApp && ../.build/debug/carton dev --product TestApp --custom-index-page index.html"

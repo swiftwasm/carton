@@ -27,7 +27,7 @@ extension Application {
     onWebSocketClose: @escaping (WebSocket) -> ()
   ) {
     http.server.configuration.port = port
-    
+
     let directory = FileManager.default.homeDirectoryForCurrentUser
       .appendingPathComponent(".carton")
       .appendingPathComponent("static")
