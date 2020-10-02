@@ -122,11 +122,11 @@ extension Server: LifecycleHandler {
   @discardableResult
   private func openInSystemBrowser(url: String) -> Bool {
     #if os(macOS)
-      let openCommand = "open"
+    let openCommand = "open"
     #elseif os(Linux)
-      let openCommand = "xdg-open"
+    let openCommand = "xdg-open"
     #else
-      return false
+    return false
     #endif
     let process = Process(
       arguments: [openCommand, url],
@@ -134,9 +134,11 @@ extension Server: LifecycleHandler {
       verbose: false,
       startNewProcessGroup: true
     )
-    guard let _ = try? process.launch() else {
+    do {
+      try process.launch()
+      return true
+    } catch {
       return false
     }
-    return true
   }
 }
