@@ -47,6 +47,9 @@ struct Dev: ParsableCommand {
   @Option(name: .shortAndLong, help: "Set the HTTP port the app will run on.")
   var port = 8080
 
+  @Flag(name: .long, help: "Skip automatically opening app in system browser.")
+  var skipAutoOpen = false
+
   static let configuration = CommandConfiguration(
     abstract: "Watch the current directory, host the app, rebuild on change."
   )
@@ -84,6 +87,7 @@ struct Dev: ParsableCommand {
       // swiftlint:disable:next force_try
       package: try! toolchain.package.get(),
       verbose: verbose,
+      skipAutoOpen: skipAutoOpen,
       terminal,
       port: port
     ).run()

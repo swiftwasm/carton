@@ -40,6 +40,7 @@ final class Server {
   private var builder: ProcessRunner?
   private let app: Application
   private let localURL: String
+  private let skipAutoOpen: Bool
 
   init(
     builderArguments: [String],
@@ -48,6 +49,7 @@ final class Server {
     customIndexContent: String?,
     package: SwiftToolchain.Package,
     verbose: Bool,
+    skipAutoOpen: Bool,
     _ terminal: InteractiveWriter,
     port: Int
   ) throws {
@@ -55,6 +57,7 @@ final class Server {
 
     var env = Environment(name: verbose ? "development" : "production", arguments: ["vapor"])
     localURL = "http://127.0.0.1:\(port)/"
+    self.skipAutoOpen = skipAutoOpen
 
     try LoggingSystem.bootstrap(from: &env)
     app = Application(env)
@@ -110,6 +113,7 @@ final class Server {
 
 extension Server: LifecycleHandler {
   public func didBoot(_ application: Application) throws {
+    guard !skipAutoOpen else { return }
     openInSystemBrowser(url: localURL)
   }
 
