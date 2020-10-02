@@ -49,8 +49,7 @@ new [Tokamak](https://tokamak.dev/) project, while `carton init --template basic
 currently).
 
 The `carton dev` command builds your project with the SwiftWasm toolchain and starts an HTTP server
-that hosts your WebAssembly executable and a corresponding JavaScript entrypoint that loads it. Open
-[http://127.0.0.1:8080/](http://127.0.0.1:8080/) in your browser to see the app running. You can
+that hosts your WebAssembly executable and a corresponding JavaScript entrypoint that loads it. The app, reachable at [http://127.0.0.1:8080/](http://127.0.0.1:8080/), will automatically open in your default web browser. You can
 edit the app source code in your favorite editor and save it, `carton` will immediately rebuild the
 app and reload all browser tabs that have the app open. You can also pass a `--verbose` flag to
 keep the build process output available, otherwise stale output is cleaned up from your terminal
