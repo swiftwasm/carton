@@ -39,6 +39,7 @@ final class Server {
   private let watcher: Watcher
   private var builder: ProcessRunner?
   private let app: Application
+  private let localURL: String
 
   init(
     builderArguments: [String],
@@ -53,6 +54,8 @@ final class Server {
     watcher = try Watcher(pathsToWatch)
 
     var env = Environment(name: verbose ? "development" : "production", arguments: ["vapor"])
+    localURL = "http://127.0.0.1:\(port)/"
+
     try LoggingSystem.bootstrap(from: &env)
     app = Application(env)
     app.configure(
@@ -67,6 +70,8 @@ final class Server {
         self?.connections.remove($0)
       }
     )
+    // Listen to Vapor App lifecycle events
+    app.lifecycle.use(self)
 
     watcher.publisher
       .flatMap(maxPublishers: .max(1)) { changes -> AnyPublisher<String, Never> in
@@ -80,11 +85,11 @@ final class Server {
         return ProcessRunner(builderArguments, terminal)
           .publisher
           .handleEvents(receiveCompletion: { [weak self] in
-            guard case .finished = $0 else { return }
+            guard case .finished = $0, let self = self else { return }
 
             terminal.write("\nBuild completed successfully\n", inColor: .green, bold: false)
-            terminal.logLookup("The app is currently hosted at ", "http://127.0.0.1:\(port)/")
-            self?.connections.forEach { $0.send("reload") }
+            terminal.logLookup("The app is currently hosted at ", self.localURL)
+            self.connections.forEach { $0.send("reload") }
           })
           .catch { _ in Empty().eraseToAnyPublisher() }
           .eraseToAnyPublisher()
@@ -100,5 +105,34 @@ final class Server {
     for conn in connections {
       try conn.close().wait()
     }
+  }
+}
+
+extension Server: LifecycleHandler {
+  public func didBoot(_ application: Application) throws {
+    openInSystemBrowser(url: localURL)
+  }
+
+  /// Attempts to open the specified URL string in system browser on macOS and Linux.
+  /// - Returns: true if launching command returns successfully.
+  @discardableResult
+  private func openInSystemBrowser(url: String) -> Bool {
+    #if os(macOS)
+      let openCommand = "open"
+    #elseif os(Linux)
+      let openCommand = "xdg-open"
+    #else
+      return false
+    #endif
+    let process = Process(
+      arguments: [openCommand, url],
+      outputRedirection: .none,
+      verbose: false,
+      startNewProcessGroup: true
+    )
+    guard let _ = try? process.launch() else {
+      return false
+    }
+    return true
   }
 }
