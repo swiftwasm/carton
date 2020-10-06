@@ -53,11 +53,11 @@ public final class InteractiveWriter {
       stream.flush()
     }
   }
-  
+
   public func saveCursor() {
     term?.write("\u{001B}[s")
   }
-  
+
   public func revertCursorAndClear() {
     term?.write("\u{001B}[u\u{001B}[2J\u{001B}H")
   }

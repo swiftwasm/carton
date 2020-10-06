@@ -74,7 +74,7 @@ struct Dev: ParsableCommand {
 
     let paths = try toolchain.inferSourcesPaths()
 
-    if !verbose {    
+    if !verbose {
       terminal.revertCursorAndClear()
     }
     terminal.write("\nWatching these directories for changes:\n", inColor: .green)

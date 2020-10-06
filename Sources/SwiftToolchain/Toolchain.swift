@@ -223,10 +223,10 @@ public final class Toolchain {
     let builderArguments = try [
       swiftPath.pathString, "build", "-c", isRelease ? "release" : "debug", "--product", product,
       "--enable-test-discovery", "--destination", destination ?? inferDestinationPath().pathString,
-//      "-Xswiftc", "-color-diagnostics",
     ]
 
-    try ProcessRunner(builderArguments, loadingMessage: "Compiling...", terminal).waitUntilFinished()
+    try ProcessRunner(builderArguments, loadingMessage: "Compiling...", terminal)
+      .waitUntilFinished()
 
     guard localFileSystem.exists(mainWasmPath) else {
       terminal.write(

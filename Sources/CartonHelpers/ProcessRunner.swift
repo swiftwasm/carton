@@ -41,6 +41,7 @@ public final class ProcessRunner {
 
   private var subscription: AnyCancellable?
 
+  // swiftlint:disable:next function_body_length
   public init(
     _ arguments: [String],
     clearOutputLines: Bool = true,
@@ -54,6 +55,8 @@ public final class ProcessRunner {
         receiveOutput: {
           if clearOutputLines {
             // Aggregate this for formatting later
+            terminal.clearLine()
+            terminal.write(loadingMessage, inColor: .yellow)
             tmpOutput += $0
           } else {
             terminal.write($0)
@@ -78,7 +81,10 @@ public final class ProcessRunner {
               )
               DiagnosticsParser().parse(tmpOutput, terminal)
             } else {
-              terminal.write("\nProcess failed and produced following output: \n", inColor: .red)
+              terminal.write(
+                "\nProcess failed and produced following output: \n",
+                inColor: .red
+              )
               print(error)
             }
           }
@@ -117,7 +123,8 @@ public final class ProcessRunner {
         subject.send(completion: .failure(error))
       default:
         let errorDescription = String(data: Data(stderrBuffer), encoding: .utf8) ?? ""
-        return subject.send(completion: .failure(ProcessRunnerError(description: errorDescription)))
+        return subject
+          .send(completion: .failure(ProcessRunnerError(description: errorDescription)))
       }
     }
   }
