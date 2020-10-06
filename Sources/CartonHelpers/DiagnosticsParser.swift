@@ -36,13 +36,14 @@ fileprivate extension String.StringInterpolation {
 
 fileprivate extension TokenType {
   var color: String {
+    // Reference on escape codes: https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
     switch self {
-    case .keyword: return "[35;1m"
-    case .comment: return "[90m"
-    case .call, .dotAccess, .property, .type: return "[94m"
-    case .number, .preprocessing: return "[33m"
-    case .string: return "[91;1m"
-    default: return "[0m"
+    case .keyword: return "[35;1m" // magenta;bold
+    case .comment: return "[90m" // bright black
+    case .call, .dotAccess, .property, .type: return "[94m" // bright blue
+    case .number, .preprocessing: return "[33m" // yellow
+    case .string: return "[91;1m" // bright red;bold
+    default: return "[0m" // reset
     }
   }
 }
@@ -96,9 +97,9 @@ struct DiagnosticsParser {
       case error, warning, note
       var color: String {
         switch self {
-        case .error: return "[41;1m"
-        case .warning: return "[43;1m"
-        case .note: return "[47;1m"
+        case .error: return "[41;1m" // bright red background
+        case .warning: return "[43;1m" // bright yellow background
+        case .note: return "[7m" // reversed
         }
       }
     }
@@ -144,10 +145,13 @@ struct DiagnosticsParser {
       }
       lineIdx += 1
     }
+    if let currFile = currFile {
+      diagnostics[currFile] = fileMessages
+    }
     
     for (file, messages) in diagnostics.sorted(by: { $0.key < $1.key }) {
       guard messages.count > 0 else { continue }
-      terminal.write("\(" \(file) ", color: "[1m", "[7m")\n\n")
+      terminal.write("\(" \(file) ", color: "[1m", "[7m")\n\n") // bold, reversed
       // Group messages that occur on sequential lines to provie a more readable output
       var groupedMessages = [[CustomDiagnostic]]()
       for message in messages {
@@ -163,7 +167,7 @@ struct DiagnosticsParser {
       for messages in groupedMessages {
         // Output the diagnostic message
         for message in messages {
-          terminal.write("  \(" \(message.kind.rawValue.uppercased()) ", color: message.kind.color) \(message.message)\n")
+          terminal.write("  \(" \(message.kind.rawValue.uppercased()) ", color: message.kind.color, "[37;1m") \(message.message)\n") // 37;1: bright white
         }
         let maxLine = messages.map(\.line.count).max() ?? 0
         for (offset, message) in messages.enumerated() {
@@ -171,7 +175,7 @@ struct DiagnosticsParser {
             // Get all diagnostics for a particular line.
             let allChars = messages.filter { $0.line == message.line }.map(\.char)
             // Output the code for this line, syntax highlighted
-            terminal.write("  \("\(message.line.padding(toLength: maxLine, withPad: " ", startingAt: 0)) | ", color: "[36m")\(Self.highlighter.highlight(message.code))\n")
+            terminal.write("  \("\(message.line.padding(toLength: maxLine, withPad: " ", startingAt: 0)) | ", color: "[36m")\(Self.highlighter.highlight(message.code))\n") // 36: cyan
             terminal.write("  " + "".padding(toLength: maxLine, withPad: " ", startingAt: 0) + " | ", inColor: .cyan)
             
             // Aggregate the indicators (^ point to the error) onto a single line
