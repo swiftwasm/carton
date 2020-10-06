@@ -13,15 +13,15 @@
 // limitations under the License.
 
 import Foundation
-import TSCBasic
 import Splash
+import TSCBasic
 
 private extension StringProtocol {
   func matches(regex: NSRegularExpression) -> String.SubSequence? {
     let str = String(self)
     guard let range = str.range(of: regex),
-          range.upperBound < str.endIndex
-          else { return nil }
+      range.upperBound < str.endIndex
+    else { return nil }
     return str[range.upperBound..<str.endIndex]
   }
 
@@ -29,7 +29,8 @@ private extension StringProtocol {
     let str = String(self)
     let range = NSRange(location: 0, length: utf16.count)
     guard let match = regex.firstMatch(in: str, options: [], range: range),
-          let matchRange = Range(match.range, in: str) else {
+      let matchRange = Range(match.range, in: str)
+    else {
       return nil
     }
     return matchRange
@@ -84,16 +85,20 @@ private struct TerminalOutputFormat: OutputFormat {
 
 /// Parses and re-formats diagnostics output by the Swift compiler.
 ///
-/// The compiler output often repeats iteself, and the diagnostics can sometimes be difficult to read.
+/// The compiler output often repeats iteself, and the diagnostics can sometimes be
+/// difficult to read.
 /// This reformats them to a more readable output.
 struct DiagnosticsParser {
+  // swiftlint:disable force_try
   enum Regex {
     /// The output has moved to a new file
     static let enterFile = try! NSRegularExpression(pattern: #"\[\d+\/\d+\] Compiling \w+ "#)
     /// A message is beginning with the line # following the `:`
     static let line = try! NSRegularExpression(pattern: #"(\/\w+)+\.\w+:"#)
   }
-  
+
+  // swiftlint:enable force_try
+
   struct CustomDiagnostic {
     let kind: Kind
     let file: String
@@ -120,7 +125,7 @@ struct DiagnosticsParser {
     let lines = output.split(separator: "\n")
     var lineIdx = 0
 
-    var diagnostics = [String.SubSequence:[CustomDiagnostic]]()
+    var diagnostics = [String.SubSequence: [CustomDiagnostic]]()
 
     var currFile: String.SubSequence?
     var fileMessages = [CustomDiagnostic]()
@@ -139,10 +144,15 @@ struct DiagnosticsParser {
           if components.count > 3 {
             lineIdx += 1
             let file = line.replacingOccurrences(of: message, with: "")
-            guard file.split(separator: "/").last?.replacingOccurrences(of: ":", with: "") == String(currFile) else { continue }
+            guard file.split(separator: "/").last?
+              .replacingOccurrences(of: ":", with: "") == String(currFile)
+            else { continue }
             fileMessages.append(
               .init(
-                kind: CustomDiagnostic.Kind(rawValue: String(components[2].trimmingCharacters(in: .whitespaces))) ?? .note,
+                kind: CustomDiagnostic
+                  .Kind(rawValue: String(components[2]
+                      .trimmingCharacters(in: .whitespaces))) ??
+                  .note,
                 file: file,
                 line: components[0],
                 char: components[1],
@@ -161,6 +171,13 @@ struct DiagnosticsParser {
       diagnostics[currFile] = fileMessages
     }
 
+    outputDiagnostics(diagnostics, terminal)
+  }
+
+  func outputDiagnostics(
+    _ diagnostics: [String.SubSequence: [CustomDiagnostic]],
+    _ terminal: InteractiveWriter
+  ) {
     for (file, messages) in diagnostics.sorted(by: { $0.key < $1.key }) {
       guard messages.count > 0 else { continue }
       terminal.write("\(" \(file) ", color: "[1m", "[7m")") // bold, reversed
@@ -169,9 +186,10 @@ struct DiagnosticsParser {
       var groupedMessages = [[CustomDiagnostic]]()
       for message in messages {
         if let lastLineStr = groupedMessages.last?.last?.line,
-           let lastLine = Int(lastLineStr),
-           let line = Int(message.line),
-           lastLine == line - 1 || lastLine == line {
+          let lastLine = Int(lastLineStr),
+          let line = Int(message.line),
+          lastLine == line - 1 || lastLine == line
+        {
           groupedMessages[groupedMessages.count - 1].append(message)
         } else {
           groupedMessages.append([message])
@@ -180,7 +198,11 @@ struct DiagnosticsParser {
       for messages in groupedMessages {
         // Output the diagnostic message
         for message in messages {
-          terminal.write("  \(" \(message.kind.rawValue.uppercased()) ", color: message.kind.color, "[37;1m") \(message.message)\n") // 37;1: bright white
+          let kind = message.kind.rawValue.uppercased()
+          terminal
+            .write(
+              "  \(" \(kind) ", color: message.kind.color, "[37;1m") \(message.message)\n"
+            ) // 37;1: bright white
         }
         let maxLine = messages.map(\.line.count).max() ?? 0
         for (offset, message) in messages.enumerated() {
@@ -199,12 +221,23 @@ struct DiagnosticsParser {
     }
   }
 
-  func flush(messages: [CustomDiagnostic], message: CustomDiagnostic, maxLine: Int, _ terminal: InteractiveWriter) {
+  func flush(
+    messages: [CustomDiagnostic],
+    message: CustomDiagnostic,
+    maxLine: Int,
+    _ terminal: InteractiveWriter
+  ) {
     // Get all diagnostics for a particular line.
     let allChars = messages.filter { $0.line == message.line }.map(\.char)
     // Output the code for this line, syntax highlighted
-    terminal.write("  \("\(message.line.padding(toLength: maxLine, withPad: " ", startingAt: 0)) | ", color: "[36m")\(Self.highlighter.highlight(message.code))\n") // 36: cyan
-    terminal.write("  " + "".padding(toLength: maxLine, withPad: " ", startingAt: 0) + " | ", inColor: .cyan)
+    terminal
+      .write(
+        "  \("\(message.line.padding(toLength: maxLine, withPad: " ", startingAt: 0)) | ", color: "[36m")\(Self.highlighter.highlight(message.code))\n"
+      ) // 36: cyan
+    terminal.write(
+      "  " + "".padding(toLength: maxLine, withPad: " ", startingAt: 0) + " | ",
+      inColor: .cyan
+    )
 
     // Aggregate the indicators (^ point to the error) onto a single line
     var charIndicators = String(repeating: " ", count: Int(message.char)!) + "^"
@@ -212,7 +245,8 @@ struct DiagnosticsParser {
       for char in allChars.dropFirst() {
         let idx = Int(char)!
         if idx >= charIndicators.count {
-          charIndicators.append(String(repeating: " ", count: idx - charIndicators.count) + "^")
+          charIndicators
+            .append(String(repeating: " ", count: idx - charIndicators.count) + "^")
         } else {
           var arr = Array(charIndicators)
           arr[idx] = "^"
