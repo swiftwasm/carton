@@ -19,12 +19,20 @@ import Splash
 fileprivate extension StringProtocol {
   func matches(regex: NSRegularExpression) -> String.SubSequence? {
     let str = String(self)
+    guard let range = str.range(of: regex),
+          range.upperBound < str.endIndex
+          else { return nil }
+    return str[range.upperBound..<str.endIndex]
+  }
+  
+  func range(of regex: NSRegularExpression) -> Range<String.Index>? {
+    let str = String(self)
     let range = NSRange(location: 0, length: utf16.count)
     guard let match = regex.firstMatch(in: str, options: [], range: range),
-          let matchRange = Range(match.range, in: String(self)) else {
+          let matchRange = Range(match.range, in: str) else {
       return nil
     }
-    return str[matchRange.upperBound..<str.endIndex]
+    return matchRange
   }
 }
 
@@ -88,6 +96,7 @@ struct DiagnosticsParser {
   
   struct CustomDiagnostic {
     let kind: Kind
+    let file: String
     let line: String.SubSequence
     let char: String.SubSequence
     let code: String
@@ -124,14 +133,17 @@ struct DiagnosticsParser {
         }
         currFile = file
         fileMessages = []
-      } else if currFile != nil {
+      } else if let currFile = currFile {
         if let message = line.matches(regex: Regex.line) {
           let components = message.split(separator: ":")
           if components.count > 3 {
             lineIdx += 1
+            let file = line.replacingOccurrences(of: message, with: "")
+            guard file.split(separator: "/").last?.replacingOccurrences(of: ":", with: "") == String(currFile) else { continue }
             fileMessages.append(
               .init(
                 kind: CustomDiagnostic.Kind(rawValue: String(components[2].trimmingCharacters(in: .whitespaces))) ?? .note,
+                file: file,
                 line: components[0],
                 char: components[1],
                 code: String(lines[lineIdx]),
@@ -151,7 +163,8 @@ struct DiagnosticsParser {
     
     for (file, messages) in diagnostics.sorted(by: { $0.key < $1.key }) {
       guard messages.count > 0 else { continue }
-      terminal.write("\(" \(file) ", color: "[1m", "[7m")\n\n") // bold, reversed
+      terminal.write("\(" \(file) ", color: "[1m", "[7m")") // bold, reversed
+      terminal.write(" \(messages.first!.file)\(messages.first!.line)\n\n", inColor: .grey)
       // Group messages that occur on sequential lines to provie a more readable output
       var groupedMessages = [[CustomDiagnostic]]()
       for message in messages {
