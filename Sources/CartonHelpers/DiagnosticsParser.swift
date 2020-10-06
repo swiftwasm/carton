@@ -16,7 +16,7 @@ import Foundation
 import TSCBasic
 import Splash
 
-fileprivate extension StringProtocol {
+private extension StringProtocol {
   func matches(regex: NSRegularExpression) -> String.SubSequence? {
     let str = String(self)
     guard let range = str.range(of: regex),
@@ -24,7 +24,7 @@ fileprivate extension StringProtocol {
           else { return nil }
     return str[range.upperBound..<str.endIndex]
   }
-  
+
   func range(of regex: NSRegularExpression) -> Range<String.Index>? {
     let str = String(self)
     let range = NSRange(location: 0, length: utf16.count)
@@ -36,13 +36,13 @@ fileprivate extension StringProtocol {
   }
 }
 
-fileprivate extension String.StringInterpolation {
+private extension String.StringInterpolation {
   mutating func appendInterpolation<T>(_ value: T, color: String...) {
     appendInterpolation("\(color.map { "\u{001B}\($0)" }.joined())\(value)\u{001B}[0m")
   }
 }
 
-fileprivate extension TokenType {
+private extension TokenType {
   var color: String {
     // Reference on escape codes: https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
     switch self {
@@ -56,26 +56,26 @@ fileprivate extension TokenType {
   }
 }
 
-fileprivate struct TerminalOutputFormat: OutputFormat {
+private struct TerminalOutputFormat: OutputFormat {
   func makeBuilder() -> TerminalOutputBuilder {
     .init()
   }
-  
+
   struct TerminalOutputBuilder: OutputBuilder {
     var output: String = ""
-    
+
     mutating func addToken(_ token: String, ofType type: TokenType) {
       output.append("\(token, color: type.color)")
     }
-    
+
     mutating func addPlainText(_ text: String) {
       output.append(text)
     }
-    
+
     mutating func addWhitespace(_ whitespace: String) {
       output.append(whitespace)
     }
-    
+
     mutating func build() -> String {
       output
     }
@@ -101,7 +101,7 @@ struct DiagnosticsParser {
     let char: String.SubSequence
     let code: String
     let message: String.SubSequence
-    
+
     enum Kind: String {
       case error, warning, note
       var color: String {
@@ -113,18 +113,18 @@ struct DiagnosticsParser {
       }
     }
   }
-  
+
   fileprivate static let highlighter = SyntaxHighlighter(format: TerminalOutputFormat())
-  
+
   func parse(_ output: String, _ terminal: InteractiveWriter) {
     let lines = output.split(separator: "\n")
     var lineIdx = 0
-    
+
     var diagnostics = [String.SubSequence:[CustomDiagnostic]]()
-    
+
     var currFile: String.SubSequence?
     var fileMessages = [CustomDiagnostic]()
-    
+
     while lineIdx < lines.count {
       let line = lines[lineIdx]
       if let file = line.matches(regex: Regex.enterFile) {
@@ -160,7 +160,7 @@ struct DiagnosticsParser {
     if let currFile = currFile {
       diagnostics[currFile] = fileMessages
     }
-    
+
     for (file, messages) in diagnostics.sorted(by: { $0.key < $1.key }) {
       guard messages.count > 0 else { continue }
       terminal.write("\(" \(file) ", color: "[1m", "[7m")") // bold, reversed
@@ -184,41 +184,42 @@ struct DiagnosticsParser {
         }
         let maxLine = messages.map(\.line.count).max() ?? 0
         for (offset, message) in messages.enumerated() {
-          func flush() {
-            // Get all diagnostics for a particular line.
-            let allChars = messages.filter { $0.line == message.line }.map(\.char)
-            // Output the code for this line, syntax highlighted
-            terminal.write("  \("\(message.line.padding(toLength: maxLine, withPad: " ", startingAt: 0)) | ", color: "[36m")\(Self.highlighter.highlight(message.code))\n") // 36: cyan
-            terminal.write("  " + "".padding(toLength: maxLine, withPad: " ", startingAt: 0) + " | ", inColor: .cyan)
-            
-            // Aggregate the indicators (^ point to the error) onto a single line
-            var charIndicators = String(repeating: " ", count: Int(message.char)!) + "^"
-            if allChars.count > 0 {
-              for char in allChars.dropFirst() {
-                let idx = Int(char)!
-                if idx >= charIndicators.count {
-                  charIndicators.append(String(repeating: " ", count: idx - charIndicators.count) + "^")
-                } else {
-                  var arr = Array(charIndicators)
-                  arr[idx] = "^"
-                  charIndicators = String(arr)
-                }
-              }
-            }
-            terminal.write("\(charIndicators)\n", inColor: .red, bold: true)
-          }
           if offset > 0 {
             // Make sure we don't log the same line twice
             if messages[offset - 1].line != message.line {
-              flush()
+              flush(messages: messages, message: message, maxLine: maxLine, terminal)
             }
           } else {
-            flush()
+            flush(messages: messages, message: message, maxLine: maxLine, terminal)
           }
         }
         terminal.write("\n")
       }
       terminal.write("\n")
     }
+  }
+
+  func flush(messages: [CustomDiagnostic], message: CustomDiagnostic, maxLine: Int, _ terminal: InteractiveWriter) {
+    // Get all diagnostics for a particular line.
+    let allChars = messages.filter { $0.line == message.line }.map(\.char)
+    // Output the code for this line, syntax highlighted
+    terminal.write("  \("\(message.line.padding(toLength: maxLine, withPad: " ", startingAt: 0)) | ", color: "[36m")\(Self.highlighter.highlight(message.code))\n") // 36: cyan
+    terminal.write("  " + "".padding(toLength: maxLine, withPad: " ", startingAt: 0) + " | ", inColor: .cyan)
+
+    // Aggregate the indicators (^ point to the error) onto a single line
+    var charIndicators = String(repeating: " ", count: Int(message.char)!) + "^"
+    if allChars.count > 0 {
+      for char in allChars.dropFirst() {
+        let idx = Int(char)!
+        if idx >= charIndicators.count {
+          charIndicators.append(String(repeating: " ", count: idx - charIndicators.count) + "^")
+        } else {
+          var arr = Array(charIndicators)
+          arr[idx] = "^"
+          charIndicators = String(arr)
+        }
+      }
+    }
+    terminal.write("\(charIndicators)\n", inColor: .red, bold: true)
   }
 }

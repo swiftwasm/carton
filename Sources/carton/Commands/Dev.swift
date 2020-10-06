@@ -60,7 +60,7 @@ struct Dev: ParsableCommand {
     try Self.dependency.check(on: localFileSystem, terminal)
 
     let toolchain = try Toolchain(localFileSystem, terminal)
-    
+
     if !verbose {
       terminal.clearWindow()
       terminal.saveCursor()
