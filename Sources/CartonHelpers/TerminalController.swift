@@ -16,7 +16,7 @@ import TSCBasic
 
 private extension String {
   static var home = "\u{001B}[H"
-  static var clearScreen = "\u{001B}[2J"
+  static var clearScreen = "\u{001B}[2J\u{001B}[H\u{001B}[3J"
   static var clear = "\u{001B}[J"
 }
 

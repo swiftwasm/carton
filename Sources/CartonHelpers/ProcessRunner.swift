@@ -44,15 +44,17 @@ public final class ProcessRunner {
   public init(
     _ arguments: [String],
     clearOutputLines: Bool = true,
+    loadingMessage: String = "Running...",
     _ terminal: InteractiveWriter
   ) {
     let subject = PassthroughSubject<String, Error>()
+    var tmpOutput = ""
     publisher = subject
       .handleEvents(
         receiveOutput: {
           if clearOutputLines {
-            terminal.clearLine()
-            terminal.write(String($0.dropLast()))
+            // Aggregate this for formatting later
+            tmpOutput += $0
           } else {
             terminal.write($0)
           }
@@ -69,10 +71,12 @@ public final class ProcessRunner {
           case let .failure(error):
             let errorString = String(describing: error)
             if errorString.isEmpty {
+              terminal.clearLine()
               terminal.write(
-                "\nProcess failed, check the build process output above.\n",
+                "Compilation failed.\n\n",
                 inColor: .red
               )
+              DiagnosticsParser().parse(tmpOutput, terminal)
             } else {
               terminal.write("\nProcess failed and produced following output: \n", inColor: .red)
               print(error)

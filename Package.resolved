@@ -47,6 +47,15 @@
         }
       },
       {
+        "package": "Splash",
+        "repositoryURL": "https://github.com/JohnSundell/Splash",
+        "state": {
+          "branch": null,
+          "revision": "f25dd8c9f16be1f81a152f6861d7216c3c9302da",
+          "version": "0.14.0"
+        }
+      },
+      {
         "package": "swift-argument-parser",
         "repositoryURL": "https://github.com/apple/swift-argument-parser",
         "state": {
