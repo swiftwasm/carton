@@ -230,9 +230,11 @@ struct DiagnosticsParser {
     // Get all diagnostics for a particular line.
     let allChars = messages.filter { $0.line == message.line }.map(\.char)
     // Output the code for this line, syntax highlighted
+    let paddedLine = message.line.padding(toLength: maxLine, withPad: " ", startingAt: 0)
+    let highlightedCode = Self.highlighter.highlight(message.code)
     terminal
       .write(
-        "  \("\(message.line.padding(toLength: maxLine, withPad: " ", startingAt: 0)) | ", color: "[36m")\(Self.highlighter.highlight(message.code))\n"
+        "  \("\(paddedLine) | ", color: "[36m")\(highlightedCode)\n"
       ) // 36: cyan
     terminal.write(
       "  " + "".padding(toLength: maxLine, withPad: " ", startingAt: 0) + " | ",
