@@ -61,6 +61,11 @@ struct Dev: ParsableCommand {
 
     let toolchain = try Toolchain(localFileSystem, terminal)
 
+    if !verbose {
+      terminal.clearWindow()
+      terminal.saveCursor()
+    }
+
     let (arguments, mainWasmPath) = try toolchain.buildCurrentProject(
       product: product,
       destination: destination,
@@ -70,8 +75,7 @@ struct Dev: ParsableCommand {
     let paths = try toolchain.inferSourcesPaths()
 
     if !verbose {
-      terminal.clearWindow()
-      terminal.homeAndClear()
+      terminal.revertCursorAndClear()
     }
     terminal.write("\nWatching these directories for changes:\n", inColor: .green)
     paths.forEach { terminal.logLookup("", $0) }

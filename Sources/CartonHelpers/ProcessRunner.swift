@@ -41,18 +41,23 @@ public final class ProcessRunner {
 
   private var subscription: AnyCancellable?
 
+  // swiftlint:disable:next function_body_length
   public init(
     _ arguments: [String],
     clearOutputLines: Bool = true,
+    loadingMessage: String = "Running...",
     _ terminal: InteractiveWriter
   ) {
     let subject = PassthroughSubject<String, Error>()
+    var tmpOutput = ""
     publisher = subject
       .handleEvents(
         receiveOutput: {
           if clearOutputLines {
+            // Aggregate this for formatting later
             terminal.clearLine()
-            terminal.write(String($0.dropLast()))
+            terminal.write(loadingMessage, inColor: .yellow)
+            tmpOutput += $0
           } else {
             terminal.write($0)
           }
@@ -69,12 +74,17 @@ public final class ProcessRunner {
           case let .failure(error):
             let errorString = String(describing: error)
             if errorString.isEmpty {
+              terminal.clearLine()
               terminal.write(
-                "\nProcess failed, check the build process output above.\n",
+                "Compilation failed.\n\n",
                 inColor: .red
               )
+              DiagnosticsParser().parse(tmpOutput, terminal)
             } else {
-              terminal.write("\nProcess failed and produced following output: \n", inColor: .red)
+              terminal.write(
+                "\nProcess failed and produced following output: \n",
+                inColor: .red
+              )
               print(error)
             }
           }
@@ -113,7 +123,8 @@ public final class ProcessRunner {
         subject.send(completion: .failure(error))
       default:
         let errorDescription = String(data: Data(stderrBuffer), encoding: .utf8) ?? ""
-        return subject.send(completion: .failure(ProcessRunnerError(description: errorDescription)))
+        return subject
+          .send(completion: .failure(ProcessRunnerError(description: errorDescription)))
       }
     }
   }

@@ -79,7 +79,7 @@ final class Server {
     watcher.publisher
       .flatMap(maxPublishers: .max(1)) { changes -> AnyPublisher<String, Never> in
         if !verbose {
-          terminal.homeAndClear()
+          terminal.clearWindow()
         }
         terminal.write("\nThese paths have changed, rebuilding...\n", inColor: .yellow)
         for change in changes.map(\.pathString) {
