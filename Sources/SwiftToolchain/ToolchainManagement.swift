@@ -140,7 +140,7 @@ extension FileSystem {
     }
 
     #if os(macOS)
-    let platformSuffixes = ["osx", "catalina"]
+    let platformSuffixes = ["osx", "catalina", "macos"]
     #elseif os(Linux)
     let platformSuffixes = ["linux", "ubuntu18.04"]
     #endif

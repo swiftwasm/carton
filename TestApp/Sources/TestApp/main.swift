@@ -26,7 +26,7 @@ let body = document.body.object!
 _ = body.appendChild!(button)
 
 print("Number of seconds since epoch: \(Date().timeIntervalSince1970)")
-print("cos(M_PI) is \(cos(M_PI))")
+print("cos(Double.pi) is \(cos(Double.pi))")
 print(customTargetText)
 
 func crash() {
@@ -35,13 +35,12 @@ func crash() {
 }
 
 let buttonNode = document.getElementsByTagName!("button").object![0].object!
-let handler = JSValue.function { _ in
+let handler = JSClosure { _ -> () in
   print(text)
   crash()
-  return .undefined
 }
 
-buttonNode.onclick = handler
+buttonNode.onclick = .function(handler)
 
 let div = document.createElement!("div").object!
 div.innerHTML = .string(#"""
@@ -53,8 +52,9 @@ let timerElement = document.createElement!("p").object!
 _ = body.appendChild!(timerElement)
 let timer = JSTimer(millisecondsDelay: 1000, isRepeating: true) {
   let date = JSDate()
-  timerElement.innerText = .string("""
-  Current date is \(date.toLocaleDateString())
-  Current time is \(date.toLocaleTimeString())
+  timerElement.innerHTML = .string("""
+  <p>Current date is \(date.toLocaleDateString())</p>
+  <p>Current time is \(date.toLocaleTimeString())</p>
+  <p>Current <code>Date.timeIntervalSince1970</code> is \(Date().timeIntervalSince1970)</p>
   """)
 }
