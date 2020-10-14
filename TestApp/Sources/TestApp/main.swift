@@ -55,6 +55,6 @@ let timer = JSTimer(millisecondsDelay: 1000, isRepeating: true) {
   timerElement.innerHTML = .string("""
   <p>Current date is \(date.toLocaleDateString())</p>
   <p>Current time is \(date.toLocaleTimeString())</p>
-  <p>Current <code>Date.timeIntervalSince1970</code> is \(Date().timeIntervalSince1970)</p>
+  <p>Current <code>Date().timeIntervalSince1970</code> is \(Date().timeIntervalSince1970)</p>
   """)
 }
