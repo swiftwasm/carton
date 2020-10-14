@@ -48,11 +48,11 @@
       },
       {
         "package": "Splash",
-        "repositoryURL": "https://github.com/JohnSundell/Splash",
+        "repositoryURL": "https://github.com/JohnSundell/Splash.git",
         "state": {
           "branch": null,
-          "revision": "ca9a1b7bff35381fe5ae9fe2ec9333cc5f2a586c",
-          "version": "0.13.0"
+          "revision": "f25dd8c9f16be1f81a152f6861d7216c3c9302da",
+          "version": "0.14.0"
         }
       },
       {
