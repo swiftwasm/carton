@@ -36,6 +36,7 @@ let package = Package(
         .product(name: "Vapor", package: "vapor"),
         "CartonHelpers",
         "OpenCombine",
+        "SwiftToolchain",
       ]
     ),
     .target(
@@ -45,7 +46,7 @@ let package = Package(
         .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
         "CartonHelpers",
         "OpenCombine",
-        "SwiftToolchain",
+        "WasmTransformer",
       ]
     ),
     .target(
