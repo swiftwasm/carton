@@ -257,8 +257,14 @@ public final class Toolchain {
       "-Xswiftc", "-color-diagnostics",
     ]
 
-    try Builder(arguments: builderArguments, mainWasmPath: testBundlePath, fileSystem, terminal)
-      .runAndWaitUntilFinished()
+    try Builder(
+      arguments: builderArguments,
+      mainWasmPath: testBundlePath,
+      environment: .wasmer,
+      fileSystem,
+      terminal
+    )
+    .runAndWaitUntilFinished()
 
     guard fileSystem.exists(testBundlePath) else {
       terminal.write(

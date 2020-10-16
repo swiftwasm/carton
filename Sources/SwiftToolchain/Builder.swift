@@ -23,10 +23,16 @@ import TSCBasic
 import WasmTransformer
 
 public final class Builder {
+  public enum Environment {
+    case wasmer
+    case browser
+  }
+
   public let mainWasmPath: AbsolutePath
 
   private var currentProcess: ProcessRunner?
   private let arguments: [String]
+  private let environment: Environment
   private let terminal: InteractiveWriter
   private let fileSystem: FileSystem
   private var subscription: AnyCancellable?
@@ -34,11 +40,13 @@ public final class Builder {
   public init(
     arguments: [String],
     mainWasmPath: AbsolutePath,
+    environment: Environment = .browser,
     _ fileSystem: FileSystem,
     _ terminal: InteractiveWriter
   ) {
     self.arguments = arguments
     self.mainWasmPath = mainWasmPath
+    self.environment = environment
     self.terminal = terminal
     self.fileSystem = fileSystem
   }
@@ -57,6 +65,8 @@ public final class Builder {
           "`swift build` completed in ",
           String(format: "%.2f seconds", abs(buildStarted.timeIntervalSinceNow))
         )
+
+        guard self.environment == .browser else { return }
 
         // FIXME: errors from these `try` expressions should be recoverable, not sure how to
         // do that in `handleEvents`, and `flatMap` doesnt' fit here as we need to track
