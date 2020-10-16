@@ -26,6 +26,7 @@ let package = Package(
     .package(url: "https://github.com/vapor/vapor.git", from: "4.29.3"),
     .package(url: "https://github.com/apple/swift-crypto.git", from: "1.1.0"),
     .package(url: "https://github.com/JohnSundell/Splash.git", from: "0.14.0"),
+    .package(url: "https://github.com/swiftwasm/WasmTransformer", .branch("main")),
   ],
   targets: [
     // Targets are the basic building blocks of a package. A target can define a module
@@ -42,6 +43,7 @@ let package = Package(
         "CartonHelpers",
         openCombineProduct,
         "SwiftToolchain",
+        "WasmTransformer",
       ]
     ),
     .target(

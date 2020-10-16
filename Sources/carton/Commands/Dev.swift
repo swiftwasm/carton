@@ -84,9 +84,8 @@ struct Dev: ParsableCommand {
     let sources = try paths.flatMap { try localFileSystem.traverseRecursively($0) }
 
     try Server(
-      builderArguments: arguments,
+      builder: Builder(arguments: arguments, mainWasmPath: mainWasmPath, localFileSystem, terminal),
       pathsToWatch: sources,
-      mainWasmPath: mainWasmPath,
       customIndexContent: HTML.readCustomIndexPage(at: customIndexPage, on: localFileSystem),
       // swiftlint:disable:next force_try
       package: try! toolchain.package.get(),

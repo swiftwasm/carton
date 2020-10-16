@@ -225,10 +225,10 @@ public final class Toolchain {
       "--enable-test-discovery", "--destination", destination ?? inferDestinationPath().pathString,
     ]
 
-    try ProcessRunner(builderArguments, loadingMessage: "Compiling...", terminal)
-      .waitUntilFinished()
+    try Builder(arguments: builderArguments, mainWasmPath: mainWasmPath, fileSystem, terminal)
+      .runAndWaitUntilFinished()
 
-    guard localFileSystem.exists(mainWasmPath) else {
+    guard fileSystem.exists(mainWasmPath) else {
       terminal.write(
         "Failed to build the main executable binary, fix the build errors and restart\n",
         inColor: .red
@@ -257,9 +257,10 @@ public final class Toolchain {
       "-Xswiftc", "-color-diagnostics",
     ]
 
-    try ProcessRunner(builderArguments, terminal).waitUntilFinished()
+    try Builder(arguments: builderArguments, mainWasmPath: testBundlePath, fileSystem, terminal)
+      .runAndWaitUntilFinished()
 
-    guard localFileSystem.exists(testBundlePath) else {
+    guard fileSystem.exists(testBundlePath) else {
       terminal.write(
         "Failed to build the test bundle, fix the build errors and restart\n",
         inColor: .red
