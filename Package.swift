@@ -53,6 +53,7 @@ let package = Package(
         .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
         "CartonHelpers",
         openCombineProduct,
+        "SwiftToolchain",
       ]
     ),
     .target(
