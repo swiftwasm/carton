@@ -43,7 +43,6 @@ let package = Package(
         "CartonHelpers",
         openCombineProduct,
         "SwiftToolchain",
-        "WasmTransformer",
       ]
     ),
     .target(
@@ -53,7 +52,7 @@ let package = Package(
         .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
         "CartonHelpers",
         openCombineProduct,
-        "SwiftToolchain",
+        "WasmTransformer",
       ]
     ),
     .target(
