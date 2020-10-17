@@ -59,7 +59,7 @@ jobs:
           cd TestApp && ../.build/debug/carton test
           ../.build/debug/carton bundle
           
-  linux-swift5_3:
+  ubuntu18_04-swift5_3:
     runs-on: ubuntu-18.04
 
     steps:
