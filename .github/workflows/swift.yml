@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  macos-swift5_2:
+  catalina-swift5_2:
     runs-on: macos-10.15
 
     steps:
@@ -19,10 +19,21 @@ jobs:
           brew bundle
           cd TestApp && ../.build/debug/carton test
           ../.build/debug/carton bundle
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
+  bigsur-swift5_2:
+    runs-on: macos-11.0
 
-  macos-swift5_3:
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build on macOS 11.0 with Swift 5.2
+        run: |
+          sudo xcode-select --switch /Applications/Xcode_11.7.app/Contents/Developer
+          swift build
+          brew bundle
+          cd TestApp && ../.build/debug/carton test
+          ../.build/debug/carton bundle
+
+  catalina-swift5_3:
     runs-on: macos-10.15
 
     steps:
@@ -34,9 +45,20 @@ jobs:
           brew bundle
           cd TestApp && ../.build/debug/carton test
           ../.build/debug/carton bundle
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  bigsur-swift5_3:
+    runs-on: macos-11.0
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build on macOS 11.0 with Swift 5.3
+        run: |
+          sudo xcode-select --switch /Applications/Xcode_12.app/Contents/Developer
+          swift build
+          brew bundle
+          cd TestApp && ../.build/debug/carton test
+          ../.build/debug/carton bundle
+          
   linux-swift5_3:
     runs-on: ubuntu-18.04
 
