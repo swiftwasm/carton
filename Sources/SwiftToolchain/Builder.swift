@@ -24,7 +24,7 @@ import WasmTransformer
 
 public final class Builder {
   public enum Environment {
-    case wasmer
+    case other
     case browser
   }
 

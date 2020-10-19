@@ -260,7 +260,7 @@ public final class Toolchain {
     try Builder(
       arguments: builderArguments,
       mainWasmPath: testBundlePath,
-      environment: .wasmer,
+      environment: .other,
       fileSystem,
       terminal
     )
