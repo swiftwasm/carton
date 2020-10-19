@@ -196,16 +196,11 @@ extension FileSystem {
       toolchainBinDir: binDir,
       extraCCFlags: includeFlags,
       extraSwiftcFlags: includeFlags + [
-        "-Xlinker",
-        "-lFoundation",
-        "-Xlinker",
-        "-lCoreFoundation",
-        "-Xlinker",
-        "-lBlocksRuntime",
-        "-Xlinker",
-        "-licui18n",
-        "-Xlinker",
-        "-luuid",
+        "-Xlinker", "-lFoundation",
+        "-Xlinker", "-lCoreFoundation",
+        "-Xlinker", "-lBlocksRuntime",
+        "-Xlinker", "-licui18n",
+        "-Xlinker", "-luuid",
       ]
     )
 
