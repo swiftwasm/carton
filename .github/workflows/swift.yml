@@ -53,3 +53,18 @@ jobs:
           ../.build/debug/carton bundle
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  ubuntu20_04-swift5_3:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build on Ubuntu 20.04 with Swift 5.3
+        run: |
+          swift build
+          ./install_ubuntu_deps.sh
+          curl https://get.wasmer.io -sSfL | sh
+          source /home/runner/.wasmer/wasmer.sh
+          cd TestApp && ../.build/debug/carton test
+          ../.build/debug/carton bundle
