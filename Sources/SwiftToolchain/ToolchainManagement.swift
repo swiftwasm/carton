@@ -146,6 +146,7 @@ extension FileSystem {
     guard isFile(releaseFile) else {
       throw ToolchainError.unsupportedOperatingSystem
     }
+
     let releaseData = try readFileContents(releaseFile).description
     let ubuntuSuffix: String
     if releaseData.contains("DISTRIB_RELEASE=18.04") {
