@@ -171,7 +171,7 @@ extension FileSystem {
     }
 
     let sdkRoot = swiftPath.parentDirectory.parentDirectory
-    let wasiSysroot = sdkRoot.appending(components: "share", "wasi-syroot")
+    let wasiSysroot = sdkRoot.appending(components: "share", "wasi-sysroot")
     let binDir = sdkRoot.appending(component: "bin")
     let wasm32Dir = sdkRoot.appending(components: "lib", "swift", "wasi", "wasm32")
     let includeFlags = ["-I", wasm32Dir.pathString]
