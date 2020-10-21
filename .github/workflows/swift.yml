@@ -19,7 +19,7 @@ jobs:
           brew bundle
           cd TestApp && ../.build/debug/carton test
           ../.build/debug/carton bundle
-  
+
   bigsur-swift5_2:
     runs-on: macos-11.0
 
@@ -58,7 +58,7 @@ jobs:
           brew bundle
           cd TestApp && ../.build/debug/carton test
           ../.build/debug/carton bundle
-          
+
   ubuntu18_04-swift5_3:
     runs-on: ubuntu-18.04
 
@@ -90,3 +90,12 @@ jobs:
           source /home/runner/.wasmer/wasmer.sh
           cd TestApp && ../.build/debug/carton test
           ../.build/debug/carton bundle
+
+  docker_image:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build a Docker image on Ubuntu 20.04
+        run: docker build . -t gchr.io/swiftwasm/swiftwasm-action:latest
