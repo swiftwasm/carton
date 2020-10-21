@@ -19,6 +19,9 @@ jobs:
           brew bundle
           cd TestApp && ../.build/debug/carton test
           ../.build/debug/carton bundle
+        # the token is required to get around GitHub API limits when downloading the toolchain
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   bigsur-swift5_2:
     runs-on: macos-11.0
@@ -32,6 +35,8 @@ jobs:
           brew bundle
           cd TestApp && ../.build/debug/carton test
           ../.build/debug/carton bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   catalina-swift5_3:
     runs-on: macos-10.15
@@ -45,6 +50,8 @@ jobs:
           brew bundle
           cd TestApp && ../.build/debug/carton test
           ../.build/debug/carton bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   bigsur-swift5_3:
     runs-on: macos-11.0
@@ -58,6 +65,8 @@ jobs:
           brew bundle
           cd TestApp && ../.build/debug/carton test
           ../.build/debug/carton bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   ubuntu18_04-swift5_3:
     runs-on: ubuntu-18.04
@@ -90,6 +99,8 @@ jobs:
           source /home/runner/.wasmer/wasmer.sh
           cd TestApp && ../.build/debug/carton test
           ../.build/debug/carton bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   docker_image:
     runs-on: ubuntu-20.04
@@ -99,3 +110,5 @@ jobs:
 
       - name: Build a Docker image on Ubuntu 20.04
         run: docker build . -t gchr.io/swiftwasm/swiftwasm-action:latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
