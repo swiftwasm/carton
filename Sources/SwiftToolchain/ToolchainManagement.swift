@@ -142,7 +142,22 @@ extension FileSystem {
     #if os(macOS)
     let platformSuffixes = ["osx", "catalina", "macos"]
     #elseif os(Linux)
-    let platformSuffixes = ["linux", "ubuntu18.04"]
+    let releaseFile = AbsolutePath("/etc/lsb-release")
+    guard isFile(releaseFile) else {
+      throw ToolchainError.unsupportedOperatingSystem
+    }
+
+    let releaseData = try readFileContents(releaseFile).description
+    let ubuntuSuffix: String
+    if releaseData.contains("DISTRIB_RELEASE=18.04") {
+      ubuntuSuffix = "ubuntu18.04"
+    } else if releaseData.contains("DISTRIB_RELEASE=20.04") {
+      ubuntuSuffix = "ubuntu20.04"
+    } else {
+      throw ToolchainError.unsupportedOperatingSystem
+    }
+
+    let platformSuffixes = ["linux", ubuntuSuffix]
     #endif
 
     terminal.logLookup(
@@ -181,16 +196,11 @@ extension FileSystem {
       toolchainBinDir: binDir,
       extraCCFlags: includeFlags,
       extraSwiftcFlags: includeFlags + [
-        "-Xlinker",
-        "-lFoundation",
-        "-Xlinker",
-        "-lCoreFoundation",
-        "-Xlinker",
-        "-lBlocksRuntime",
-        "-Xlinker",
-        "-licui18n",
-        "-Xlinker",
-        "-luuid",
+        "-Xlinker", "-lFoundation",
+        "-Xlinker", "-lCoreFoundation",
+        "-Xlinker", "-lBlocksRuntime",
+        "-Xlinker", "-licui18n",
+        "-Xlinker", "-luuid",
       ]
     )
 

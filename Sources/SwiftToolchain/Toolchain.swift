@@ -30,6 +30,7 @@ enum ToolchainError: Error, CustomStringConvertible {
   case missingPackageManifest
   case invalidVersion(version: String)
   case invalidResponse(url: String, status: UInt)
+  case unsupportedOperatingSystem
 
   var description: String {
     switch self {
@@ -56,6 +57,8 @@ enum ToolchainError: Error, CustomStringConvertible {
       return "Invalid version \(version)"
     case let .invalidResponse(url: url, status: status):
       return "Response from \(url) had invalid status \(status) or didn't contain body"
+    case .unsupportedOperatingSystem:
+      return "This version of the operating system is not supported"
     }
   }
 }
