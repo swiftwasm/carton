@@ -15,11 +15,6 @@
 import AsyncHTTPClient
 import CartonHelpers
 import Foundation
-#if canImport(Combine)
-import Combine
-#else
-import OpenCombine
-#endif
 import TSCBasic
 import TSCUtility
 
@@ -29,8 +24,6 @@ public func processStringOutput(_ arguments: [String]) throws -> String? {
 
 // swiftlint:disable:next force_try
 private let versionRegEx = try! RegEx(pattern: "(?:swift-)?(.+-.)-.+\\.tar.gz")
-
-private let expectedArchiveSize = 891_856_371
 
 private struct Release: Decodable {
   struct Asset: Decodable {
@@ -99,8 +92,16 @@ extension FileSystem {
     _ prefix: AbsolutePath,
     _ terminal: InteractiveWriter
   ) throws -> AbsolutePath? {
-    let swiftPath = prefix.appending(components: swiftVersion, "usr", "bin", "swift")
+    try checkAndLog(installationPath: prefix.appending(component: swiftVersion), terminal)
+  }
 
+  private func checkAndLog(
+    installationPath: AbsolutePath,
+    _ terminal: InteractiveWriter
+  ) throws -> AbsolutePath? {
+    let swiftPath = installationPath.appending(components: "usr", "bin", "swift")
+
+    terminal.logLookup("- checking Swift compiler path: ", swiftPath)
     guard isFile(swiftPath) else { return nil }
 
     terminal.write("Inferring basic settings...\n", inColor: .yellow)
@@ -268,119 +269,20 @@ extension FileSystem {
       terminal
     )
 
-    guard let path = try checkAndLog(swiftVersion: swiftVersion, sdkPath, terminal) else {
+    guard let path = try checkAndLog(installationPath: installationPath, terminal) else {
       throw ToolchainError.invalidInstallationArchive(installationPath)
     }
 
     return (path, swiftVersion)
   }
 
-  private func downloadDelegate(
-    path: String,
-    _ terminal: InteractiveWriter
-  ) throws -> (FileDownloadDelegate, PassthroughSubject<Progress, Error>) {
-    let subject = PassthroughSubject<Progress, Error>()
-    return try (FileDownloadDelegate(
-      path: path,
-      reportHead: {
-        guard $0.status == .ok,
-          let totalBytes = $0.headers.first(name: "Content-Length").flatMap(Int.init)
-        else {
-          subject.send(completion: .failure(ToolchainError.invalidResponseCode($0.status.code)))
-          return
-        }
-        terminal.write("Archive size is \(totalBytes / 1_000_000) MB\n", inColor: .yellow)
-      },
-      reportProgress: {
-        subject.send(.init(
-          step: $1,
-          total: $0 ?? expectedArchiveSize,
-          text: "saving to \(path)"
-        ))
-      }
-    ), subject)
-  }
-
-  private func installSDK(
-    version: String,
-    from url: Foundation.URL,
-    to sdkPath: AbsolutePath,
-    _ client: HTTPClient,
-    _ terminal: InteractiveWriter
-  ) throws -> AbsolutePath {
-    if !exists(sdkPath, followSymlink: true) {
-      try createDirectory(sdkPath, recursive: true)
-    }
-
-    guard isDirectory(sdkPath) else {
-      throw ToolchainError.directoryDoesNotExist(sdkPath)
-    }
-
-    let archivePath = sdkPath.appending(component: "\(version).tar.gz")
-    let (delegate, subject) = try downloadDelegate(path: archivePath.pathString, terminal)
-
-    var subscriptions = [AnyCancellable]()
-    let request = try HTTPClient.Request.get(url: url)
-
-    _ = try await { (completion: @escaping (Result<(), Error>) -> ()) in
-      client.execute(request: request, delegate: delegate).futureResult.whenComplete { _ in
-        subject.send(completion: .finished)
-      }
-
-      subject
-        .removeDuplicates {
-          // only report values that differ in more than 1%
-          $1.step - $0.step < ($0.total / 100)
-        }
-        .handle(
-          with: PercentProgressAnimation(stream: stdoutStream, header: "Downloading the archive")
-        )
-        .sink(
-          receiveCompletion: {
-            switch $0 {
-            case .finished:
-              terminal.write("Download completed successfully\n", inColor: .green)
-              completion(.success(()))
-            case let .failure(error):
-              terminal.write("Download failed\n", inColor: .red)
-              completion(.failure(error))
-            }
-          },
-          receiveValue: { _ in }
-        )
-        .store(in: &subscriptions)
-    }
-
-    let installationPath = sdkPath.appending(component: version)
-
-    try createDirectory(installationPath, recursive: true)
-
-    let arguments = [
-      "tar", "xzf", archivePath.pathString, "--strip-components=1",
-      "--directory", installationPath.pathString,
-    ]
-    terminal.logLookup("Unpacking the archive: ", arguments.joined(separator: " "))
-    _ = try processDataOutput(arguments)
-
-    try removeFileTree(archivePath)
-
-    return installationPath
-  }
-
   public func fetchAllSwiftVersions() throws -> [String] {
-    var result = [String]()
-
-    if isDirectory(cartonSDKPath) {
-      try result.append(contentsOf: getDirectoryPaths(cartonSDKPath)
-        .filter { isDirectory($0) }.map(\.basename))
-    }
-
-    if isDirectory(swiftenvVersionsPath) {
-      try result.append(contentsOf: getDirectoryPaths(swiftenvVersionsPath)
-        .filter { isDirectory($0) }.map(\.basename))
-    }
-
-    return result.sorted()
+    try [cartonSDKPath, swiftenvVersionsPath].filter { isDirectory($0) }
+      .map {
+        try getDirectoryPaths($0).filter { isDirectory($0) }.map(\.basename)
+      }
+      .joined()
+      .sorted()
   }
 
   public func fetchLocalSwiftVersion() throws -> String? {

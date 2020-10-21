@@ -31,6 +31,7 @@ enum ToolchainError: Error, CustomStringConvertible {
   case invalidVersion(version: String)
   case invalidResponse(url: String, status: UInt)
   case unsupportedOperatingSystem
+  case noInstallationDirectory(path: String)
 
   var description: String {
     switch self {
@@ -59,6 +60,10 @@ enum ToolchainError: Error, CustomStringConvertible {
       return "Response from \(url) had invalid status \(status) or didn't contain body"
     case .unsupportedOperatingSystem:
       return "This version of the operating system is not supported"
+    case let .noInstallationDirectory(path):
+      return """
+      Failed to infer toolchain installation directory. Please make sure that \(path) exists.
+      """
     }
   }
 }
