@@ -164,6 +164,15 @@
         }
       },
       {
+        "package": "WasmTransformer",
+        "repositoryURL": "https://github.com/swiftwasm/WasmTransformer",
+        "state": {
+          "branch": null,
+          "revision": "c7cb17309372e57c9f75f7abd5c7323d667eaddc",
+          "version": "0.0.1"
+        }
+      },
+      {
         "package": "websocket-kit",
         "repositoryURL": "https://github.com/vapor/websocket-kit.git",
         "state": {

@@ -37,15 +37,13 @@ final class Server {
   private var connections = Set<WebSocket>()
   private var subscriptions = [AnyCancellable]()
   private let watcher: Watcher
-  private var builder: ProcessRunner?
   private let app: Application
   private let localURL: String
   private let skipAutoOpen: Bool
 
   init(
-    builderArguments: [String],
+    builder: Builder,
     pathsToWatch: [AbsolutePath],
-    mainWasmPath: AbsolutePath,
     customIndexContent: String?,
     package: SwiftToolchain.Package,
     verbose: Bool,
@@ -63,7 +61,7 @@ final class Server {
     app = Application(env)
     app.configure(
       port: port,
-      mainWasmPath: mainWasmPath,
+      mainWasmPath: builder.mainWasmPath,
       customIndexContent: customIndexContent,
       package: package,
       onWebSocketOpen: { [weak self] in
@@ -85,8 +83,8 @@ final class Server {
         for change in changes.map(\.pathString) {
           terminal.write("- \(change)\n", inColor: .cyan)
         }
-        return ProcessRunner(builderArguments, terminal)
-          .publisher
+        return builder
+          .run()
           .handleEvents(receiveCompletion: { [weak self] in
             guard case .finished = $0, let self = self else { return }
 

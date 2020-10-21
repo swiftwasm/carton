@@ -21,7 +21,7 @@ import OpenCombine
 #endif
 import TSCBasic
 
-extension Subscribers.Completion {
+public extension Subscribers.Completion {
   var result: Result<(), Failure> {
     switch self {
     case let .failure(error):
