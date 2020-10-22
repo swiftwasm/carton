@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  release:
+    types:
+      - created
+
+jobs:
+  formula:
+    name: Update Homebrew formula
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Update the Homebrew formula with latest release
+        uses: NSHipster/update-homebrew-formula-action@main
+        with:
+          repository: swiftwasm/carton
+          tap: swiftwasm/homebrew-tap
+          formula: carton.rb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  bottle:
+    name: Build and distribute Homebrew bottle for macOS Catalina
+    runs-on: macos-10.15
+    needs: [formula]
+    steps:
+      - name: Build a bottle using Homebrew
+        run: |
+          brew install --build-bottle --verbose swiftwasm/tap/carton
+          brew bottle swiftwasm/tap/carton
+      - name: Upload the bottle to the GitHub release
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./carton--${{ github.event.release.tag_name }}.catalina.bottle.tar.gz
+          asset_name: carton-${{ github.event.release.tag_name }}.catalina.bottle.tar.gz
+          asset_content_type: application/gzip
+      - name: Update the Homebrew formula again with bottle
+        uses: NSHipster/update-homebrew-formula-action@main
+        with:
+          repository: swiftwasm/carton
+          tap: swiftwasm/homebrew-tap
+          formula: carton.rb
+          message: |
+            Add bottle for hello ${{ github.event.release.tag_name }}
+            on macOS Catalina
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
