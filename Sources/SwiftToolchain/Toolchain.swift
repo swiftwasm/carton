@@ -17,8 +17,7 @@ import Foundation
 import TSCBasic
 import TSCUtility
 
-private let compatibleJSKitRevision = "6e84a70"
-public let compatibleJSKitVersion = Version(0, 7, 2)
+public let compatibleJSKitVersion = Version(0, 8, 0)
 
 enum ToolchainError: Error, CustomStringConvertible {
   case directoryDoesNotExist(AbsolutePath)
@@ -73,8 +72,7 @@ extension Package.Dependency.Requirement {
     if let upperBound = range?.first?.upperBound, let version = Version(string: upperBound) {
       return version >= compatibleJSKitVersion
     }
-    return revision == [compatibleJSKitRevision] ||
-      exact?.compactMap { Version(string: $0) } == [compatibleJSKitVersion]
+    return exact?.compactMap { Version(string: $0) } == [compatibleJSKitVersion]
   }
 
   var version: String {
