@@ -102,3 +102,6 @@ TestApp/Bundle
 
 # macOS
 .DS_Store
+
+# Homebrew
+*.bottle.tar.gz
