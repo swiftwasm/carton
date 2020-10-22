@@ -1,3 +1,8 @@
+# 0.7.1 (22 October 2020)
+
+This is a bugfix release that prevents `carton` commands from re-downloading `.pkg` toolchains
+on macOS on every CLI invocation.
+
 # 0.7.0 (22 October 2020)
 
 This release contains bugfixes and improvements.
