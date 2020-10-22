@@ -37,9 +37,16 @@ installed and then run:
 brew install swiftwasm/tap/carton
 ```
 
-You'll have to build `carton` from sources on Linux. Clone the repository and run
-`swift build -c release`, the `carton` binary will be located in the `.build/release`
-directory after that.
+`carton` is also available as a Docker image for Linux. You can pull it with this command:
+
+```
+docker pull ghcr.io/swiftwasm/carton:latest
+```
+
+If Docker images are not suitable for you, you'll have to build `carton` from sources on Ubuntu, and
+unfortunately other Linux distributions are currently not supported. Clone the repository and run
+`swift build -c release`, the `carton` binary will be located in the `.build/release` directory
+after that.
 
 ### Usage
 
@@ -132,7 +139,7 @@ contributions enabling that.
 ### Sponsorship
 
 If this tool saved you any amount of time or money, please consider sponsoring
-the work of its maintainers on their sponsorship pages: 
+the work of its maintainers on their sponsorship pages:
 [@carson-katri](https://github.com/sponsors/carson-katri),
 [@kateinoigakukun](https://github.com/sponsors/kateinoigakukun), and
 [@MaxDesiatov](https://github.com/sponsors/MaxDesiatov). While some of the
