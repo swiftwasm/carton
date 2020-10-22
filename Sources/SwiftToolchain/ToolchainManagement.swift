@@ -48,6 +48,17 @@ extension FileSystem {
     homeDirectory.appending(components: ".carton", "sdk")
   }
 
+  private var xcodeToolchainsPath: AbsolutePath? {
+    NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true).first
+      .flatMap { .init($0) }
+  }
+
+  func xcodeToolchainPath(for version: String) -> AbsolutePath? {
+    xcodeToolchainsPath?.appending(
+      components: "Developer", "Toolchains", "swift-\(version).xctoolchain"
+    )
+  }
+
   public var swiftVersionPath: AbsolutePath {
     guard let cwd = currentWorkingDirectory else {
       fatalError()
@@ -238,6 +249,13 @@ extension FileSystem {
 
     let sdkPath = cartonSDKPath
     if let path = try checkAndLog(swiftVersion: swiftVersion, sdkPath, terminal) {
+      return (path, swiftVersion)
+    }
+
+    if
+      let candidatePath = xcodeToolchainPath(for: swiftVersion),
+      let path = try checkAndLog(installationPath: candidatePath, terminal)
+    {
       return (path, swiftVersion)
     }
 

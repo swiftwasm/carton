@@ -82,14 +82,10 @@ extension FileSystem {
 
     let arguments: [String]
     if ext == "pkg" {
-      guard let libraryPath = NSSearchPathForDirectoriesInDomains(
-        .libraryDirectory, .userDomainMask, true
-      ).first else {
+      guard let path = xcodeToolchainPath(for: version) else {
         throw ToolchainError.noInstallationDirectory(path: "~/Library")
       }
-      installationPath = AbsolutePath(libraryPath).appending(
-        components: "Developer", "Toolchains", "swift-\(version).xctoolchain"
-      )
+      installationPath = path
       arguments = [
         "installer", "-target", "CurrentUserHomeDirectory", "-pkg", archivePath.pathString,
       ]
