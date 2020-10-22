@@ -52,11 +52,13 @@ public final class ProcessRunner {
     var tmpOutput = ""
     publisher = subject
       .handleEvents(
+        receiveSubscription: { _ in
+          terminal.clearLine()
+          terminal.write(loadingMessage, inColor: .yellow)
+        },
         receiveOutput: {
           if clearOutputLines {
             // Aggregate this for formatting later
-            terminal.clearLine()
-            terminal.write(loadingMessage, inColor: .yellow)
             tmpOutput += $0
           } else {
             terminal.write($0)
