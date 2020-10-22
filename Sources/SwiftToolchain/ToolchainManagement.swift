@@ -200,19 +200,18 @@ extension FileSystem {
     let sdkRoot = swiftPath.parentDirectory.parentDirectory
     let wasiSysroot = sdkRoot.appending(components: "share", "wasi-sysroot")
     let binDir = sdkRoot.appending(component: "bin")
-    let wasm32Dir = sdkRoot.appending(components: "lib", "swift", "wasi", "wasm32")
-    let includeFlags = ["-I", wasm32Dir.pathString]
 
     let destination = Destination(
       sdk: wasiSysroot,
       toolchainBinDir: binDir,
-      extraCCFlags: includeFlags,
-      extraSwiftcFlags: includeFlags + [
-        "-Xlinker", "-lFoundation",
-        "-Xlinker", "-lCoreFoundation",
-        "-Xlinker", "-lBlocksRuntime",
-        "-Xlinker", "-licui18n",
-        "-Xlinker", "-luuid",
+      extraCCFlags: [],
+      extraSwiftcFlags: [
+        // -static-stdlib tells frontend to reference swift_static directory to include Foundation and other modules
+        "-static-stdlib",
+        "-lCoreFoundation",
+        "-lBlocksRuntime",
+        "-licui18n",
+        "-luuid",
       ]
     )
 
