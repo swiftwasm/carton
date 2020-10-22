@@ -1,3 +1,72 @@
+# 0.7.0 (22 October 2020)
+
+This release contains bugfixes and improvements.
+
+Now SwiftWasm binaries built with `carton` are
+fully compatible with Safari, even when they use functions that return 64-bit integers. This was
+caused by [the lack of support for conversions between `i64` and `BigInt` types in
+Safari](https://bugs.webkit.org/show_bug.cgi?id=213528).
+
+Additionally, when you run `carton dev` a new tab with your app is opened in your default browser
+automatically. You can now also specify a port to use for the development server with the `--port`
+option (`-p` for short).
+
+All `carton` commands that build Swift code now pretty-print error messages in case of failures.
+If an error message points to a specific location in your code, surrounding code has its syntax
+highlighted in terminals.
+
+`carton test` now automatically passes `--enable-test-discovery` flag when building your tests, so
+you no longer need to manually maintain `LinuxMain.swift` and `XCTestManifests.swift` files in your
+test suites.
+
+`carton` now uses the `wasm-5.3-SNAPSHOT-2020-10-21-a` toolchain and SDK by default. This and most
+of our recent snapshots are built for both Ubuntu 18.04 and 20.04, the latter supported in `carton`
+for the first time. `carton` automatically detects the version of your OS and downloads an
+appropriate snapshot. Recent snapshots for macOS are also tested on macOS Big Sur on Intel CPUs
+(Apple Silicon is not supported yet), and are signed and distributed as `.pkg` files, which `carton`
+fully supports now.
+
+Lastly, we've prepared [a prebuilt Docker
+image](https://github.com/orgs/swiftwasm/packages/container/package/carton) for you that you can get
+by running
+
+```
+docker pull ghcr.io/swiftwasm/carton:latest
+```
+
+This image has the toolchain and all required dependencies preinstalled.
+
+Many thanks to [@carson-katri](https://github.com/carson-katri),
+[@kateinoigakukun](https://github.com/kateinoigakukun), and [@yonihemi](https://github.com/yonihemi)
+for their contributions to this release!
+
+**Closed issues:**
+
+- Method with i64 return type fails on Safari 13+14 ([#127](https://github.com/swiftwasm/carton/issues/127))
+- Provide a Dockerfile for easier distribution and testing on Linux ([#119](https://github.com/swiftwasm/carton/issues/119))
+- Support downloading Ubuntu 20.04 SDK ([#114](https://github.com/swiftwasm/carton/issues/114))
+- `carton dev` should open a browser window when server starts ([#92](https://github.com/swiftwasm/carton/issues/92))
+
+**Merged pull requests:**
+
+- Bump JavaScriptKit to 0.8, stop checking revision ([#139](https://github.com/swiftwasm/carton/pull/139)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Avoid repeated `loadingMessage` in `ProcessRunner` ([#138](https://github.com/swiftwasm/carton/pull/138)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Add support for signed `.pkg` archives on macOS ([#137](https://github.com/swiftwasm/carton/pull/137)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Add Dockerfile, mention the Docker image in `README.md` ([#136](https://github.com/swiftwasm/carton/pull/136)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Fix support for Ubuntu 20.04, use GHA for SwiftLint ([#134](https://github.com/swiftwasm/carton/pull/134)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Build on macOS Big Sur with GitHub Actions ([#132](https://github.com/swiftwasm/carton/pull/132)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Remove sudo usage from `install_ubuntu_deps.sh` ([#135](https://github.com/swiftwasm/carton/pull/135)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Add separate Builder class, use WasmTransformer ([#131](https://github.com/swiftwasm/carton/pull/131)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Bump toolchain, use `--enable-test-discovery` ([#130](https://github.com/swiftwasm/carton/pull/130)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update dependencies ([#133](https://github.com/swiftwasm/carton/pull/133)) via [@ie-ahm-robox](https://github.com/ie-ahm-robox)
+- Bump default toolchain, make i64 bug reproducible ([#128](https://github.com/swiftwasm/carton/pull/128)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Pretty print diagnostics ([#122](https://github.com/swiftwasm/carton/pull/122)) via [@carson-katri](https://github.com/carson-katri)
+- Update dependencies ([#125](https://github.com/swiftwasm/carton/pull/125)) via [@ie-ahm-robox](https://github.com/ie-ahm-robox)
+- Add @carson-katri and @kateinoigakukun to `FUNDING.yml` ([#124](https://github.com/swiftwasm/carton/pull/124)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update dependencies ([#118](https://github.com/swiftwasm/carton/pull/118)) via [@ie-ahm-robox](https://github.com/ie-ahm-robox)
+- Automatically open a browser window when Dev Server starts ([#117](https://github.com/swiftwasm/carton/pull/117)) via [@yonihemi](https://github.com/yonihemi)
+- Allow changing dev server's port ([#116](https://github.com/swiftwasm/carton/pull/116)) via [@yonihemi](https://github.com/yonihemi)
+
 # 0.6.1 (29 September 2020)
 
 This release fixes basic `carton init` template that was pulling an incompatible version of

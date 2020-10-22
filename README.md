@@ -56,12 +56,14 @@ new [Tokamak](https://tokamak.dev/) project, while `carton init --template basic
 currently).
 
 The `carton dev` command builds your project with the SwiftWasm toolchain and starts an HTTP server
-that hosts your WebAssembly executable and a corresponding JavaScript entrypoint that loads it. The app, reachable at [http://127.0.0.1:8080/](http://127.0.0.1:8080/), will automatically open in your default web browser. You can
-edit the app source code in your favorite editor and save it, `carton` will immediately rebuild the
-app and reload all browser tabs that have the app open. You can also pass a `--verbose` flag to
-keep the build process output available, otherwise stale output is cleaned up from your terminal
-screen by default. If you have a custom `index.html` page you'd like to use when serving, pass a
-path to it with a `--custom-index-page` option.
+that hosts your WebAssembly executable and a corresponding JavaScript entrypoint that loads it. The
+app, reachable at [http://127.0.0.1:8080/](http://127.0.0.1:8080/), will automatically open in your
+default web browser. The port that the development server uses can also be controlled with the
+`--port` option (or `-p` for short). You can edit the app source code in your favorite editor and
+save it, `carton` will immediately rebuild the app and reload all browser tabs that have the app
+open. You can also pass a `--verbose` flag to keep the build process output available, otherwise
+stale output is cleaned up from your terminal screen by default. If you have a custom `index.html`
+page you'd like to use when serving, pass a path to it with a `--custom-index-page` option.
 
 The `carton test` command runs your test suite in the [`wasmer`](https://wasmer.io/) environment.
 Unfortunately, this currently requires a presence of `LinuxMain.swift` file and explicit test
