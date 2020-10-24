@@ -105,7 +105,7 @@ struct DiagnosticsParser {
     let line: String.SubSequence
     let char: String.SubSequence
     let code: String
-    let message: String.SubSequence
+    let message: String
 
     enum Kind: String {
       case error, warning, note
@@ -157,7 +157,7 @@ struct DiagnosticsParser {
                 line: components[0],
                 char: components[1],
                 code: String(lines[lineIdx]),
-                message: components[3]
+                message: components.dropFirst(3).joined(separator: ":")
               )
             )
           }
