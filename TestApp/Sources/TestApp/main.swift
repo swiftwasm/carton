@@ -18,12 +18,11 @@ import JavaScriptKit
 import TestLibrary
 import WASILibc
 
-let document = JSObject.global.document.object!
+let document = JSObject.global.document
 
-let button = document.createElement!("button").object!
+var button = document.createElement("button")
 button.innerText = .string("Crash!")
-let body = document.body.object!
-_ = body.appendChild!(button)
+_ = document.body.appendChild(button)
 
 print("Number of seconds since epoch: \(Date().timeIntervalSince1970)")
 print("cos(Double.pi) is \(cos(Double.pi))")
@@ -34,7 +33,7 @@ func crash() {
   print(x[1])
 }
 
-let buttonNode = document.getElementsByTagName!("button").object![0].object!
+var buttonNode = document.getElementsByTagName("button")[0]
 let handler = JSClosure { _ -> () in
   print(text)
   crash()
@@ -42,14 +41,14 @@ let handler = JSClosure { _ -> () in
 
 buttonNode.onclick = .function(handler)
 
-let div = document.createElement!("div").object!
+var div = document.createElement("div")
 div.innerHTML = .string(#"""
 <a href=\#(Bundle.module.path(forResource: "data", ofType: "json")!)>Link to a static resource</a>
 """#)
-_ = body.appendChild!(div)
+_ = document.body.appendChild(div)
 
-let timerElement = document.createElement!("p").object!
-_ = body.appendChild!(timerElement)
+var timerElement = document.createElement("p")
+_ = document.body.appendChild(timerElement)
 let timer = JSTimer(millisecondsDelay: 1000, isRepeating: true) {
   let date = JSDate()
   timerElement.innerHTML = .string("""
