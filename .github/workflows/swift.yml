@@ -15,7 +15,8 @@ jobs:
       - name: Build on macOS 10.15 with Swift 5.2
         run: |
           sudo xcode-select --switch /Applications/Xcode_11.7.app/Contents/Developer
-          swift build
+          swift test -c release
+          swift build -c release
           brew bundle
           cd TestApp && ../.build/debug/carton test
           ../.build/debug/carton bundle
@@ -31,7 +32,8 @@ jobs:
       - name: Build on macOS 11.0 with Swift 5.2
         run: |
           sudo xcode-select --switch /Applications/Xcode_11.7.app/Contents/Developer
-          swift build
+          swift test -c release
+          swift build -c release
           brew bundle
           cd TestApp && ../.build/debug/carton test
           ../.build/debug/carton bundle
@@ -46,7 +48,8 @@ jobs:
       - name: Build on macOS 10.15 with Swift 5.3
         run: |
           sudo xcode-select --switch /Applications/Xcode_12.app/Contents/Developer
-          swift build
+          swift test -c release
+          swift build -c release
           brew bundle
           cd TestApp && ../.build/debug/carton test
           ../.build/debug/carton bundle
@@ -61,7 +64,8 @@ jobs:
       - name: Build on macOS 11.0 with Swift 5.3
         run: |
           sudo xcode-select --switch /Applications/Xcode_12.1.app/Contents/Developer
-          swift build
+          swift test -c release
+          swift build -c release
           brew bundle
           cd TestApp && ../.build/debug/carton test
           ../.build/debug/carton bundle
@@ -76,7 +80,8 @@ jobs:
 
       - name: Build on Ubuntu 18.04 with Swift 5.3
         run: |
-          swift build
+          swift test -c release
+          swift build -c release
           sudo ./install_ubuntu_deps.sh
           curl https://get.wasmer.io -sSfL | sh
           source /home/runner/.wasmer/wasmer.sh
@@ -93,7 +98,8 @@ jobs:
 
       - name: Build on Ubuntu 20.04 with Swift 5.3
         run: |
-          swift build
+          swift test -c release
+          swift build -c release
           sudo ./install_ubuntu_deps.sh
           curl https://get.wasmer.io -sSfL | sh
           source /home/runner/.wasmer/wasmer.sh
