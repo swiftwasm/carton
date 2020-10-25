@@ -1,6 +1,6 @@
 import class Foundation.Bundle
 import XCTest
-@testable import CartonHelpers
+import CartonHelpers
 import TSCBasic
 
 final class CartonTests: XCTestCase {
@@ -34,13 +34,14 @@ final class CartonTests: XCTestCase {
     let pipe = Pipe()
     process.standardOutput = pipe
 
+    process.arguments = ["--version"]
     try process.run()
     process.waitUntilExit()
 
     let data = pipe.fileHandleForReading.readDataToEndOfFile()
     let output = String(data: data, encoding: .utf8)
-
-    XCTAssertEqual(output, "Hello, world!\n")
+    
+    XCTAssertEqual(output?.trimmingCharacters(in: .whitespacesAndNewlines), "0.7.1")
   }
   
   final class TestOutputStream: OutputByteStream {
@@ -94,7 +95,7 @@ final class CartonTests: XCTestCase {
   }
 
   static var allTests = [
-    ("testExample", testExample),
+//    ("testExample", testExample),
     ("testDiagnosticsParser", testDiagnosticsParser),
   ]
 }

@@ -88,7 +88,7 @@ private struct TerminalOutputFormat: OutputFormat {
 /// The compiler output often repeats iteself, and the diagnostics can sometimes be
 /// difficult to read.
 /// This reformats them to a more readable output.
-struct DiagnosticsParser {
+public struct DiagnosticsParser {
   // swiftlint:disable force_try
   enum Regex {
     /// The output has moved to a new file
@@ -120,8 +120,10 @@ struct DiagnosticsParser {
   }
 
   fileprivate static let highlighter = SyntaxHighlighter(format: TerminalOutputFormat())
+  
+  public init() {}
 
-  func parse(_ output: String, _ terminal: InteractiveWriter) {
+  public func parse(_ output: String, _ terminal: InteractiveWriter) {
     let lines = output.split(separator: "\n")
     var lineIdx = 0
 
