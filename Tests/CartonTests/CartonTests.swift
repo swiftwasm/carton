@@ -64,7 +64,7 @@ final class CartonTests: XCTestCase {
   }
   
   func testDiagnosticsParser() {
-    let testDiagnostics = #"""
+    let testDiagnostics = """
     [1/1] Compiling TokamakCore Font.swift
     /Users/username/Project/Sources/TokamakCore/Tokens/Font.swift:58:15: error: invalid redeclaration of 'resolve(in:)'
       public func resolve(in environment: EnvironmentValues) -> _Font {
@@ -72,8 +72,8 @@ final class CartonTests: XCTestCase {
     /Users/username/Project/Sources/TokamakCore/Tokens/Font.swift:55:15: note: 'resolve(in:)' previously declared here
       public func resolve(in environment: EnvironmentValues) -> _Font {
                   ^
-    """#
-    let expectedOutput = #"""
+    """
+    let expectedOutput = """
     \u{001B}[1m\u{001B}[7m Font.swift \u{001B}[0m /Users/username/Project/Sources/TokamakCore/Tokens/Font.swift:58
 
       \u{001B}[41;1m\u{001B}[37;1m ERROR \u{001B}[0m  invalid redeclaration of 'resolve(in:)'
@@ -86,7 +86,7 @@ final class CartonTests: XCTestCase {
 
 
 
-    """#.replacingOccurrences(of: #"\u{001B}"#, with: "\u{001B}")
+    """
     let stream = TestOutputStream()
     let writer = InteractiveWriter(stream: stream)
     DiagnosticsParser().parse(testDiagnostics, writer)
