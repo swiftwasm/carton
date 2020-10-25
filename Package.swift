@@ -77,7 +77,11 @@ let package = Package(
     ),
     .testTarget(
       name: "CartonTests",
-      dependencies: ["carton"]
+      dependencies: [
+        "carton",
+        "CartonHelpers",
+        .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core")
+      ]
     ),
   ]
 )
