@@ -1,7 +1,7 @@
-import class Foundation.Bundle
-import XCTest
 import CartonHelpers
+import class Foundation.Bundle
 import TSCBasic
+import XCTest
 
 final class CartonTests: XCTestCase {
   /// Returns path to the built products directory.
@@ -15,7 +15,7 @@ final class CartonTests: XCTestCase {
     return Bundle.main.bundleURL
     #endif
   }
-  
+
   func testVersion() throws {
     // This is an example of a functional test case.
     // Use XCTAssert and related functions to verify your tests produce the correct
@@ -40,31 +40,33 @@ final class CartonTests: XCTestCase {
 
     let data = pipe.fileHandleForReading.readDataToEndOfFile()
     let output = String(data: data, encoding: .utf8)
-    
+
     XCTAssertEqual(output?.trimmingCharacters(in: .whitespacesAndNewlines), "0.7.1")
   }
-  
+
   final class TestOutputStream: OutputByteStream {
     var bytes: [UInt8] = []
     var currentOutput: String {
       String(bytes: bytes, encoding: .utf8)!
     }
+
     var position: Int = 0
-    
+
     init() {}
-    
+
     func flush() {}
-    
+
     func write(_ byte: UInt8) {
       bytes.append(byte)
     }
-    
-    func write<C>(_ bytes: C) where C : Collection, C.Element == UInt8 {
+
+    func write<C>(_ bytes: C) where C: Collection, C.Element == UInt8 {
       self.bytes.append(contentsOf: bytes)
     }
   }
-  
+
   func testDiagnosticsParser() {
+    // swiftlint:disable line_length
     let testDiagnostics = """
     [1/1] Compiling TokamakCore Font.swift
     /Users/username/Project/Sources/TokamakCore/Tokens/Font.swift:58:15: error: invalid redeclaration of 'resolve(in:)'
@@ -88,6 +90,7 @@ final class CartonTests: XCTestCase {
 
 
     """
+    // swiftlint:enable line_length
     let stream = TestOutputStream()
     let writer = InteractiveWriter(stream: stream)
     DiagnosticsParser().parse(testDiagnostics, writer)

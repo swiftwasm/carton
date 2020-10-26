@@ -120,7 +120,7 @@ public struct DiagnosticsParser {
   }
 
   fileprivate static let highlighter = SyntaxHighlighter(format: TerminalOutputFormat())
-  
+
   public init() {}
 
   public func parse(_ output: String, _ terminal: InteractiveWriter) {

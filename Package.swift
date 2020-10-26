@@ -80,7 +80,7 @@ let package = Package(
       dependencies: [
         "carton",
         "CartonHelpers",
-        .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core")
+        .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
       ]
     ),
   ]
