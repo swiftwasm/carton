@@ -223,7 +223,8 @@ public final class Toolchain {
 
     let builderArguments = [
       swiftPath.pathString, "build", "-c", isRelease ? "release" : "debug", "--product", product,
-      "--enable-test-discovery", "--triple", "wasm32-unknown-wasi", "-Xswiftc", "-static-stdlib",
+      "--enable-test-discovery", "--triple", "wasm32-unknown-wasi",
+      "-Xswiftc", "-Xfrontend", "-Xswiftc", "-use-static-resource-dir",
     ]
 
     try Builder(arguments: builderArguments, mainWasmPath: mainWasmPath, fileSystem, terminal)
@@ -254,7 +255,8 @@ public final class Toolchain {
 
     let builderArguments = [
       swiftPath.pathString, "build", "-c", isRelease ? "release" : "debug", "--build-tests",
-      "--enable-test-discovery", "--triple", "wasm32-unknown-wasi", "-Xswiftc", "-static-stdlib",
+      "--enable-test-discovery", "--triple", "wasm32-unknown-wasi",
+      "-Xswiftc", "-Xfrontend", "-Xswiftc", "-use-static-resource-dir",
       "-Xswiftc", "-color-diagnostics",
     ]
 
