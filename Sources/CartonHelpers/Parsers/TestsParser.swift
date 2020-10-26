@@ -218,6 +218,12 @@ public struct TestsParser: ProcessOutputParser {
       }
     }
 
+    flushSuites(suites, terminal)
+    terminal.write("\n")
+    flushSummary(of: suites, terminal)
+  }
+
+  func flushSuites(_ suites: [Suite], _ terminal: InteractiveWriter) {
     let suitesWithCases = suites.filter { $0.cases.count > 0 }
 
     // Keep track of files we already opened and store their contents
@@ -231,7 +237,11 @@ public struct TestsParser: ProcessOutputParser {
       // bold, white fg, green/red bg
       terminal
         .write(
-          "\n\(" \(suite.passed ? "PASSED" : "FAILED") ", color: "[1m", "[97m", suite.passed ? "[42m" : "[101m")"
+          """
+          \n\(" \(suite.passed ? "PASSED" : "FAILED") ",
+              color: "[1m", "[97m", suite.passed ? "[42m" : "[101m"
+          )
+          """
         )
       terminal.write(" \(suite.name)\n")
       for testCase in suite.cases {
@@ -281,10 +291,10 @@ public struct TestsParser: ProcessOutputParser {
         }
       }
     }
+  }
 
-    // Summary
-
-    terminal.write("\n")
+  func flushSummary(of suites: [Suite], _ terminal: InteractiveWriter) {
+    let suitesWithCases = suites.filter { $0.cases.count > 0 }
 
     terminal.write("Test Suites: ")
     let suitesPassed = suitesWithCases.filter { $0.passed }.count
