@@ -33,8 +33,8 @@
         "repositoryURL": "https://github.com/OpenCombine/OpenCombine.git",
         "state": {
           "branch": null,
-          "revision": "915a7efaf596058f9867ba76b08339740c47452e",
-          "version": "0.10.1"
+          "revision": "c805f0f5aa3ff55e06cbb2b3906114fd93c42849",
+          "version": "0.10.2"
         }
       },
       {
@@ -150,8 +150,8 @@
         "repositoryURL": "https://github.com/apple/swift-tools-support-core.git",
         "state": {
           "branch": null,
-          "revision": "31747ebaede7e1a1f2b15346790193d5b5e5e7be",
-          "version": "0.1.11"
+          "revision": "243beea77d20db46647a3de4765c96e2c801c7c7",
+          "version": "0.1.12"
         }
       },
       {

@@ -63,7 +63,6 @@ struct TerminalOutputFormat: OutputFormat {
 /// This reformats them to a more readable output.
 public struct DiagnosticsParser: ProcessOutputParser {
   public let onlyOnFail = true
-
   // swiftlint:disable force_try
   enum Regex {
     /// The output has moved to a new file
