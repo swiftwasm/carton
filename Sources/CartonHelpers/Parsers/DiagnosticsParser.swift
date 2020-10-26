@@ -16,33 +16,6 @@ import Foundation
 import Splash
 import TSCBasic
 
-private extension StringProtocol {
-  func matches(regex: NSRegularExpression) -> String.SubSequence? {
-    let str = String(self)
-    guard let range = str.range(of: regex),
-      range.upperBound < str.endIndex
-    else { return nil }
-    return str[range.upperBound..<str.endIndex]
-  }
-
-  func range(of regex: NSRegularExpression) -> Range<String.Index>? {
-    let str = String(self)
-    let range = NSRange(location: 0, length: utf16.count)
-    guard let match = regex.firstMatch(in: str, options: [], range: range),
-      let matchRange = Range(match.range, in: str)
-    else {
-      return nil
-    }
-    return matchRange
-  }
-}
-
-private extension String.StringInterpolation {
-  mutating func appendInterpolation<T>(_ value: T, color: String...) {
-    appendInterpolation("\(color.map { "\u{001B}\($0)" }.joined())\(value)\u{001B}[0m")
-  }
-}
-
 private extension TokenType {
   var color: String {
     // Reference on escape codes: https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
@@ -57,7 +30,7 @@ private extension TokenType {
   }
 }
 
-private struct TerminalOutputFormat: OutputFormat {
+struct TerminalOutputFormat: OutputFormat {
   func makeBuilder() -> TerminalOutputBuilder {
     .init()
   }
@@ -88,7 +61,9 @@ private struct TerminalOutputFormat: OutputFormat {
 /// The compiler output often repeats iteself, and the diagnostics can sometimes be
 /// difficult to read.
 /// This reformats them to a more readable output.
-public struct DiagnosticsParser {
+public struct DiagnosticsParser: ProcessOutputParser {
+  public let onlyOnFail = true
+
   // swiftlint:disable force_try
   enum Regex {
     /// The output has moved to a new file

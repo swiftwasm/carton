@@ -51,7 +51,7 @@ struct Test: ParsableCommand {
       wasmerArguments.append("--")
       wasmerArguments.append(contentsOf: testCases)
     }
-    let runner = ProcessRunner(wasmerArguments, clearOutputLines: false, terminal)
+    let runner = ProcessRunner(wasmerArguments, parser: TestsParser(), terminal)
 
     try runner.waitUntilFinished()
   }

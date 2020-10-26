@@ -44,8 +44,8 @@ public final class ProcessRunner {
   // swiftlint:disable:next function_body_length
   public init(
     _ arguments: [String],
-    clearOutputLines: Bool = true,
     loadingMessage: String = "Running...",
+    parser: ProcessOutputParser? = nil,
     _ terminal: InteractiveWriter
   ) {
     let subject = PassthroughSubject<String, Error>()
@@ -57,7 +57,7 @@ public final class ProcessRunner {
           terminal.write(loadingMessage, inColor: .yellow)
         },
         receiveOutput: {
-          if clearOutputLines {
+          if parser != nil {
             // Aggregate this for formatting later
             tmpOutput += $0
           } else {
@@ -68,6 +68,14 @@ public final class ProcessRunner {
           case .finished:
             let processName = arguments[0].first == "/" ?
               AbsolutePath(arguments[0]).basename : arguments[0]
+            terminal.write("\n")
+            if let parser = parser {
+              if !parser.onlyOnFail {
+                parser.parse(tmpOutput, terminal)
+              }
+            } else {
+              terminal.write(tmpOutput)
+            }
             terminal.write(
               "\n`\(processName)` process finished successfully\n",
               inColor: .green,
@@ -81,7 +89,11 @@ public final class ProcessRunner {
                 "Compilation failed.\n\n",
                 inColor: .red
               )
-              DiagnosticsParser().parse(tmpOutput, terminal)
+              if let parser = parser {
+                parser.parse(tmpOutput, terminal)
+              } else {
+                terminal.write(tmpOutput)
+              }
             } else {
               terminal.write(
                 "\nProcess failed and produced following output: \n",
