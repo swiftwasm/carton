@@ -181,49 +181,6 @@ extension FileSystem {
     }.first
   }
 
-  public func inferDestinationPath(
-    for version: String,
-    swiftPath: AbsolutePath
-  ) throws -> AbsolutePath {
-    let sdkPath = cartonSDKPath
-
-    if !isDirectory(sdkPath) {
-      try createDirectory(sdkPath, recursive: true)
-    }
-
-    let destinationPath = sdkPath.appending(component: "\(version).json")
-
-    guard !isFile(destinationPath) else {
-      return destinationPath
-    }
-
-    let sdkRoot = swiftPath.parentDirectory.parentDirectory
-    let wasiSysroot = sdkRoot.appending(components: "share", "wasi-sysroot")
-    let binDir = sdkRoot.appending(component: "bin")
-
-    let destination = Destination(
-      sdk: wasiSysroot,
-      toolchainBinDir: binDir,
-      extraCCFlags: [],
-      extraSwiftcFlags: [
-        // -static-stdlib tells frontend to reference swift_static directory to include Foundation and other modules
-        "-static-stdlib",
-        "-lCoreFoundation",
-        "-lBlocksRuntime",
-        "-licui18n",
-        "-luuid",
-      ]
-    )
-
-    let encoder = JSONEncoder()
-    encoder.outputFormatting = .prettyPrinted
-
-    let data = try encoder.encode(destination)
-    try data.write(to: destinationPath.asURL)
-
-    return destinationPath
-  }
-
   /** Infer `swift` binary path matching a given version if any is present, or infer the
    version from the `.swift-version` file. If neither version is installed, download it.
    */

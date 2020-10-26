@@ -190,13 +190,8 @@ public final class Toolchain {
     }
   }
 
-  private func inferDestinationPath() throws -> AbsolutePath {
-    try fileSystem.inferDestinationPath(for: version, swiftPath: swiftPath)
-  }
-
   public func buildCurrentProject(
     product: String?,
-    destination: String?,
     isRelease: Bool
   ) throws -> (builderArguments: [String], mainWasmPath: AbsolutePath) {
     guard let product = try inferDevProduct(hint: product)
@@ -226,9 +221,9 @@ public final class Toolchain {
 
     terminal.write("\nBuilding the project before spinning up a server...\n", inColor: .yellow)
 
-    let builderArguments = try [
+    let builderArguments = [
       swiftPath.pathString, "build", "-c", isRelease ? "release" : "debug", "--product", product,
-      "--enable-test-discovery", "--destination", destination ?? inferDestinationPath().pathString,
+      "--enable-test-discovery", "-Xswiftc", "-static-stdlib",
     ]
 
     try Builder(arguments: builderArguments, mainWasmPath: mainWasmPath, fileSystem, terminal)
@@ -257,9 +252,9 @@ public final class Toolchain {
       inColor: .yellow
     )
 
-    let builderArguments = try [
+    let builderArguments = [
       swiftPath.pathString, "build", "-c", isRelease ? "release" : "debug", "--build-tests",
-      "--enable-test-discovery", "--destination", inferDestinationPath().pathString,
+      "--enable-test-discovery", "-Xswiftc", "-static-stdlib",
       "-Xswiftc", "-color-diagnostics",
     ]
 

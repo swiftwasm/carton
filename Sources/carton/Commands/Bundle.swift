@@ -49,7 +49,6 @@ struct Bundle: ParsableCommand {
 
     let (_, mainWasmPath) = try toolchain.buildCurrentProject(
       product: product,
-      destination: nil,
       isRelease: !debug
     )
     try terminal.logLookup(

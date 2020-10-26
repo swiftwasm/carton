@@ -32,9 +32,6 @@ struct Dev: ParsableCommand {
   @Option(help: "Specify name of an executable product in development.")
   var product: String?
 
-  @Option(help: "Specify name of a json destination file to be passed to `swift build`.")
-  var destination: String?
-
   @Option(help: "Specify a path to a custom `index.html` file to be used for your app.")
   var customIndexPage: String?
 
@@ -68,7 +65,6 @@ struct Dev: ParsableCommand {
 
     let (arguments, mainWasmPath) = try toolchain.buildCurrentProject(
       product: product,
-      destination: destination,
       isRelease: release
     )
 
