@@ -16,7 +16,7 @@ final class CartonTests: XCTestCase {
     #endif
   }
   
-  func testExample() throws {
+  func testVersion() throws {
     // This is an example of a functional test case.
     // Use XCTAssert and related functions to verify your tests produce the correct
     // results.
@@ -93,9 +93,4 @@ final class CartonTests: XCTestCase {
     DiagnosticsParser().parse(testDiagnostics, writer)
     XCTAssertEqual(stream.currentOutput, expectedOutput)
   }
-
-  static var allTests = [
-//    ("testExample", testExample),
-    ("testDiagnosticsParser", testDiagnosticsParser),
-  ]
 }

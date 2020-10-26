@@ -18,8 +18,8 @@ jobs:
           swift test -c release
           swift build -c release
           brew bundle
-          cd TestApp && ../.build/debug/carton test
-          ../.build/debug/carton bundle
+          cd TestApp && ../.build/release/carton test
+          ../.build/release/carton bundle
         # the token is required to get around GitHub API limits when downloading the toolchain
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -35,8 +35,8 @@ jobs:
           swift test -c release
           swift build -c release
           brew bundle
-          cd TestApp && ../.build/debug/carton test
-          ../.build/debug/carton bundle
+          cd TestApp && ../.build/release/carton test
+          ../.build/release/carton bundle
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -51,8 +51,8 @@ jobs:
           swift test -c release
           swift build -c release
           brew bundle
-          cd TestApp && ../.build/debug/carton test
-          ../.build/debug/carton bundle
+          cd TestApp && ../.build/release/carton test
+          ../.build/release/carton bundle
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -67,8 +67,8 @@ jobs:
           swift test -c release
           swift build -c release
           brew bundle
-          cd TestApp && ../.build/debug/carton test
-          ../.build/debug/carton bundle
+          cd TestApp && ../.build/release/carton test
+          ../.build/release/carton bundle
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -85,8 +85,8 @@ jobs:
           sudo ./install_ubuntu_deps.sh
           curl https://get.wasmer.io -sSfL | sh
           source /home/runner/.wasmer/wasmer.sh
-          cd TestApp && ../.build/debug/carton test
-          ../.build/debug/carton bundle
+          cd TestApp && ../.build/release/carton test
+          ../.build/release/carton bundle
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -103,8 +103,8 @@ jobs:
           sudo ./install_ubuntu_deps.sh
           curl https://get.wasmer.io -sSfL | sh
           source /home/runner/.wasmer/wasmer.sh
-          cd TestApp && ../.build/debug/carton test
-          ../.build/debug/carton bundle
+          cd TestApp && ../.build/release/carton test
+          ../.build/release/carton bundle
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
