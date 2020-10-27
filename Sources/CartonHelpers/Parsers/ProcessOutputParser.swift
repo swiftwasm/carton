@@ -15,6 +15,17 @@
 public protocol ProcessOutputParser {
   /// Parse the output of a `Process`, format it, then output in the `InteractiveWriter`.
   func parse(_ output: String, _ terminal: InteractiveWriter)
-  var onlyOnFail: Bool { get }
+  /// Under what conditions should the output be parsed?
+  var parsingConditions: ParsingCondition { get }
   init()
+}
+
+public struct ParsingCondition: OptionSet {
+  public let rawValue: Int
+  public init(rawValue: Int) {
+    self.rawValue = rawValue
+  }
+
+  public static let success: Self = .init(rawValue: 1 << 0)
+  public static let failure: Self = .init(rawValue: 1 << 1)
 }

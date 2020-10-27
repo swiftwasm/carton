@@ -52,7 +52,7 @@ private extension StringProtocol {
 public struct TestsParser: ProcessOutputParser {
   public init() {}
 
-  public let onlyOnFail = false
+  public let parsingConditions: ParsingCondition = [.success, .failure]
 
   // swiftlint:disable force_try
   // swiftlint:disable line_length

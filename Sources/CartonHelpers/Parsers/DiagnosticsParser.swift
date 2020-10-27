@@ -62,7 +62,7 @@ struct TerminalOutputFormat: OutputFormat {
 /// difficult to read.
 /// This reformats them to a more readable output.
 public struct DiagnosticsParser: ProcessOutputParser {
-  public let onlyOnFail = true
+  public let parsingConditions: ParsingCondition = [.failure]
   // swiftlint:disable force_try
   enum Regex {
     /// The output has moved to a new file

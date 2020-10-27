@@ -70,7 +70,7 @@ public final class ProcessRunner {
               AbsolutePath(arguments[0]).basename : arguments[0]
             terminal.write("\n")
             if let parser = parser {
-              if !parser.onlyOnFail {
+              if parser.parsingConditions.contains(.success) {
                 parser.parse(tmpOutput, terminal)
               }
             } else {
@@ -90,7 +90,9 @@ public final class ProcessRunner {
                 inColor: .red
               )
               if let parser = parser {
-                parser.parse(tmpOutput, terminal)
+                if parser.parsingConditions.contains(.failure) {
+                  parser.parse(tmpOutput, terminal)
+                }
               } else {
                 terminal.write(tmpOutput)
               }
