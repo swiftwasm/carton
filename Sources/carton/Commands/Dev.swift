@@ -33,7 +33,7 @@ struct Dev: ParsableCommand {
   var product: String?
 
   @Option(
-    help: "Specify name of a json destination file to be passed to `swift build`. (deprecated)"
+    help: "This option has no effect and will be removed in a future version of `carton`"
   )
   var destination: String?
 
@@ -69,7 +69,16 @@ struct Dev: ParsableCommand {
     }
 
     if destination != nil {
-      terminal.write("--destination is no longer supported.\n", inColor: .yellow)
+      terminal.write(
+        """
+        --destination option is no longer needed when using latest SwiftWasm toolchains. \
+        This option no longer has any effect and will be removed in a future version of `carton`. \
+        You should be able to link with Foundation/XCTest without passing this option. If it is \
+        still required in your build process for some reason, please report it as a bug at \
+        https://github.com/swiftwasm/swift/issues/\n
+        """,
+        inColor: .red
+      )
     }
 
     let (arguments, mainWasmPath) = try toolchain.buildCurrentProject(
