@@ -15,10 +15,11 @@ jobs:
       - name: Build on macOS 10.15 with Swift 5.2
         run: |
           sudo xcode-select --switch /Applications/Xcode_11.7.app/Contents/Developer
-          swift build
+          swift test -c release --enable-test-discovery
+          swift build -c release
           brew bundle
-          cd TestApp && ../.build/debug/carton test
-          ../.build/debug/carton bundle
+          cd TestApp && ../.build/release/carton test
+          ../.build/release/carton bundle
         # the token is required to get around GitHub API limits when downloading the toolchain
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -31,10 +32,11 @@ jobs:
       - name: Build on macOS 11.0 with Swift 5.2
         run: |
           sudo xcode-select --switch /Applications/Xcode_11.7.app/Contents/Developer
-          swift build
+          swift test -c release --enable-test-discovery
+          swift build -c release
           brew bundle
-          cd TestApp && ../.build/debug/carton test
-          ../.build/debug/carton bundle
+          cd TestApp && ../.build/release/carton test
+          ../.build/release/carton bundle
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -46,10 +48,11 @@ jobs:
       - name: Build on macOS 10.15 with Swift 5.3
         run: |
           sudo xcode-select --switch /Applications/Xcode_12.app/Contents/Developer
-          swift build
+          swift test -c release --enable-test-discovery
+          swift build -c release
           brew bundle
-          cd TestApp && ../.build/debug/carton test
-          ../.build/debug/carton bundle
+          cd TestApp && ../.build/release/carton test
+          ../.build/release/carton bundle
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -60,11 +63,12 @@ jobs:
       - uses: actions/checkout@v2
       - name: Build on macOS 11.0 with Swift 5.3
         run: |
-          sudo xcode-select --switch /Applications/Xcode_12.1.app/Contents/Developer
-          swift build
+          sudo xcode-select --switch /Applications/Xcode_12.2.app/Contents/Developer
+          swift test -c release --enable-test-discovery
+          swift build -c release
           brew bundle
-          cd TestApp && ../.build/debug/carton test
-          ../.build/debug/carton bundle
+          cd TestApp && ../.build/release/carton test
+          ../.build/release/carton bundle
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -76,12 +80,13 @@ jobs:
 
       - name: Build on Ubuntu 18.04 with Swift 5.3
         run: |
-          swift build
+          swift test -c release --enable-test-discovery
+          swift build -c release
           sudo ./install_ubuntu_deps.sh
           curl https://get.wasmer.io -sSfL | sh
           source /home/runner/.wasmer/wasmer.sh
-          cd TestApp && ../.build/debug/carton test
-          ../.build/debug/carton bundle
+          cd TestApp && ../.build/release/carton test
+          ../.build/release/carton bundle
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -93,12 +98,13 @@ jobs:
 
       - name: Build on Ubuntu 20.04 with Swift 5.3
         run: |
-          swift build
+          swift test -c release --enable-test-discovery
+          swift build -c release
           sudo ./install_ubuntu_deps.sh
           curl https://get.wasmer.io -sSfL | sh
           source /home/runner/.wasmer/wasmer.sh
-          cd TestApp && ../.build/debug/carton test
-          ../.build/debug/carton bundle
+          cd TestApp && ../.build/release/carton test
+          ../.build/release/carton bundle
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

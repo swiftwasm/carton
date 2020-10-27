@@ -1,6 +1,1 @@
-import CartonTests
-import XCTest
-
-var tests = [XCTestCaseEntry]()
-tests += CartonTests.allTests()
-XCTMain(tests)
+fatalError("Use `swift test --enable-test-discovery` to run tests")

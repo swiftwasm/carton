@@ -88,7 +88,7 @@ private struct TerminalOutputFormat: OutputFormat {
 /// The compiler output often repeats iteself, and the diagnostics can sometimes be
 /// difficult to read.
 /// This reformats them to a more readable output.
-struct DiagnosticsParser {
+public struct DiagnosticsParser {
   // swiftlint:disable force_try
   enum Regex {
     /// The output has moved to a new file
@@ -105,7 +105,7 @@ struct DiagnosticsParser {
     let line: String.SubSequence
     let char: String.SubSequence
     let code: String
-    let message: String.SubSequence
+    let message: String
 
     enum Kind: String {
       case error, warning, note
@@ -121,7 +121,9 @@ struct DiagnosticsParser {
 
   fileprivate static let highlighter = SyntaxHighlighter(format: TerminalOutputFormat())
 
-  func parse(_ output: String, _ terminal: InteractiveWriter) {
+  public init() {}
+
+  public func parse(_ output: String, _ terminal: InteractiveWriter) {
     let lines = output.split(separator: "\n")
     var lineIdx = 0
 
@@ -157,7 +159,7 @@ struct DiagnosticsParser {
                 line: components[0],
                 char: components[1],
                 code: String(lines[lineIdx]),
-                message: components[3]
+                message: components.dropFirst(3).joined(separator: ":")
               )
             )
           }
