@@ -53,7 +53,12 @@ public final class Builder {
 
   public func run() -> AnyPublisher<String, Error> {
     let buildStarted = Date()
-    let process = ProcessRunner(arguments, loadingMessage: "Compiling...", terminal)
+    let process = ProcessRunner(
+      arguments,
+      loadingMessage: "Compiling...",
+      parser: DiagnosticsParser(),
+      terminal
+    )
     currentProcess = process
 
     return process
