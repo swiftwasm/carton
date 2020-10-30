@@ -216,7 +216,7 @@ public final class Toolchain {
     }
 
     let binPath = try inferBinPath(isRelease: isRelease)
-    let mainWasmPath = binPath.appending(component: product)
+    let mainWasmPath = binPath.appending(component: "\(product).wasm")
     terminal.logLookup("- development binary to serve: ", mainWasmPath.pathString)
 
     terminal.write("\nBuilding the project before spinning up a server...\n", inColor: .yellow)
