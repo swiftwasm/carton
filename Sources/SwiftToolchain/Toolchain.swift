@@ -199,7 +199,7 @@ public final class Toolchain {
 
     let package = try self.package.get()
     if let jsKit = package.dependencies?.first(where: { $0.name == "JavaScriptKit" }),
-      !jsKit.requirement.isJavaScriptKitCompatible
+       !jsKit.requirement.isJavaScriptKitCompatible
     {
       let version = jsKit.requirement.version
 

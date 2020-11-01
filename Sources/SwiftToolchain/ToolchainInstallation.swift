@@ -115,7 +115,7 @@ extension FileSystem {
       path: path,
       reportHead: {
         guard $0.status == .ok,
-          let totalBytes = $0.headers.first(name: "Content-Length").flatMap(Int.init)
+              let totalBytes = $0.headers.first(name: "Content-Length").flatMap(Int.init)
         else {
           subject.send(completion: .failure(ToolchainError.invalidResponseCode($0.status.code)))
           return
