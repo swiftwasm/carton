@@ -253,9 +253,9 @@ public final class Toolchain {
     )
 
     let builderArguments = [
-      swiftPath.pathString, "build", "-c", isRelease ? "release" : "debug", "--build-tests",
-      "--enable-test-discovery", "--triple", "wasm32-unknown-wasi",
-      "-Xswiftc", "-color-diagnostics",
+      swiftPath.pathString, "build", "-c", isRelease ? "release" : "debug",
+      "--product", "\(package.name)PackageTests", "--enable-test-discovery",
+      "--triple", "wasm32-unknown-wasi", "-Xswiftc", "-color-diagnostics",
     ]
 
     try Builder(
