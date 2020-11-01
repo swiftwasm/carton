@@ -33,8 +33,8 @@
         "repositoryURL": "https://github.com/OpenCombine/OpenCombine.git",
         "state": {
           "branch": null,
-          "revision": "c805f0f5aa3ff55e06cbb2b3906114fd93c42849",
-          "version": "0.10.2"
+          "revision": "9bba5081344163296ddf537048566b95513b8f39",
+          "version": "0.11.0"
         }
       },
       {
@@ -159,8 +159,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "29f5370b119593083674a4f7e6795ac2f4d884ef",
-          "version": "4.32.0"
+          "revision": "be07ff46f2730f730e03522696900966d75b4c2e",
+          "version": "4.34.0"
         }
       },
       {
@@ -177,8 +177,8 @@
         "repositoryURL": "https://github.com/vapor/websocket-kit.git",
         "state": {
           "branch": null,
-          "revision": "b0736014be634475dac4c23843811257d86dcdc1",
-          "version": "2.1.1"
+          "revision": "2b06a70dfcfa76a2e5079f60e3ae911511f09db0",
+          "version": "2.1.2"
         }
       }
     ]
