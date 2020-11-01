@@ -244,7 +244,8 @@ public final class Toolchain {
   public func buildTestBundle(isRelease: Bool) throws -> AbsolutePath {
     let package = try self.package.get()
     let binPath = try inferBinPath(isRelease: isRelease)
-    let testBundlePath = binPath.appending(component: "\(package.name)PackageTests.xctest")
+    let testProductName = "\(package.name)PackageTests"
+    let testBundlePath = binPath.appending(component: "\(testProductName).xctest")
     terminal.logLookup("- test bundle to run: ", testBundlePath.pathString)
 
     terminal.write(
@@ -254,8 +255,8 @@ public final class Toolchain {
 
     let builderArguments = [
       swiftPath.pathString, "build", "-c", isRelease ? "release" : "debug",
-      "--product", "\(package.name)PackageTests", "--enable-test-discovery",
-      "--triple", "wasm32-unknown-wasi", "-Xswiftc", "-color-diagnostics",
+      "--product", testProductName, "--enable-test-discovery", "--triple", "wasm32-unknown-wasi",
+      "-Xswiftc", "-color-diagnostics",
     ]
 
     try Builder(
