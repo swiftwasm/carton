@@ -1,13 +1,13 @@
 FROM ubuntu AS build
 
 ADD https://github.com/swiftwasm/swift/releases/download/\
-swift-wasm-5.3-SNAPSHOT-2020-10-21-a/\
-swift-wasm-5.3-SNAPSHOT-2020-10-21-a-ubuntu20.04_x86_64.tar.gz \
+swift-wasm-5.3-SNAPSHOT-2020-10-29-c/\
+swift-wasm-5.3-SNAPSHOT-2020-10-29-c-ubuntu20.04_x86_64.tar.gz \
   /swift-wasm-5.3-SNAPSHOT.tar.gz
 RUN mkdir -p /home/builder/.carton/sdk && cd /home/builder/.carton/sdk && \
   tar xzf /swift-wasm-5.3-SNAPSHOT.tar.gz && \
-  mv swift-wasm-5.3-SNAPSHOT-2020-10-21-a wasm-5.3-SNAPSHOT-2020-10-21-a && \
-  cd wasm-5.3-SNAPSHOT-2020-10-21-a/usr/bin && rm *-test swift-refactor sourcekit-lsp
+  mv swift-wasm-5.3-SNAPSHOT-2020-10-29-c wasm-5.3-SNAPSHOT-2020-10-29-c && \
+  cd wasm-5.3-SNAPSHOT-2020-10-29-c/usr/bin && rm *-test swift-refactor sourcekit-lsp
 
 # Container image that runs your code
 FROM ubuntu:20.04
@@ -41,7 +41,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
 
 COPY --from=build /home/builder/.carton /root/.carton
 
-RUN ln -s /root/.carton/sdk/wasm-5.3-SNAPSHOT-2020-10-21-a/usr/bin/swift /usr/bin/swift
+RUN ln -s /root/.carton/sdk/wasm-5.3-SNAPSHOT-2020-10-29-c/usr/bin/swift /usr/bin/swift
 
 COPY . carton/
 
