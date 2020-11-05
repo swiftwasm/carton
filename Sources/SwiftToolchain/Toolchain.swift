@@ -245,7 +245,7 @@ public final class Toolchain {
     let package = try self.package.get()
     let binPath = try inferBinPath(isRelease: isRelease)
     let testProductName = "\(package.name)PackageTests"
-    let testBundlePath = binPath.appending(component: "\(testProductName).xctest")
+    let testBundlePath = binPath.appending(component: "\(testProductName).wasm")
     terminal.logLookup("- test bundle to run: ", testBundlePath.pathString)
 
     terminal.write(
