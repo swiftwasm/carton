@@ -319,7 +319,7 @@ public struct TestsParser: ProcessOutputParser {
 
     let totalDuration = allTests.compactMap { Double($0.duration) }.reduce(0, +)
     terminal.write("Time:        ")
-    terminal.write("\(totalDuration)s, estimated \(Int(totalDuration.rounded(.up)))s\n")
+    terminal.write("\(String(format: "%.2f", totalDuration))s\n")
 
     if suites.contains(where: { $0.name == "All tests" }) {
       terminal.write("\("Ran all test suites.", color: "[90m")\n") // gray
