@@ -17,6 +17,7 @@ import CartonHelpers
 import Crypto
 import SwiftToolchain
 import TSCBasic
+import WasmTransformer
 
 private let dependency = Dependency(
   fileName: "bundle.js",
@@ -57,7 +58,8 @@ struct Bundle: ParsableCommand {
       newline: true
     )
 
-    try ProcessRunner(["wasm-strip", mainWasmPath.pathString], terminal).waitUntilFinished()
+    try strip(mainWasmPath)
+
     try terminal.logLookup(
       "After applying `wasm-strip` the main binary size is ",
       localFileSystem.humanReadableFileSize(mainWasmPath),
@@ -73,7 +75,7 @@ struct Bundle: ParsableCommand {
       terminal
     ).waitUntilFinished()
     try terminal.logLookup(
-      "After applying `wasm-opt` the main binary size is ",
+      "After stripping debug info the main binary size is ",
       localFileSystem.humanReadableFileSize(optimizedPath),
       newline: true
     )
@@ -87,6 +89,12 @@ struct Bundle: ParsableCommand {
     )
 
     terminal.write("Bundle generation finished successfully\n", inColor: .green, bold: true)
+  }
+
+  func strip(_ wasmPath: AbsolutePath) throws {
+    let binary = try localFileSystem.readFileContents(wasmPath)
+    let strippedBinary = try stripCustomSections(binary.contents)
+    try localFileSystem.writeFileContents(wasmPath, bytes: .init(strippedBinary))
   }
 
   func copyToBundle(
