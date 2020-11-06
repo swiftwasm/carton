@@ -1,47 +1,22 @@
-FROM ubuntu AS build
-
-ADD https://github.com/swiftwasm/swift/releases/download/\
-swift-wasm-5.3-SNAPSHOT-2020-10-29-c/\
-swift-wasm-5.3-SNAPSHOT-2020-10-29-c-ubuntu20.04_x86_64.tar.gz \
-  /swift-wasm-5.3-SNAPSHOT.tar.gz
-RUN mkdir -p /home/builder/.carton/sdk && cd /home/builder/.carton/sdk && \
-  tar xzf /swift-wasm-5.3-SNAPSHOT.tar.gz && \
-  mv swift-wasm-5.3-SNAPSHOT-2020-10-29-c wasm-5.3-SNAPSHOT-2020-10-29-c && \
-  cd wasm-5.3-SNAPSHOT-2020-10-29-c/usr/bin && rm *-test swift-refactor sourcekit-lsp
-
-# Container image that runs your code
-FROM ubuntu:20.04
+FROM ghcr.io/swiftwasm/swift:5.3-focal
 
 LABEL maintainer="SwiftWasm Maintainers <hello@swiftwasm.org>"
 LABEL Description="Carton is a watcher, bundler, and test runner for your SwiftWasm apps"
 
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
     apt-get -q install -y \
-    git \
-    curl \
-    sudo \
-    libatomic1 \
-    libcurl4 \
-    libxml2 \
-    libedit2 \
     libsqlite3-0 \
     libsqlite3-dev \
-    libc6-dev \
-    binutils \
-    libgcc-10-dev \
-    libstdc++-10-dev \
-    libz3-4 \
-    zlib1g-dev \
-    unzip \
-    libpython2.7 \
-    tzdata \
-    pkg-config \
+    curl unzip \
   && export WASMER_DIR=/usr/local && curl https://get.wasmer.io -sSfL | sh && \
   rm -r /var/lib/apt/lists/*
 
-COPY --from=build /home/builder/.carton /root/.carton
+ENV CARTON_ROOT=/root/.carton
+ENV CARTON_DEFAULT_TOOLCHAIN=swift-wasm-5.3-SNAPSHOT-2020-11-02-a
 
-RUN ln -s /root/.carton/sdk/wasm-5.3-SNAPSHOT-2020-10-29-c/usr/bin/swift /usr/bin/swift
+RUN mkdir -p $CARTON_ROOT/sdk && \
+  mkdir -p $CARTON_ROOT/sdk/$CARTON_DEFAULT_TOOLCHAIN && \
+  ln -s /usr $CARTON_ROOT/sdk/$CARTON_DEFAULT_TOOLCHAIN/usr
 
 COPY . carton/
 
