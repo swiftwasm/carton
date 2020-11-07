@@ -64,7 +64,7 @@ final class SwiftEnvToolchainResolver: ToolchainResolver {
   }
 }
 
-class CartonToolchainResolver: ToolchainResolver {
+final class CartonToolchainResolver: ToolchainResolver {
   let cartonSDKPath: AbsolutePath
   let fileSystem: FileSystem
 
