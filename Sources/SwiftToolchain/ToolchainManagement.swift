@@ -170,11 +170,11 @@ public class ToolchainSystem {
     let platformSuffixes = ["osx", "catalina", "macos"]
     #elseif os(Linux)
     let releaseFile = AbsolutePath("/etc/lsb-release")
-    guard isFile(releaseFile) else {
+    guard fileSystem.isFile(releaseFile) else {
       throw ToolchainError.unsupportedOperatingSystem
     }
 
-    let releaseData = try readFileContents(releaseFile).description
+    let releaseData = try fileSystem.readFileContents(releaseFile).description
     let ubuntuSuffix: String
     if releaseData.contains("DISTRIB_RELEASE=18.04") {
       ubuntuSuffix = "ubuntu18.04"
