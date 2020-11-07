@@ -25,7 +25,7 @@ import TSCUtility
 
 private let expectedArchiveSize = 891_856_371
 
-extension FileSystem {
+extension ToolchainSystem {
   func installSDK(
     version: String,
     from url: Foundation.URL,
@@ -33,11 +33,11 @@ extension FileSystem {
     _ client: HTTPClient,
     _ terminal: InteractiveWriter
   ) throws -> AbsolutePath {
-    if !exists(sdkPath, followSymlink: true) {
-      try createDirectory(sdkPath, recursive: true)
+    if !fileSystem.exists(sdkPath, followSymlink: true) {
+      try fileSystem.createDirectory(sdkPath, recursive: true)
     }
 
-    guard isDirectory(sdkPath) else {
+    guard fileSystem.isDirectory(sdkPath) else {
       throw ToolchainError.directoryDoesNotExist(sdkPath)
     }
 
@@ -82,16 +82,16 @@ extension FileSystem {
 
     let arguments: [String]
     if ext == "pkg" {
-      guard let path = xcodeToolchainPath(for: version) else {
+      guard let resolver = userXCToolchainResolver else {
         throw ToolchainError.noInstallationDirectory(path: "~/Library")
       }
-      installationPath = path
+      installationPath = resolver.toolchain(for: version)
       arguments = [
         "installer", "-target", "CurrentUserHomeDirectory", "-pkg", archivePath.pathString,
       ]
     } else {
       installationPath = sdkPath.appending(component: version)
-      try createDirectory(installationPath, recursive: true)
+      try fileSystem.createDirectory(installationPath, recursive: true)
 
       arguments = [
         "tar", "xzf", archivePath.pathString, "--strip-components=1",
@@ -101,7 +101,7 @@ extension FileSystem {
     terminal.logLookup("Unpacking the archive: ", arguments.joined(separator: " "))
     _ = try processDataOutput(arguments)
 
-    try removeFileTree(archivePath)
+    try fileSystem.removeFileTree(archivePath)
 
     return installationPath
   }
@@ -115,7 +115,7 @@ extension FileSystem {
       path: path,
       reportHead: {
         guard $0.status == .ok,
-              let totalBytes = $0.headers.first(name: "Content-Length").flatMap(Int.init)
+          let totalBytes = $0.headers.first(name: "Content-Length").flatMap(Int.init)
         else {
           subject.send(completion: .failure(ToolchainError.invalidResponseCode($0.status.code)))
           return

@@ -14,6 +14,7 @@
 
 import ArgumentParser
 import CartonHelpers
+import SwiftToolchain
 import TSCBasic
 
 struct Local: ParsableCommand {
@@ -27,8 +28,9 @@ struct Local: ParsableCommand {
   func run() throws {
     let terminal = InteractiveWriter.stdout
 
-    guard let localVersion = try localFileSystem.fetchLocalSwiftVersion() else {
-      terminal.logLookup("Version file is not present: ", localFileSystem.swiftVersionPath)
+    let toolchainSystem = ToolchainSystem(fileSystem: localFileSystem)
+    guard let localVersion = try toolchainSystem.fetchLocalSwiftVersion() else {
+      terminal.logLookup("Version file is not present: ", toolchainSystem.swiftVersionPath)
       return
     }
 
@@ -37,9 +39,9 @@ struct Local: ParsableCommand {
       return
     }
 
-    let versions = try localFileSystem.fetchAllSwiftVersions()
+    let versions = try toolchainSystem.fetchAllSwiftVersions()
     if versions.contains(version) {
-      _ = try localFileSystem.setLocalSwiftVersion(version)
+      _ = try toolchainSystem.setLocalSwiftVersion(version)
     } else {
       terminal.write("The version \(version) hasn't been installed!", inColor: .red)
     }

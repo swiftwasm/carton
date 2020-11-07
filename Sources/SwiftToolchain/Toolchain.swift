@@ -93,7 +93,8 @@ public final class Toolchain {
     _ fileSystem: FileSystem,
     _ terminal: InteractiveWriter
   ) throws {
-    let (swiftPath, version) = try fileSystem.inferSwiftPath(from: versionSpec, terminal)
+    let toolchainSystem = ToolchainSystem(fileSystem: fileSystem)
+    let (swiftPath, version) = try toolchainSystem.inferSwiftPath(from: versionSpec, terminal)
     self.swiftPath = swiftPath
     self.version = version
     self.fileSystem = fileSystem
@@ -199,7 +200,7 @@ public final class Toolchain {
 
     let package = try self.package.get()
     if let jsKit = package.dependencies?.first(where: { $0.name == "JavaScriptKit" }),
-       !jsKit.requirement.isJavaScriptKitCompatible
+      !jsKit.requirement.isJavaScriptKitCompatible
     {
       let version = jsKit.requirement.version
 
