@@ -162,9 +162,9 @@ public struct DiagnosticsParser: ProcessOutputParser {
       var groupedMessages = [[CustomDiagnostic]]()
       for message in messages {
         if let lastLineStr = groupedMessages.last?.last?.line,
-          let lastLine = Int(lastLineStr),
-          let line = Int(message.line),
-          lastLine == line - 1 || lastLine == line
+           let lastLine = Int(lastLineStr),
+           let line = Int(message.line),
+           lastLine == line - 1 || lastLine == line
         {
           groupedMessages[groupedMessages.count - 1].append(message)
         } else {
