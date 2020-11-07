@@ -1,3 +1,56 @@
+# 0.8.0 (8 November 2020)
+
+This is a bugfix and feature release that coincides with the stable 5.3.0 release of SwiftWasm,
+uses it as the default toolchain, and enables compatibility with it. This is the recommended version
+of SwiftWasm, and older development snapshots are no longer supported in `carton`. We also
+discourage you from adding `.swift-version` files to your project or using new development
+snapshots, unless you'd like to try a preview of a new Swift feature. If there's anything that
+prevents you from using the 5.3.0 release of SwiftWasm instead of a specific 5.3 development
+snapshot, please report it as a bug.
+
+Many thanks to [@carson-katri](https://github.com/carson-katri),
+[@kateinoigakukun](https://github.com/kateinoigakukun) for their contributions to this release!
+
+**Notable changes:**
+
+- `carton test` now parses output of XCTest and reformats as a clear test summary with colors
+  highlighted in terminals that support it.
+- Our [`WasmTransformer`](https://github.com/swiftwasm/WasmTransformer) dependency now can strip
+  debug information from release bundles, which means `carton bundle` no longer requires
+  [WABT](github.com/webassembly/wabt) with its `wasm-strip` utility to run.
+- `carton test` previously built all targets in a SwiftPM package even when they weren't direct or
+  indirect dependencies of test targets, which mirrored the behavior of `swift test`. This could
+  cause issues with packages that have some targets that are incompatible with the WASI platform,
+  but are excluded from dependency trees otherwise. This is no longer the case, `carton test` now
+  only builds targets that are actually needed to run the tests in a given package.
+- SwiftPM included in the SwiftWasm 5.3.0 toolchain produces executable binaries with the `.wasm`
+  extension. This version of `carton` now assumes this extension is present in filenames of
+  WebAssembly binaries, which makes old development snapshots incompatible.
+- `carton` now looks for SwiftWasm SDKs installed in the `/Library/Developer/Toolchains` directory
+  in addition to the `~/.carton/sdk` and `~/Library/Developer/Toolchains` directories on macOS.
+
+- **Closed issues:**
+
+- Search /Library/Developer/Toolchains also ([#146](https://github.com/swiftwasm/carton/issues/146))
+
+**Merged pull requests:**
+
+- Support system installed toolchain ([#157](https://github.com/swiftwasm/carton/pull/157)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+- Remove wabt dependency ([#156](https://github.com/swiftwasm/carton/pull/156)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+- Use ghcr.io/swiftwasm/swift as base image ([#154](https://github.com/swiftwasm/carton/pull/154)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+- Fix handling of test products with .wasm extension ([#153](https://github.com/swiftwasm/carton/pull/153)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Format testing time to two decimal places ([#152](https://github.com/swiftwasm/carton/pull/152)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Build only test product and its deps for testing ([#150](https://github.com/swiftwasm/carton/pull/150)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update dependencies ([#149](https://github.com/swiftwasm/carton/pull/149)) via [@ie-ahm-robox](https://github.com/ie-ahm-robox)
+- Update toolchain and remove extra compiler flags ([#147](https://github.com/swiftwasm/carton/pull/147)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+- Fix handling of binaries with `.wasm` extension ([#148](https://github.com/swiftwasm/carton/pull/148)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Pretty print `carton test` output ([#144](https://github.com/swiftwasm/carton/pull/144)) via [@carson-katri](https://github.com/carson-katri)
+- Stop using destination.json ([#141](https://github.com/swiftwasm/carton/pull/141)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+- Use Xcode 12.2 on macOS Big Sur ([#145](https://github.com/swiftwasm/carton/pull/145)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Fix error message output ([#142](https://github.com/swiftwasm/carton/pull/142)) via [@carson-katri](https://github.com/carson-katri)
+- Update dependencies ([#143](https://github.com/swiftwasm/carton/pull/143)) via [@ie-ahm-robox](https://github.com/ie-ahm-robox)
+- Update JavaScriptKit version in TestApp ([#140](https://github.com/swiftwasm/carton/pull/140)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+
 # 0.7.1 (22 October 2020)
 
 This is a bugfix release that prevents `carton` commands from re-downloading `.pkg` toolchains
