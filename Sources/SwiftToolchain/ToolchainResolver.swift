@@ -5,7 +5,7 @@ protocol ToolchainResolver {
   func toolchain(for version: String) -> AbsolutePath
 }
 
-class XCToolchainResolver: ToolchainResolver {
+final class XCToolchainResolver: ToolchainResolver {
   let toolchainsPath: AbsolutePath
   let fileSystem: FileSystem
 
@@ -43,7 +43,7 @@ class XCToolchainResolver: ToolchainResolver {
   }
 }
 
-class SwiftEnvToolchainResolver: ToolchainResolver {
+final class SwiftEnvToolchainResolver: ToolchainResolver {
   let versionsPath: AbsolutePath
   let fileSystem: FileSystem
 
