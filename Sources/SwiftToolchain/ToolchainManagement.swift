@@ -39,28 +39,50 @@ private struct Release: Decodable {
   let assets: [Asset]
 }
 
-extension FileSystem {
-  private var swiftenvVersionsPath: AbsolutePath {
-    homeDirectory.appending(components: ".swiftenv", "versions")
+public class ToolchainSystem {
+  let fileSystem: FileSystem
+  let userXCToolchainResolver: XCToolchainResolver?
+  let cartonToolchainResolver: CartonToolchainResolver
+  let resolvers: [ToolchainResolver]
+
+  public init(fileSystem: FileSystem) {
+    self.fileSystem = fileSystem
+
+    let userLibraryPath = NSSearchPathForDirectoriesInDomains(
+      .libraryDirectory,
+      .userDomainMask,
+      true
+    ).first
+    let rootLibraryPath = NSSearchPathForDirectoriesInDomains(
+      .libraryDirectory,
+      .localDomainMask,
+      true
+    ).first
+    userXCToolchainResolver = userLibraryPath.flatMap {
+      XCToolchainResolver(libraryPath: AbsolutePath($0), fileSystem: fileSystem)
+    }
+    let rootXCToolchainResolver = rootLibraryPath.flatMap {
+      XCToolchainResolver(libraryPath: AbsolutePath($0), fileSystem: fileSystem)
+    }
+    let xctoolchainResolvers: [ToolchainResolver] = [
+      userXCToolchainResolver, rootXCToolchainResolver,
+    ].compactMap { $0 }
+
+    cartonToolchainResolver = CartonToolchainResolver(fileSystem: fileSystem)
+    resolvers = [
+      cartonToolchainResolver,
+      SwiftEnvToolchainResolver(fileSystem: fileSystem),
+    ] + xctoolchainResolvers
   }
 
-  private var cartonSDKPath: AbsolutePath {
-    homeDirectory.appending(components: ".carton", "sdk")
-  }
-
-  private var xcodeToolchainsPath: AbsolutePath? {
-    NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true).first
-      .flatMap { .init($0) }
-  }
-
-  func xcodeToolchainPath(for version: String) -> AbsolutePath? {
-    xcodeToolchainsPath?.appending(
-      components: "Developer", "Toolchains", "swift-\(version).xctoolchain"
-    )
+  private var libraryPaths: [AbsolutePath] {
+    NSSearchPathForDirectoriesInDomains(
+      .libraryDirectory, [.localDomainMask], true
+    ).map { AbsolutePath($0) }
   }
 
   public var swiftVersionPath: AbsolutePath {
-    guard let cwd = currentWorkingDirectory else {
+    guard let cwd = fileSystem.currentWorkingDirectory else {
       fatalError()
     }
 
@@ -68,8 +90,9 @@ extension FileSystem {
   }
 
   private func getDirectoryPaths(_ directoryPath: AbsolutePath) throws -> [AbsolutePath] {
-    if isDirectory(directoryPath) {
-      return try getDirectoryContents(directoryPath).map { directoryPath.appending(component: $0) }
+    if fileSystem.isDirectory(directoryPath) {
+      return try fileSystem.getDirectoryContents(directoryPath)
+        .map { directoryPath.appending(component: $0) }
     } else {
       return []
     }
@@ -99,21 +122,13 @@ extension FileSystem {
   }
 
   private func checkAndLog(
-    swiftVersion: String,
-    _ prefix: AbsolutePath,
-    _ terminal: InteractiveWriter
-  ) throws -> AbsolutePath? {
-    try checkAndLog(installationPath: prefix.appending(component: swiftVersion), terminal)
-  }
-
-  private func checkAndLog(
     installationPath: AbsolutePath,
     _ terminal: InteractiveWriter
   ) throws -> AbsolutePath? {
     let swiftPath = installationPath.appending(components: "usr", "bin", "swift")
 
     terminal.logLookup("- checking Swift compiler path: ", swiftPath)
-    guard isFile(swiftPath) else { return nil }
+    guard fileSystem.isFile(swiftPath) else { return nil }
 
     terminal.write("Inferring basic settings...\n", inColor: .yellow)
     terminal.logLookup("- swift executable: ", swiftPath)
@@ -155,11 +170,11 @@ extension FileSystem {
     let platformSuffixes = ["osx", "catalina", "macos"]
     #elseif os(Linux)
     let releaseFile = AbsolutePath("/etc/lsb-release")
-    guard isFile(releaseFile) else {
+    guard fileSystem.isFile(releaseFile) else {
       throw ToolchainError.unsupportedOperatingSystem
     }
 
-    let releaseData = try readFileContents(releaseFile).description
+    let releaseData = try fileSystem.readFileContents(releaseFile).description
     let ubuntuSuffix: String
     if releaseData.contains("DISTRIB_RELEASE=18.04") {
       ubuntuSuffix = "ubuntu18.04"
@@ -199,20 +214,13 @@ extension FileSystem {
 
     let swiftVersion = try inferSwiftVersion(from: versionSpec, terminal)
 
-    if let path = try checkAndLog(swiftVersion: swiftVersion, swiftenvVersionsPath, terminal) {
-      return (path, swiftVersion)
-    }
-
-    let sdkPath = cartonSDKPath
-    if let path = try checkAndLog(swiftVersion: swiftVersion, sdkPath, terminal) {
-      return (path, swiftVersion)
-    }
-
-    if
-      let candidatePath = xcodeToolchainPath(for: swiftVersion),
-      let path = try checkAndLog(installationPath: candidatePath, terminal)
-    {
-      return (path, swiftVersion)
+    for resolver in resolvers {
+      if let path = try checkAndLog(
+        installationPath: resolver.toolchain(for: swiftVersion),
+        terminal
+      ) {
+        return (path, swiftVersion)
+      }
     }
 
     let client = HTTPClient(eventLoopGroupProvider: .createNew)
@@ -238,7 +246,7 @@ extension FileSystem {
     let installationPath = try installSDK(
       version: swiftVersion,
       from: downloadURL,
-      to: sdkPath,
+      to: cartonToolchainResolver.cartonSDKPath,
       client,
       terminal
     )
@@ -251,25 +259,24 @@ extension FileSystem {
   }
 
   public func fetchAllSwiftVersions() throws -> [String] {
-    try [cartonSDKPath, swiftenvVersionsPath].filter { isDirectory($0) }
-      .map {
-        try getDirectoryPaths($0).filter { isDirectory($0) }.map(\.basename)
-      }
-      .joined()
+    try resolvers.flatMap { try $0.fetchVersions() }
+      .filter { fileSystem.isDirectory($0.path) }
+      .map(\.version)
       .sorted()
   }
 
   public func fetchLocalSwiftVersion() throws -> String? {
-    guard isFile(swiftVersionPath), let version = try readFileContents(swiftVersionPath)
-      .validDescription?
-      // get the first line of the file
-      .components(separatedBy: CharacterSet.newlines).first
+    guard fileSystem.isFile(swiftVersionPath),
+          let version = try fileSystem.readFileContents(swiftVersionPath)
+          .validDescription?
+          // get the first line of the file
+          .components(separatedBy: CharacterSet.newlines).first
     else { return nil }
 
     return version
   }
 
   public func setLocalSwiftVersion(_ version: String) throws {
-    try writeFileContents(swiftVersionPath, bytes: ByteString([UInt8](version.utf8)))
+    try fileSystem.writeFileContents(swiftVersionPath, bytes: ByteString([UInt8](version.utf8)))
   }
 }
