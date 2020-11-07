@@ -29,7 +29,7 @@ Many thanks to [@carson-katri](https://github.com/carson-katri),
 - `carton` now looks for SwiftWasm SDKs installed in the `/Library/Developer/Toolchains` directory
   in addition to the `~/.carton/sdk` and `~/Library/Developer/Toolchains` directories on macOS.
 
-- **Closed issues:**
+**Closed issues:**
 
 - Search /Library/Developer/Toolchains also ([#146](https://github.com/swiftwasm/carton/issues/146))
 
