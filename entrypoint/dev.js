@@ -79,7 +79,6 @@ const startWasiTask = async () => {
 };
 
 function handleError(e) {
-  console.log(`handleError triggered`);
   console.error(e);
   if (e instanceof WebAssembly.RuntimeError) {
     console.log(e.stack);
