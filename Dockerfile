@@ -2,6 +2,7 @@ FROM ghcr.io/swiftwasm/swift:5.3-focal
 
 LABEL maintainer="SwiftWasm Maintainers <hello@swiftwasm.org>"
 LABEL Description="Carton is a watcher, bundler, and test runner for your SwiftWasm apps"
+LABEL org.opencontainers.image.source https://github.com/swiftwasm/carton
 
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
     apt-get -q install -y \
