@@ -39,7 +39,7 @@ struct Test: ParsableCommand {
 
     // FIXME: We're checking for a `Dev` entrypoint, not for a `Test` entrypoint, which doesn't
     // exist yet. That's because we don't run tests in browsers yet.
-    try Dev.dependency.check(on: localFileSystem, terminal)
+    try Dev.entrypoint.check(on: localFileSystem, terminal)
     let toolchain = try Toolchain(localFileSystem, terminal)
     let testBundlePath = try toolchain.buildTestBundle(isRelease: release)
 

@@ -38,19 +38,26 @@ struct HashArchive: ParsableCommand {
   func run() throws {
     let terminal = InteractiveWriter.stdout
     let cwd = localFileSystem.currentWorkingDirectory!
+    let staticPath = AbsolutePath(cwd, "static")
+    let dotFilesStaticPath = AbsolutePath(localFileSystem.homeDirectory, ".carton/static")
 
     try ProcessRunner(["npm", "run", "build"], terminal).waitUntilFinished()
+    let devEntrypointPath = AbsolutePath(staticPath, "dev.js")
+    let dotFilesDevEntrypointPath = dotFilesStaticPath.appending(component: "dev.js")
+    try localFileSystem.removeFileTree(dotFilesDevEntrypointPath)
+    try localFileSystem.copy(from: devEntrypointPath, to: dotFilesDevEntrypointPath)
+
     try ProcessRunner(["npm", "run", "bundle"], terminal).waitUntilFinished()
+    let bundleEntrypointPath = AbsolutePath(staticPath, "bundle.js")
+    let dotFilesBundleEntrypointPath = dotFilesStaticPath.appending(component: "bundle.js")
+    try localFileSystem.removeFileTree(dotFilesBundleEntrypointPath)
+    try localFileSystem.copy(from: bundleEntrypointPath, to: dotFilesBundleEntrypointPath)
 
-    let staticPath = AbsolutePath(cwd, "static")
+    let devHash = try SHA256().hash(localFileSystem.readFileContents(devEntrypointPath))
+      .hexadecimalRepresentation.uppercased()
 
-    let devHash = try SHA256().hash(
-      localFileSystem.readFileContents(AbsolutePath(staticPath, "dev.js"))
-    ).hexadecimalRepresentation.uppercased()
-
-    let bundleHash = try SHA256().hash(
-      localFileSystem.readFileContents(AbsolutePath(staticPath, "bundle.js"))
-    ).hexadecimalRepresentation.uppercased()
+    let bundleHash = try SHA256().hash(localFileSystem.readFileContents(bundleEntrypointPath))
+      .hexadecimalRepresentation.uppercased()
 
     let archiveSources = try localFileSystem.traverseRecursively(staticPath)
       // `traverseRecursively` also returns the `staticPath` directory itself, dropping it here
@@ -69,11 +76,11 @@ struct HashArchive: ParsableCommand {
     let hashes = """
     import TSCBasic
 
-    let devDependencySHA256 = ByteString([
+    let devEntrypointSHA256 = ByteString([
     \(arrayString(from: devHash))
     ])
 
-    let bundleDependencySHA256 = ByteString([
+    let bundleEntrypointSHA256 = ByteString([
     \(arrayString(from: bundleHash))
     ])
 

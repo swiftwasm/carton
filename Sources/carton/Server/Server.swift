@@ -22,6 +22,33 @@ import SwiftToolchain
 import TSCBasic
 import Vapor
 
+private enum Event {
+  enum CodingKeys: String, CodingKey {
+    case kind
+    case stackTrace
+  }
+
+  enum Kind: String, Decodable {
+    case stackTrace
+  }
+
+  case stackTrace(String)
+}
+
+extension Event: Decodable {
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+
+    let kind = try container.decode(Kind.self, forKey: .kind)
+
+    switch kind {
+    case .stackTrace:
+      let rawStackTrace = try container.decode(String.self, forKey: .stackTrace)
+      self = .stackTrace(rawStackTrace)
+    }
+  }
+}
+
 /// This `Hashable` conformance is required to handle simulatenous connections with `Set<WebSocket>`
 extension WebSocket: Hashable {
   public static func == (lhs: WebSocket, rhs: WebSocket) -> Bool {
@@ -34,6 +61,7 @@ extension WebSocket: Hashable {
 }
 
 final class Server {
+  private let decoder = JSONDecoder()
   private var connections = Set<WebSocket>()
   private var subscriptions = [AnyCancellable]()
   private let watcher: Watcher
@@ -65,6 +93,25 @@ final class Server {
       customIndexContent: customIndexContent,
       package: package,
       onWebSocketOpen: { [weak self] in
+        $0.onText { _, text in
+          guard
+            let data = text.data(using: .utf8),
+            let event = try? self?.decoder.decode(Event.self, from: data)
+          else {
+            return
+          }
+
+          switch event {
+          case let .stackTrace(rawStackTrace):
+            let stackTrace = rawStackTrace.firefoxStackTrace
+
+            terminal.write("\nAn error occurred, here's a stack trace for it:\n", inColor: .red)
+            stackTrace.forEach { item in
+              terminal.write("  \(item.symbol)", inColor: .cyan)
+              terminal.write(" at \(item.location)\n", inColor: .grey)
+            }
+          }
+        }
         self?.connections.insert($0)
       },
       onWebSocketClose: { [weak self] in

@@ -33,11 +33,11 @@ private let verifyHash = Equality<ByteString, String> {
   """
 }
 
-enum DependencyError: Error {
+enum EntrypointError: Error {
   case downloadFailed(url: String)
 }
 
-struct Dependency {
+struct Entrypoint {
   let fileName: String
   let sha256: ByteString
 
@@ -72,7 +72,7 @@ struct Dependency {
       guard
         var body = response.body,
         let bytes = body.readBytes(length: body.readableBytes)
-      else { throw DependencyError.downloadFailed(url: staticArchiveURL) }
+      else { throw EntrypointError.downloadFailed(url: staticArchiveURL) }
 
       terminal.logLookup("Polyfills archive successfully downloaded from ", staticArchiveURL)
 
@@ -91,9 +91,9 @@ struct Dependency {
       }
     }
 
-    let unpackedDependencyHash = try SHA256().hash(fileSystem.readFileContents(filePath))
+    let unpackedEntrypointHash = try SHA256().hash(fileSystem.readFileContents(filePath))
     // Nothing we can do after the hash doesn't match after unpacking
-    try verifyHash(unpackedDependencyHash, sha256, context: filePath.pathString)
-    terminal.logLookup("Dependency integrity verified: ", filePath)
+    try verifyHash(unpackedEntrypointHash, sha256, context: filePath.pathString)
+    terminal.logLookup("Entrypoint integrity verified: ", filePath)
   }
 }
