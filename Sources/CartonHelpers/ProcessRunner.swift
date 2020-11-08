@@ -54,7 +54,7 @@ public final class ProcessRunner {
       .handleEvents(
         receiveSubscription: { _ in
           terminal.clearLine()
-          terminal.write(loadingMessage, inColor: .yellow)
+          terminal.write("\(loadingMessage)\n", inColor: .yellow)
         },
         receiveOutput: {
           if parser != nil {
