@@ -193,7 +193,7 @@ extension Templates {
         "main.swift"
       )) {
         """
-        import TokamakShim
+        import TokamakDOM
 
         struct TokamakApp: App {
             var body: some Scene {
