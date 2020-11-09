@@ -208,14 +208,8 @@ public struct DiagnosticsParser: ProcessOutputParser {
     // Output the code for this line, syntax highlighted
     let paddedLine = message.line.padding(toLength: maxLine, withPad: " ", startingAt: 0)
     let highlightedCode = Self.highlighter.highlight(message.code)
-    terminal
-      .write(
-        "  \("\(paddedLine) | ", color: "[36m")\(highlightedCode)\n"
-      ) // 36: cyan
-    terminal.write(
-      "  " + "".padding(toLength: maxLine, withPad: " ", startingAt: 0) + " | ",
-      inColor: .cyan
-    )
+    terminal.write("  \("\(paddedLine) | ", color: "[36m")\(highlightedCode)\n") // 36: cyan
+    terminal.write("  " + "".padding(toLength: maxLine, withPad: " ", startingAt: 0) + " | ", inColor: .cyan)
 
     // Aggregate the indicators (^ point to the error) onto a single line
     var charIndicators = String(repeating: " ", count: Int(message.char)!) + "^"
