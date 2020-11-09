@@ -228,10 +228,11 @@ public struct DiagnosticsParser: ProcessOutputParser {
     // Output the code for this line, syntax highlighted
     let highlightedCode = Self.highlighter.highlight(message.code)
     terminal.write("  \("\(paddedLine) | ", color: "[36m")\(highlightedCode)\n") // 36: cyan
-    terminal.write("  " + "".padding(toLength: maxLine, withPad: " ", startingAt: 0) + " | ", inColor: .cyan)
     /// A base-10 representation of the number of the row that the diagnosis is for, aligned vertically with all other rows.
     let verticallyAlignedLineNumber = String(message.lineNumber, radix: 10).padding(toLength: minimumSizeForLineNumbering, withPad: " ", startingAt: 0)
+    // Each line of diagnostics output is indented with 2 spaces.
     terminal.write("  \("\(verticallyAlignedLineNumber) | ", color: "[36m")\(highlightedCode)\n") // 36: cyan
+    terminal.write("  \(String(repeating: " ", count: minimumSizeForLineNumbering)) | ", inColor: .cyan)
 
     // Aggregate the indicators (^ point to the error) onto a single line
     var charIndicators = String(repeating: " ", count: Int(message.char)!) + "^"
