@@ -1,3 +1,12 @@
+# 0.8.2 (9 November 2020)
+
+This patch release updates the default version of Tokamak in the `carton init` template to fix autocomplete in Xcode.
+
+**Merged pull requests:**
+
+- Add minimum deployment target in template ([#165](https://github.com/swiftwasm/carton/pull/165)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+- Remove wasm-strip from log comment ([#164](https://github.com/swiftwasm/carton/pull/164)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+
 # 0.8.1 (9 November 2020)
 
 This patch release updates the default version of Tokamak in templates used by `carton init`.
