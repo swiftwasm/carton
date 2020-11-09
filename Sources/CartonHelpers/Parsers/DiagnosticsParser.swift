@@ -76,7 +76,8 @@ public struct DiagnosticsParser: ProcessOutputParser {
   struct CustomDiagnostic {
     let kind: Kind
     let file: String
-    let line: String.SubSequence
+    /// The number of the row in the source file that the diagnosis is for.
+    let lineNumber: Int
     let char: String.SubSequence
     let code: String
     let message: String
@@ -130,7 +131,7 @@ public struct DiagnosticsParser: ProcessOutputParser {
                       .trimmingCharacters(in: .whitespaces))) ??
                   .note,
                 file: file,
-                line: components[0],
+                lineNumber: Int(components[0]),
                 char: components[1],
                 code: String(lines[lineIdx]),
                 message: components.dropFirst(3).joined(separator: ":")
@@ -157,14 +158,13 @@ public struct DiagnosticsParser: ProcessOutputParser {
     for (file, messages) in diagnostics.sorted(by: { $0.key < $1.key }) {
       guard messages.count > 0 else { continue }
       terminal.write("\(" \(file) ", color: "[1m", "[7m")") // bold, reversed
-      terminal.write(" \(messages.first!.file)\(messages.first!.line)\n\n", inColor: .grey)
+      terminal.write(" \(messages.first!.file)\(messages.first!.lineNumber)\n\n", inColor: .grey)
       // Group messages that occur on sequential lines to provide a more readable output
       var groupedMessages = [[CustomDiagnostic]]()
       for message in messages {
-        if let lastLineStr = groupedMessages.last?.last?.line,
-           let lastLine = Int(lastLineStr),
-           let line = Int(message.line),
-           lastLine == line - 1 || lastLine == line
+        if let finalLineNumber = groupedMessages.last?.last?.lineNumber,
+           let currentLineNumber = message.lineNumber,
+           finalLineNumber == currentLineNumber - 1 || finalLineNumber == currentLineNumber
         {
           groupedMessages[groupedMessages.count - 1].append(message)
         } else {
@@ -180,15 +180,29 @@ public struct DiagnosticsParser: ProcessOutputParser {
               "  \(" \(kind) ", color: message.kind.color, "[37;1m") \(message.message)\n"
             ) // 37;1: bright white
         }
-        let maxLine = messages.map(\.line.count).max() ?? 0
+        let greatestLineNumber = messages.map(\.lineNumber).max() ?? 0
+        let numberOfDigitsInGreatestLineNumber = {
+            let (quotient, remainder) = greatestLineNumber.quotientAndRemainder(dividingBy: 10)
+            return quotient + (remainder == 0 ? 0 : 1)
+        }
         for (offset, message) in messages.enumerated() {
           if offset > 0 {
             // Make sure we don't log the same line twice
-            if messages[offset - 1].line != message.line {
-              flush(messages: messages, message: message, maxLine: maxLine, terminal)
+            if messages[offset - 1].lineNumber != message.lineNumber {
+              flush(
+                messages: messages,
+                message: message,
+                minimumSizeForLineNumbering: numberOfDigitsInGreatestLineNumber,
+                terminal: terminal
+              )
             }
           } else {
-            flush(messages: messages, message: message, maxLine: maxLine, terminal)
+            flush(
+              messages: messages,
+              message: message,
+              minimumSizeForLineNumbering: numberOfDigitsInGreatestLineNumber,
+              terminal: terminal
+            )
           }
         }
         terminal.write("\n")
@@ -196,20 +210,28 @@ public struct DiagnosticsParser: ProcessOutputParser {
       terminal.write("\n")
     }
   }
-
+    
+  /// <#Description#>
+  /// - Parameters:
+  ///   - messages: <#messages description#>
+  ///   - message: <#message description#>
+  ///   - minimumSizeForLineNumbering: The minimum space that must be reserved for line numbers, so that they are well-aligned in the output.
+  ///   - terminal: <#terminal description#>
   func flush(
     messages: [CustomDiagnostic],
     message: CustomDiagnostic,
-    maxLine: Int,
-    _ terminal: InteractiveWriter
+    minimumSizeForLineNumbering: Int,
+    terminal: InteractiveWriter
   ) {
     // Get all diagnostics for a particular line.
-    let allChars = messages.filter { $0.line == message.line }.map(\.char)
+    let allChars = messages.filter { $0.lineNumber == message.lineNumber }.map(\.char)
     // Output the code for this line, syntax highlighted
-    let paddedLine = message.line.padding(toLength: maxLine, withPad: " ", startingAt: 0)
     let highlightedCode = Self.highlighter.highlight(message.code)
     terminal.write("  \("\(paddedLine) | ", color: "[36m")\(highlightedCode)\n") // 36: cyan
     terminal.write("  " + "".padding(toLength: maxLine, withPad: " ", startingAt: 0) + " | ", inColor: .cyan)
+    /// A base-10 representation of the number of the row that the diagnosis is for, aligned vertically with all other rows.
+    let verticallyAlignedLineNumber = String(message.lineNumber, radix: 10).padding(toLength: minimumSizeForLineNumbering, withPad: " ", startingAt: 0)
+    terminal.write("  \("\(verticallyAlignedLineNumber) | ", color: "[36m")\(highlightedCode)\n") // 36: cyan
 
     // Aggregate the indicators (^ point to the error) onto a single line
     var charIndicators = String(repeating: " ", count: Int(message.char)!) + "^"

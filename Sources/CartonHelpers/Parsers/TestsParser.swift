@@ -196,7 +196,7 @@ public struct TestsParser: ProcessOutputParser {
         let diag = DiagnosticsParser.CustomDiagnostic(
           kind: DiagnosticsParser.CustomDiagnostic.Kind(rawValue: String(status)) ?? .note,
           file: String(path),
-          line: lineNum,
+          lineNumber: lineNum,
           char: "0",
           code: "",
           message: String(problem)
@@ -255,7 +255,7 @@ public struct TestsParser: ProcessOutputParser {
             "\(testCase.name) \("(\(Int(Double(testCase.duration)! * 1000))ms)", color: "[90m")\n"
           ) // gray
         for problem in testCase.problems {
-          terminal.write("\n    \(problem.file, color: "[90m"):\(problem.line)\n")
+          terminal.write("\n    \(problem.file, color: "[90m"):\(problem.lineNumber)\n")
           terminal.write("    \(problem.message)\n\n")
           // Format XCTAssert functions
           for assertion in Regex.Assertion.allCases {
@@ -268,7 +268,7 @@ public struct TestsParser: ProcessOutputParser {
             }
           }
           // Get the line of code from the file and output it for context.
-          if let lineNum = Int(problem.line),
+          if let lineNum = Int(problem.lineNumber),
              lineNum > 0
           {
             var fileContents: String?
@@ -285,7 +285,7 @@ public struct TestsParser: ProcessOutputParser {
               let fileLines = fileContents.components(separatedBy: .newlines)
               guard fileLines.count >= lineNum else { break }
               let highlightedCode = Self.highlighter.highlight(String(fileLines[lineNum - 1]))
-              terminal.write("    \("\(problem.line) | ", color: "[36m")\(highlightedCode)\n")
+              terminal.write("    \("\(problem.lineNumber) | ", color: "[36m")\(highlightedCode)\n")
             }
           }
         }
