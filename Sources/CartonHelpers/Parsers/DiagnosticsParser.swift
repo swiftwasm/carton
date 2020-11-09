@@ -158,7 +158,7 @@ public struct DiagnosticsParser: ProcessOutputParser {
       guard messages.count > 0 else { continue }
       terminal.write("\(" \(file) ", color: "[1m", "[7m")") // bold, reversed
       terminal.write(" \(messages.first!.file)\(messages.first!.line)\n\n", inColor: .grey)
-      // Group messages that occur on sequential lines to provie a more readable output
+      // Group messages that occur on sequential lines to provide a more readable output
       var groupedMessages = [[CustomDiagnostic]]()
       for message in messages {
         if let lastLineStr = groupedMessages.last?.last?.line,
