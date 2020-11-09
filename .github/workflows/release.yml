@@ -17,7 +17,7 @@ jobs:
           tap: swiftwasm/homebrew-tap
           formula: carton.rb
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_PERSONAL_ACCESS_TOKEN: ${{ secrets.PAT }}
   bottle:
     name: Build and distribute Homebrew bottle for macOS Catalina
     runs-on: macos-10.15
@@ -43,7 +43,7 @@ jobs:
           tap: swiftwasm/homebrew-tap
           formula: carton.rb
           message: |
-            Add bottle for hello ${{ github.event.release.tag_name }}
+            Add bottle for carton ${{ github.event.release.tag_name }}
             on macOS Catalina
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
+          GH_PERSONAL_ACCESS_TOKEN: ${{ secrets.PAT }}
