@@ -188,7 +188,8 @@ public struct TestsParser: ProcessOutputParser {
         )
       } else if let problem = line.matches(regex: Regex.problem),
                 let path = line.match(of: Regex.problem, labelled: .path),
-                let lineNum = line.match(of: Regex.problem, labelled: .line),
+				let lineNumberInBase10 = line.match(of: Regex.problem, labelled: .line),
+                let lineNumber = Int(lineNumberInBase10),
                 let status = line.match(of: Regex.problem, labelled: .status),
                 let suite = line.match(of: Regex.problem, labelled: .suite),
                 let testCase = line.match(of: Regex.problem, labelled: .testCase)
@@ -196,7 +197,7 @@ public struct TestsParser: ProcessOutputParser {
         let diag = DiagnosticsParser.CustomDiagnostic(
           kind: DiagnosticsParser.CustomDiagnostic.Kind(rawValue: String(status)) ?? .note,
           file: String(path),
-          lineNumber: lineNum,
+          lineNumber: lineNumber,
           char: "0",
           code: "",
           message: String(problem)
@@ -268,9 +269,7 @@ public struct TestsParser: ProcessOutputParser {
             }
           }
           // Get the line of code from the file and output it for context.
-          if let lineNum = Int(problem.lineNumber),
-             lineNum > 0
-          {
+		  if problem.lineNumber > 0 {
             var fileContents: String?
             if let fileBuf = fileBufs.first(where: { $0.path == problem.file })?.contents {
               fileContents = fileBuf
@@ -283,8 +282,8 @@ public struct TestsParser: ProcessOutputParser {
             }
             if let fileContents = fileContents {
               let fileLines = fileContents.components(separatedBy: .newlines)
-              guard fileLines.count >= lineNum else { break }
-              let highlightedCode = Self.highlighter.highlight(String(fileLines[lineNum - 1]))
+              guard fileLines.count >= problem.lineNumber else { break }
+              let highlightedCode = Self.highlighter.highlight(String(fileLines[problem.lineNumber - 1]))
               terminal.write("    \("\(problem.lineNumber) | ", color: "[36m")\(highlightedCode)\n")
             }
           }

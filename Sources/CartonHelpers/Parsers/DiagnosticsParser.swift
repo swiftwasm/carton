@@ -131,7 +131,8 @@ public struct DiagnosticsParser: ProcessOutputParser {
                       .trimmingCharacters(in: .whitespaces))) ??
                   .note,
                 file: file,
-                lineNumber: Int(components[0]),
+                // FIXME: We should handle this more gracefully than force-unwrapping it.
+                lineNumber: Int(components[0])!,
                 char: components[1],
                 code: String(lines[lineIdx]),
                 message: components.dropFirst(3).joined(separator: ":")
@@ -163,8 +164,8 @@ public struct DiagnosticsParser: ProcessOutputParser {
       var groupedMessages = [[CustomDiagnostic]]()
       for message in messages {
         if let finalLineNumber = groupedMessages.last?.last?.lineNumber,
-           let currentLineNumber = message.lineNumber,
-           finalLineNumber == currentLineNumber - 1 || finalLineNumber == currentLineNumber
+           // `message.lineNumber` is the current line number.
+           finalLineNumber == message.lineNumber - 1 || finalLineNumber == message.lineNumber
         {
           groupedMessages[groupedMessages.count - 1].append(message)
         } else {
@@ -181,10 +182,10 @@ public struct DiagnosticsParser: ProcessOutputParser {
             ) // 37;1: bright white
         }
         let greatestLineNumber = messages.map(\.lineNumber).max() ?? 0
-        let numberOfDigitsInGreatestLineNumber = {
+        let numberOfDigitsInGreatestLineNumber: Int = {
             let (quotient, remainder) = greatestLineNumber.quotientAndRemainder(dividingBy: 10)
             return quotient + (remainder == 0 ? 0 : 1)
-        }
+        }()
         for (offset, message) in messages.enumerated() {
           if offset > 0 {
             // Make sure we don't log the same line twice
