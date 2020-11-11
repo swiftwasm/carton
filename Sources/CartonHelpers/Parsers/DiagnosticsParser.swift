@@ -125,11 +125,8 @@ public struct DiagnosticsParser: ProcessOutputParser {
               .replacingOccurrences(of: ":", with: "") == String(currFile)
             else { continue }
             fileMessages.append(
-              .init(
-                kind: CustomDiagnostic
-                  .Kind(rawValue: String(components[2]
-                      .trimmingCharacters(in: .whitespaces))) ??
-                  .note,
+              CustomDiagnostic(
+                kind: CustomDiagnostic.Kind(rawValue: String(components[2].trimmingCharacters(in: .whitespaces))) ?? .note,
                 file: file,
                 // FIXME: We should handle this more gracefully than force-unwrapping it.
                 lineNumber: Int(components[0])!,
