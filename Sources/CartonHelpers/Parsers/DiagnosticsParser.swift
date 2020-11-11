@@ -224,22 +224,44 @@ public struct DiagnosticsParser: ProcessOutputParser {
     // Get all diagnostics for a particular line.
     let allChars = messages.filter { $0.lineNumber == message.lineNumber }.map(\.char)
     // Output the code for this line, syntax highlighted
-    let highlightedCode = Self.highlighter.highlight(message.code)
-    terminal.write("  \("\(paddedLine) | ", color: "[36m")\(highlightedCode)\n") // 36: cyan
     /// A base-10 representation of the number of the row that the diagnosis is for, aligned vertically with all other rows.
     let verticallyAlignedLineNumber = String(message.lineNumber, radix: 10).padding(toLength: minimumSizeForLineNumbering, withPad: " ", startingAt: 0)
+    /// The line of code that the diagnostics message is for.
+    let sourceLine = message.code
+    // The following 2 assignments remove the leading whitespace from each line of code in the diagnostics.
+    // Although technically, we should remove only horizontal whitespace characters, but since there is no vertical whitespace in a continuous line, we can safely remove all whitespace characters.
+    /// The position of the first non-whitespace character in the line of code that the diagnostics message is for.
+    ///
+    /// If no such character exists, then the position is the same as the line's `endIndex`.
+    let firstIndexOfNonWhitespaceCharacterInSourceLine = sourceLine.firstIndex(where: { !$0.isWhitespace } ) ?? sourceLine.endIndex
+    /// The line of code that the diagnostics message is for, with leading whitespace removed.
+    let sourceLineSansWhitespace = sourceLine[firstIndexOfNonWhitespaceCharacterInSourceLine...]
+    let highlightedCode = Self.highlighter.highlight(String(sourceLineSansWhitespace))
     // Each line of diagnostics output is indented with 2 spaces.
-    terminal.write("  \("\(verticallyAlignedLineNumber) | ", color: "[36m")\(highlightedCode)\n") // 36: cyan
+    terminal.write("  \(verticallyAlignedLineNumber) | ", inColor: .cyan)
+    terminal.write("  \(highlightedCode)\n")
     terminal.write("  \(String(repeating: " ", count: minimumSizeForLineNumbering)) | ", inColor: .cyan)
 
     // Aggregate the indicators (^ point to the error) onto a single line
-    var charIndicators = String(repeating: " ", count: Int(message.char)!) + "^"
+
+    // Remove leading whitespace.
+    var charIndicators = String(repeating: " ", count: Int(message.char)! - (sourceLine.count - sourceLineSansWhitespace.count)) + "^"
     if allChars.count > 0 {
       for char in allChars.dropFirst() {
         let idx = Int(char)!
         if idx >= charIndicators.count {
-          charIndicators
-            .append(String(repeating: " ", count: idx - charIndicators.count) + "^")
+			for index in charIndicators.count..<idx {
+            // If the character above the current position is a whitespace character,
+            // then copy it. If not, then append a space (U+0020).
+            // Different terminals deal with whitespace characters differently.
+            // It's better to let the terminal decide how it wants to do,
+            // so that the "^" and the error location are well-aligned.
+            charIndicators.append(
+              sourceLine[sourceLine.index(sourceLine.startIndex, offsetBy: idx)].isWhitespace ?
+              sourceLine[sourceLine.index(sourceLine.startIndex, offsetBy: idx)] : " "
+            )
+          }
+          charIndicators.append("^")
         } else {
           var arr = Array(charIndicators)
           arr[idx] = "^"
