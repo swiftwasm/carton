@@ -20,6 +20,7 @@ import XCTest
 
 final class StackTraceTests: XCTestCase {
   func testFirefoxStackTrace() {
+    // swiftlint:disable line_length
     let stackTrace = """
     wasmFs.fs.writeSync@webpack:///./entrypoint/dev.js?:35:21
     a/this.wasiImport.fd_write</<@webpack:///./node_modules/@wasmer/wasi/lib/index.esm.js?:115:429
