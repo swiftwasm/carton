@@ -133,13 +133,12 @@ final class Server {
                 terminal.write(" at \(item.location)\n", inColor: .grey)
               }
             case let .testRunOutput(output):
-              print(output)
               TestsParser().parse(output, terminal)
 
               // Test run finished, no need to keep the server running anymore.
-              // if configuration.builder == nil {
-              //   self?.app.server.shutdown()
-              // }
+              if configuration.builder == nil {
+                kill(getpid(), SIGINT)
+              }
             }
           }
           self?.connections.insert(ws)

@@ -39,7 +39,7 @@ wasmFs.fs.writeSync = (fd, buffer, offset, length, position) => {
     switch (fd) {
       case 1:
         console.log(text);
-        testRunOutput += (text + "\n")W;
+        testRunOutput += text + "\n";
         break;
       case 2:
         console.error(text);
@@ -94,6 +94,11 @@ const startWasiTask = async () => {
         testRunOutput,
       })
     );
+
+    const divElement = document.createElement("p");
+    divElement.innerHTML =
+      "Test run finished. Check the output of <code>carton test</code> for details.";
+    document.body.appendChild(divElement);
   }
 };
 
