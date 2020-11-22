@@ -26,6 +26,7 @@ private enum Event {
   enum CodingKeys: String, CodingKey {
     case kind
     case stackTrace
+    case testOutput
   }
 
   enum Kind: String, Decodable {
@@ -33,6 +34,7 @@ private enum Event {
   }
 
   case stackTrace(String)
+  case testOutput(String)
 }
 
 extension Event: Decodable {
@@ -92,8 +94,8 @@ final class Server {
       mainWasmPath: builder.mainWasmPath,
       customIndexContent: customIndexContent,
       package: package,
-      onWebSocketOpen: { [weak self] in
-        $0.onText { _, text in
+      onWebSocketOpen: { [weak self] ws, environment in
+        ws.onText { _, text in
           guard
             let data = text.data(using: .utf8),
             let event = try? self?.decoder.decode(Event.self, from: data)
@@ -103,6 +105,8 @@ final class Server {
 
           switch event {
           case let .stackTrace(rawStackTrace):
+            guard environment == .firefox else { break }
+
             let stackTrace = rawStackTrace.firefoxStackTrace
 
             terminal.write("\nAn error occurred, here's a stack trace for it:\n", inColor: .red)
@@ -110,9 +114,11 @@ final class Server {
               terminal.write("  \(item.symbol)", inColor: .cyan)
               terminal.write(" at \(item.location)\n", inColor: .grey)
             }
+          case let .testOutput(output):
+            terminal.write(output)
           }
         }
-        self?.connections.insert($0)
+        self?.connections.insert(ws)
       },
       onWebSocketClose: { [weak self] in
         self?.connections.remove($0)
