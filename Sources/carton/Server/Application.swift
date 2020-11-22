@@ -18,15 +18,18 @@ import TSCBasic
 import Vapor
 
 extension Application {
-  func configure(
-    port: Int,
-    mainWasmPath: AbsolutePath,
-    customIndexContent: String?,
-    package: SwiftToolchain.Package,
-    onWebSocketOpen: @escaping (WebSocket, DestinationEnvironment) -> (),
-    onWebSocketClose: @escaping (WebSocket) -> ()
-  ) {
-    http.server.configuration.port = port
+  struct Configuration {
+    let port: Int
+    let mainWasmPath: AbsolutePath
+    let customIndexContent: String?
+    let package: SwiftToolchain.Package
+    let entrypoint: Entrypoint
+    let onWebSocketOpen: (WebSocket, DestinationEnvironment) -> ()
+    let onWebSocketClose: (WebSocket) -> ()
+  }
+
+  func configure(with configuration: Configuration) {
+    http.server.configuration.port = configuration.port
 
     let directory = FileManager.default.homeDirectoryForCurrentUser
       .appendingPathComponent(".carton")
@@ -36,25 +39,31 @@ extension Application {
 
     // register routes
     get { _ in
-      HTML(value: HTML.indexPage(customContent: customIndexContent, entrypointName: "dev.js"))
+      HTML(value: HTML.indexPage(
+        customContent: configuration.customIndexContent,
+        entrypointName: configuration.entrypoint.fileName
+      ))
     }
 
     webSocket("watcher") { request, ws in
       let environment = request.headers["User-Agent"].compactMap(DestinationEnvironment.init).first
         ?? .other
 
-      onWebSocketOpen(ws, environment)
-      ws.onClose.whenComplete { _ in onWebSocketClose(ws) }
+      configuration.onWebSocketOpen(ws, environment)
+      ws.onClose.whenComplete { _ in configuration.onWebSocketClose(ws) }
     }
 
     get("main.wasm") {
       // stream the file
-      $0.eventLoop.makeSucceededFuture($0.fileio.streamFile(at: mainWasmPath.pathString))
+      $0.eventLoop
+        .makeSucceededFuture($0.fileio.streamFile(at: configuration.mainWasmPath.pathString))
     }
 
-    let buildDirectory = mainWasmPath.parentDirectory
-    for target in package.targets where target.type == .regular && !target.resources.isEmpty {
-      let resourcesPath = package.resourcesPath(for: target)
+    let buildDirectory = configuration.mainWasmPath.parentDirectory
+    for target in configuration.package.targets
+      where target.type == .regular && !target.resources.isEmpty
+    {
+      let resourcesPath = configuration.package.resourcesPath(for: target)
       get(.constant(resourcesPath), "**") {
         $0.eventLoop.makeSucceededFuture($0.fileio.streamFile(at: AbsolutePath(
           buildDirectory.appending(component: resourcesPath),

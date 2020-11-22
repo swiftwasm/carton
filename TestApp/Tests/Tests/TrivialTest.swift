@@ -15,7 +15,7 @@
 import TestLibrary
 import XCTest
 
-final class Test: XCTestCase {
+final class TrivialTest: XCTestCase {
   func testTrivial() {
     XCTAssertEqual(text, "Hello, world")
   }

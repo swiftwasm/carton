@@ -26,15 +26,16 @@ private enum Event {
   enum CodingKeys: String, CodingKey {
     case kind
     case stackTrace
-    case testOutput
+    case testRunOutput
   }
 
   enum Kind: String, Decodable {
     case stackTrace
+    case testRunOutput
   }
 
   case stackTrace(String)
-  case testOutput(String)
+  case testRunOutput(String)
 }
 
 extension Event: Decodable {
@@ -47,6 +48,9 @@ extension Event: Decodable {
     case .stackTrace:
       let rawStackTrace = try container.decode(String.self, forKey: .stackTrace)
       self = .stackTrace(rawStackTrace)
+    case .testRunOutput:
+      let output = try container.decode(String.self, forKey: .testRunOutput)
+      self = .testRunOutput(output)
     }
   }
 }
@@ -66,87 +70,101 @@ final class Server {
   private let decoder = JSONDecoder()
   private var connections = Set<WebSocket>()
   private var subscriptions = [AnyCancellable]()
-  private let watcher: Watcher
+  private let watcher: Watcher?
   private let app: Application
   private let localURL: String
   private let skipAutoOpen: Bool
 
-  init(
-    builder: Builder,
-    pathsToWatch: [AbsolutePath],
-    customIndexContent: String?,
-    package: SwiftToolchain.Package,
-    verbose: Bool,
-    skipAutoOpen: Bool,
-    _ terminal: InteractiveWriter,
-    port: Int
-  ) throws {
-    watcher = try Watcher(pathsToWatch)
+  struct Configuration {
+    let builder: Builder?
+    let mainWasmPath: AbsolutePath
+    let verbose: Bool
+    let skipAutoOpen: Bool
+    let port: Int
+    let customIndexContent: String?
+    let package: SwiftToolchain.Package
+    let entrypoint: Entrypoint
+  }
 
-    var env = Environment(name: verbose ? "development" : "production", arguments: ["vapor"])
-    localURL = "http://127.0.0.1:\(port)/"
-    self.skipAutoOpen = skipAutoOpen
+  init(
+    with configuration: Configuration,
+    _ terminal: InteractiveWriter
+  ) throws {
+    if let builder = configuration.builder {
+      watcher = try Watcher(builder.pathsToWatch)
+    } else {
+      watcher = nil
+    }
+
+    var env = Environment(
+      name: configuration.verbose ? "development" : "production",
+      arguments: ["vapor"]
+    )
+    localURL = "http://127.0.0.1:\(configuration.port)/"
+    skipAutoOpen = configuration.skipAutoOpen
 
     try LoggingSystem.bootstrap(from: &env)
     app = Application(env)
     app.configure(
-      port: port,
-      mainWasmPath: builder.mainWasmPath,
-      customIndexContent: customIndexContent,
-      package: package,
-      onWebSocketOpen: { [weak self] ws, environment in
-        ws.onText { _, text in
-          guard
-            let data = text.data(using: .utf8),
-            let event = try? self?.decoder.decode(Event.self, from: data)
-          else {
-            return
-          }
-
-          switch event {
-          case let .stackTrace(rawStackTrace):
-            guard environment == .firefox else { break }
-
-            let stackTrace = rawStackTrace.firefoxStackTrace
-
-            terminal.write("\nAn error occurred, here's a stack trace for it:\n", inColor: .red)
-            stackTrace.forEach { item in
-              terminal.write("  \(item.symbol)", inColor: .cyan)
-              terminal.write(" at \(item.location)\n", inColor: .grey)
+      with: .init(
+        port: configuration.port,
+        mainWasmPath: configuration.mainWasmPath,
+        customIndexContent: configuration.customIndexContent,
+        package: configuration.package,
+        entrypoint: configuration.entrypoint,
+        onWebSocketOpen: { [weak self] ws, environment in
+          ws.onText { _, text in
+            guard
+              let data = text.data(using: .utf8),
+              let event = try? self?.decoder.decode(Event.self, from: data)
+            else {
+              return
             }
-          case let .testOutput(output):
-            terminal.write(output)
+
+            switch event {
+            case let .stackTrace(rawStackTrace):
+              guard environment == .firefox else { break }
+
+              let stackTrace = rawStackTrace.firefoxStackTrace
+
+              terminal.write("\nAn error occurred, here's a stack trace for it:\n", inColor: .red)
+              stackTrace.forEach { item in
+                terminal.write("  \(item.symbol)", inColor: .cyan)
+                terminal.write(" at \(item.location)\n", inColor: .grey)
+              }
+            case let .testRunOutput(output):
+              print(output)
+              TestsParser().parse(output, terminal)
+
+              // Test run finished, no need to keep the server running anymore.
+              // if configuration.builder == nil {
+              //   self?.app.server.shutdown()
+              // }
+            }
           }
-        }
-        self?.connections.insert(ws)
-      },
-      onWebSocketClose: { [weak self] in
-        self?.connections.remove($0)
-      }
+          self?.connections.insert(ws)
+        },
+        onWebSocketClose: { [weak self] in self?.connections.remove($0) }
+      )
     )
     // Listen to Vapor App lifecycle events
     app.lifecycle.use(self)
 
+    guard let builder = configuration.builder, let watcher = watcher else {
+      return
+    }
+
     watcher.publisher
       .flatMap(maxPublishers: .max(1)) { changes -> AnyPublisher<String, Never> in
-        if !verbose {
+        if !configuration.verbose {
           terminal.clearWindow()
         }
         terminal.write("\nThese paths have changed, rebuilding...\n", inColor: .yellow)
         for change in changes.map(\.pathString) {
           terminal.write("- \(change)\n", inColor: .cyan)
         }
-        return builder
-          .run()
-          .handleEvents(receiveCompletion: { [weak self] in
-            guard case .finished = $0, let self = self else { return }
 
-            terminal.write("\nBuild completed successfully\n", inColor: .green, bold: false)
-            terminal.logLookup("The app is currently hosted at ", self.localURL)
-            self.connections.forEach { $0.send("reload") }
-          })
-          .catch { _ in Empty().eraseToAnyPublisher() }
-          .eraseToAnyPublisher()
+        return self.run(builder, terminal)
       }
       .sink(receiveValue: { _ in })
       .store(in: &subscriptions)
@@ -159,6 +177,23 @@ final class Server {
     for conn in connections {
       try conn.close().wait()
     }
+  }
+
+  private func run(
+    _ builder: Builder,
+    _ terminal: InteractiveWriter
+  ) -> AnyPublisher<String, Never> {
+    builder
+      .run()
+      .handleEvents(receiveCompletion: { [weak self] in
+        guard case .finished = $0, let self = self else { return }
+
+        terminal.write("\nBuild completed successfully\n", inColor: .green, bold: false)
+        terminal.logLookup("The app is currently hosted at ", self.localURL)
+        self.connections.forEach { $0.send("reload") }
+      })
+      .catch { _ in Empty().eraseToAnyPublisher() }
+      .eraseToAnyPublisher()
   }
 }
 
