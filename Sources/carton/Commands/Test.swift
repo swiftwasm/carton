@@ -89,6 +89,7 @@ struct Test: ParsableCommand {
           customIndexContent: nil,
           // swiftlint:disable:next force_try
           package: try! toolchain.package.get(),
+          product: nil,
           entrypoint: Self.entrypoint
         ),
         terminal

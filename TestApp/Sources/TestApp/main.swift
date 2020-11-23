@@ -45,6 +45,9 @@ buttonNode.onclick = .function(handler)
 var div = document.createElement("div")
 div.innerHTML = .string(#"""
 <a href=\#(Bundle.module.path(forResource: "data", ofType: "json")!)>Link to a static resource</a>
+<br/>
+<a href=\#(Bundle.main
+  .path(forResource: "data", ofType: "json")!)>Link to a <code>Bundle.main</code> resource</a>
 """#)
 _ = document.body.appendChild(div)
 

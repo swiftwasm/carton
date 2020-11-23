@@ -66,6 +66,7 @@ struct ProductType: Codable {
 public struct Product: Codable {
   let name: String
   let type: ProductType
+  public let targets: [String]
 }
 
 public enum TargetType: String, Codable {

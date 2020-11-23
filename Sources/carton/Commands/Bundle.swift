@@ -48,7 +48,7 @@ struct Bundle: ParsableCommand {
 
     let toolchain = try Toolchain(localFileSystem, terminal)
 
-    let (_, mainWasmPath) = try toolchain.buildCurrentProject(
+    let (_, mainWasmPath, inferredProduct) = try toolchain.buildCurrentProject(
       product: product,
       isRelease: !debug
     )
@@ -85,7 +85,8 @@ struct Bundle: ParsableCommand {
       optimizedPath: optimizedPath,
       buildDirectory: mainWasmPath.parentDirectory,
       bundleDirectory: bundleDirectory,
-      toolchain: toolchain
+      toolchain: toolchain,
+      product: inferredProduct
     )
 
     terminal.write("Bundle generation finished successfully\n", inColor: .green, bold: true)
@@ -102,7 +103,8 @@ struct Bundle: ParsableCommand {
     optimizedPath: AbsolutePath,
     buildDirectory: AbsolutePath,
     bundleDirectory: AbsolutePath,
-    toolchain: Toolchain
+    toolchain: Toolchain,
+    product: Product
   ) throws {
     // Rename the final binary to use a part of its hash to bust browsers and CDN caches.
     let optimizedHash = try localFileSystem.readFileContents(optimizedPath).hexSHA256.prefix(16)
@@ -143,6 +145,24 @@ struct Bundle: ParsableCommand {
       guard localFileSystem.exists(resourcesPath) else { continue }
       terminal.logLookup("Copying resources to ", targetDirectory)
       try localFileSystem.copy(from: resourcesPath, to: targetDirectory)
+    }
+
+    let inferredMainTarget = package.targets.first {
+      product.targets.contains($0.name)
+    }
+
+    guard let mainTarget = inferredMainTarget else { return }
+
+    let targetPath = package.resourcesPath(for: mainTarget)
+    let resourcesPath = buildDirectory.appending(component: targetPath)
+    for file in try localFileSystem.traverseRecursively(resourcesPath) {
+      let targetPath = bundleDirectory.appending(component: file.basename)
+
+      guard localFileSystem.exists(resourcesPath) && !localFileSystem.exists(targetPath)
+      else { continue }
+
+      terminal.logLookup("Copying this resource to the root bundle directory ", file)
+      try localFileSystem.copy(from: file, to: targetPath)
     }
   }
 }

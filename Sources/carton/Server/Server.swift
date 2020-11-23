@@ -83,6 +83,7 @@ final class Server {
     let port: Int
     let customIndexContent: String?
     let package: SwiftToolchain.Package
+    let product: Product?
     let entrypoint: Entrypoint
   }
 
@@ -111,6 +112,7 @@ final class Server {
         mainWasmPath: configuration.mainWasmPath,
         customIndexContent: configuration.customIndexContent,
         package: configuration.package,
+        product: configuration.product,
         entrypoint: configuration.entrypoint,
         onWebSocketOpen: { [weak self] ws, environment in
           ws.onText { _, text in
