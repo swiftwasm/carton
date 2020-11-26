@@ -112,7 +112,7 @@ final class Server {
             terminal.write("\nAn error occurred, here's a stack trace for it:\n", inColor: .red)
             stackTrace.forEach { item in
               terminal.write("  \(item.symbol)", inColor: .cyan)
-              terminal.write(" at \(item.location)\n", inColor: .grey)
+              terminal.write(" at \(item.location)\n")
             }
           case let .testOutput(output):
             terminal.write(output)
