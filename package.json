@@ -1,6 +1,6 @@
 {
   "name": "carton",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "📦 Watcher, bundler, and test runner for your SwiftWasm apps ",
   "main": "index.js",
   "scripts": {
@@ -27,7 +27,7 @@
   "devDependencies": {
     "@wasmer/wasi": "^0.12.0",
     "@wasmer/wasmfs": "^0.12.0",
-    "javascript-kit-swift": "^0.8.0",
+    "javascript-kit-swift": "^0.9.0",
     "reconnecting-websocket": "^4.4.0",
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12"

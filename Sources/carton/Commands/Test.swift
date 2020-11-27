@@ -50,7 +50,12 @@ struct Test: ParsableCommand {
   @Argument(help: "The list of test cases to run in the test suite.")
   var testCases = [String]()
 
-  @Option(help: "Environment used to run the tests, either a browser, or command-line Wasm host.")
+  @Option(
+    help: """
+    Environment used to run the tests, either a browser, or command-line Wasm host.
+    Possible values: `defaultBrowser` or `wasmer`.
+    """
+  )
   private var environment = Environment.wasmer
 
   @Option(
