@@ -61,7 +61,7 @@ struct Bundle: ParsableCommand {
     try strip(mainWasmPath)
 
     try terminal.logLookup(
-      "After applying `wasm-strip` the main binary size is ",
+      "After stripping debug info the main binary size is ",
       localFileSystem.humanReadableFileSize(mainWasmPath),
       newline: true
     )

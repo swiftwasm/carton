@@ -86,16 +86,22 @@ extension Template {
   static func createManifest(
     fileSystem: FileSystem,
     project: Project,
+    platforms: [String] = [],
     dependencies: [PackageDependency] = [],
     targetDepencencies: [TargetDependency] = [],
     _ terminal: InteractiveWriter
   ) throws {
     try fileSystem.writeFileContents(project.path.appending(component: "Package.swift")) {
-      """
+      var content = """
       // swift-tools-version:5.3
       import PackageDescription
       let package = Package(
-          name: "\(project.name)",
+          name: "\(project.name)",\n
+      """
+      if !platforms.isEmpty {
+        content += "    platforms: [\(platforms.joined(separator: ",\n"))],\n"
+      }
+      content += """
           products: [
               .executable(name: "\(project.name)", targets: ["\(project.name)"])
           ],
@@ -114,7 +120,7 @@ extension Template {
           ]
       )
       """
-      .write(to: $0)
+      content.write(to: $0)
     }
   }
 }
@@ -168,11 +174,12 @@ extension Templates {
       try createManifest(
         fileSystem: fileSystem,
         project: project,
+        platforms: [".macOS(.v10_15)"],
         dependencies: [
           .init(
             name: "Tokamak",
             url: "https://github.com/TokamakUI/Tokamak",
-            version: .from("0.3.0")
+            version: .from("0.5.1")
           ),
         ],
         targetDepencencies: [
@@ -186,7 +193,7 @@ extension Templates {
         "main.swift"
       )) {
         """
-        import TokamakShim
+        import TokamakDOM
 
         struct TokamakApp: App {
             var body: some Scene {

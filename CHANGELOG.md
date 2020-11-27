@@ -1,3 +1,22 @@
+# 0.8.2 (9 November 2020)
+
+This patch release updates the default version of Tokamak in the `carton init` template to fix autocomplete in Xcode.
+
+**Merged pull requests:**
+
+- Add minimum deployment target in template ([#165](https://github.com/swiftwasm/carton/pull/165)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+- Remove wasm-strip from log comment ([#164](https://github.com/swiftwasm/carton/pull/164)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+
+# 0.8.1 (9 November 2020)
+
+This patch release updates the default version of Tokamak in templates used by `carton init`.
+
+**Merged pull requests:**
+
+- Update Tokamak version used in init template ([#160](https://github.com/swiftwasm/carton/pull/160)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+- Update dependencies ([#159](https://github.com/swiftwasm/carton/pull/159)) via [@ie-ahm-robox](https://github.com/ie-ahm-robox)
+- Add image source label ([#161](https://github.com/swiftwasm/carton/pull/161)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+
 # 0.8.0 (8 November 2020)
 
 This is a bugfix and feature release that coincides with the stable 5.3.0 release of SwiftWasm,
