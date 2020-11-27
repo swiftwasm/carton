@@ -23,7 +23,7 @@ extension Application {
     mainWasmPath: AbsolutePath,
     customIndexContent: String?,
     package: SwiftToolchain.Package,
-    onWebSocketOpen: @escaping (WebSocket) -> (),
+    onWebSocketOpen: @escaping (WebSocket, DestinationEnvironment) -> (),
     onWebSocketClose: @escaping (WebSocket) -> ()
   ) {
     http.server.configuration.port = port
@@ -39,8 +39,11 @@ extension Application {
       HTML(value: HTML.indexPage(customContent: customIndexContent, entrypointName: "dev.js"))
     }
 
-    webSocket("watcher") { _, ws in
-      onWebSocketOpen(ws)
+    webSocket("watcher") { request, ws in
+      let environment = request.headers["User-Agent"].compactMap(DestinationEnvironment.init).first
+        ?? .other
+
+      onWebSocketOpen(ws, environment)
       ws.onClose.whenComplete { _ in onWebSocketClose(ws) }
     }
 

@@ -19,9 +19,9 @@ import SwiftToolchain
 import TSCBasic
 import WasmTransformer
 
-private let dependency = Dependency(
+private let dependency = Entrypoint(
   fileName: "bundle.js",
-  sha256: bundleDependencySHA256
+  sha256: bundleEntrypointSHA256
 )
 
 struct Bundle: ParsableCommand {

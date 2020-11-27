@@ -22,6 +22,35 @@ import SwiftToolchain
 import TSCBasic
 import Vapor
 
+private enum Event {
+  enum CodingKeys: String, CodingKey {
+    case kind
+    case stackTrace
+    case testOutput
+  }
+
+  enum Kind: String, Decodable {
+    case stackTrace
+  }
+
+  case stackTrace(String)
+  case testOutput(String)
+}
+
+extension Event: Decodable {
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+
+    let kind = try container.decode(Kind.self, forKey: .kind)
+
+    switch kind {
+    case .stackTrace:
+      let rawStackTrace = try container.decode(String.self, forKey: .stackTrace)
+      self = .stackTrace(rawStackTrace)
+    }
+  }
+}
+
 /// This `Hashable` conformance is required to handle simulatenous connections with `Set<WebSocket>`
 extension WebSocket: Hashable {
   public static func == (lhs: WebSocket, rhs: WebSocket) -> Bool {
@@ -34,6 +63,7 @@ extension WebSocket: Hashable {
 }
 
 final class Server {
+  private let decoder = JSONDecoder()
   private var connections = Set<WebSocket>()
   private var subscriptions = [AnyCancellable]()
   private let watcher: Watcher
@@ -64,8 +94,31 @@ final class Server {
       mainWasmPath: builder.mainWasmPath,
       customIndexContent: customIndexContent,
       package: package,
-      onWebSocketOpen: { [weak self] in
-        self?.connections.insert($0)
+      onWebSocketOpen: { [weak self] ws, environment in
+        ws.onText { _, text in
+          guard
+            let data = text.data(using: .utf8),
+            let event = try? self?.decoder.decode(Event.self, from: data)
+          else {
+            return
+          }
+
+          switch event {
+          case let .stackTrace(rawStackTrace):
+            guard environment == .firefox else { break }
+
+            let stackTrace = rawStackTrace.firefoxStackTrace
+
+            terminal.write("\nAn error occurred, here's a stack trace for it:\n", inColor: .red)
+            stackTrace.forEach { item in
+              terminal.write("  \(item.symbol)", inColor: .cyan)
+              terminal.write(" at \(item.location)\n")
+            }
+          case let .testOutput(output):
+            terminal.write(output)
+          }
+        }
+        self?.connections.insert(ws)
       },
       onWebSocketClose: { [weak self] in
         self?.connections.remove($0)

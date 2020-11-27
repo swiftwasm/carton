@@ -15,7 +15,7 @@
 import Foundation
 
 extension StringProtocol {
-  /// Remove the first match of the `NSRegularExpression` from the string.
+  /// Return the first match of the `NSRegularExpression` from the string.
   func matches(regex: NSRegularExpression) -> String.SubSequence? {
     let str = String(self)
     guard let range = str.range(of: regex),

@@ -24,9 +24,9 @@ import SwiftToolchain
 import TSCBasic
 
 struct Dev: ParsableCommand {
-  static let dependency = Dependency(
+  static let entrypoint = Entrypoint(
     fileName: "dev.js",
-    sha256: devDependencySHA256
+    sha256: devEntrypointSHA256
   )
 
   @Option(help: "Specify name of an executable product in development.")
@@ -59,7 +59,7 @@ struct Dev: ParsableCommand {
   func run() throws {
     let terminal = InteractiveWriter.stdout
 
-    try Self.dependency.check(on: localFileSystem, terminal)
+    try Self.entrypoint.check(on: localFileSystem, terminal)
 
     let toolchain = try Toolchain(localFileSystem, terminal)
 
