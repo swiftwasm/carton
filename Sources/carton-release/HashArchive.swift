@@ -41,23 +41,17 @@ struct HashArchive: ParsableCommand {
     let staticPath = AbsolutePath(cwd, "static")
     let dotFilesStaticPath = AbsolutePath(localFileSystem.homeDirectory, ".carton/static")
 
-    try ProcessRunner(["npm", "run", "build"], terminal).waitUntilFinished()
-    let devEntrypointPath = AbsolutePath(staticPath, "dev.js")
-    let dotFilesDevEntrypointPath = dotFilesStaticPath.appending(component: "dev.js")
-    try localFileSystem.removeFileTree(dotFilesDevEntrypointPath)
-    try localFileSystem.copy(from: devEntrypointPath, to: dotFilesDevEntrypointPath)
+    try localFileSystem.createDirectory(dotFilesStaticPath, recursive: true)
+    let hashes = try ["dev", "bundle", "test"].map { entrypoint -> (String, String) in
+      try ProcessRunner(["npm", "run", entrypoint], terminal).waitUntilFinished()
+      let entrypointPath = AbsolutePath(staticPath, "\(entrypoint).js")
+      let dotFilesEntrypointPath = dotFilesStaticPath.appending(component: "\(entrypoint).js")
+      try localFileSystem.removeFileTree(dotFilesEntrypointPath)
+      try localFileSystem.copy(from: entrypointPath, to: dotFilesEntrypointPath)
 
-    try ProcessRunner(["npm", "run", "bundle"], terminal).waitUntilFinished()
-    let bundleEntrypointPath = AbsolutePath(staticPath, "bundle.js")
-    let dotFilesBundleEntrypointPath = dotFilesStaticPath.appending(component: "bundle.js")
-    try localFileSystem.removeFileTree(dotFilesBundleEntrypointPath)
-    try localFileSystem.copy(from: bundleEntrypointPath, to: dotFilesBundleEntrypointPath)
-
-    let devHash = try SHA256().hash(localFileSystem.readFileContents(devEntrypointPath))
-      .hexadecimalRepresentation.uppercased()
-
-    let bundleHash = try SHA256().hash(localFileSystem.readFileContents(bundleEntrypointPath))
-      .hexadecimalRepresentation.uppercased()
+      return (entrypoint, try SHA256().hash(localFileSystem.readFileContents(entrypointPath))
+        .hexadecimalRepresentation.uppercased())
+    }
 
     let archiveSources = try localFileSystem.traverseRecursively(staticPath)
       // `traverseRecursively` also returns the `staticPath` directory itself, dropping it here
@@ -73,18 +67,18 @@ struct HashArchive: ParsableCommand {
       ))
     ).hexadecimalRepresentation.uppercased()
 
-    let hashes = """
+    let hashesFileContent = """
     import TSCBasic
 
-    let devEntrypointSHA256 = ByteString([
-    \(arrayString(from: devHash))
-    ])
+    \(hashes.map {
+      """
+      let \($0)EntrypointSHA256 = ByteString([
+      \(arrayString(from: $1))
+      ])
 
-    let bundleEntrypointSHA256 = ByteString([
-    \(arrayString(from: bundleHash))
-    ])
 
-    let staticArchiveHash = ByteString([
+      """
+    }.joined())let staticArchiveHash = ByteString([
     \(arrayString(from: archiveHash)),
     ])
 
@@ -92,7 +86,7 @@ struct HashArchive: ParsableCommand {
 
     try localFileSystem.writeFileContents(
       AbsolutePath(cwd, RelativePath("Sources/carton/Server/StaticArchive.swift")),
-      bytes: ByteString(encodingAsUTF8: hashes)
+      bytes: ByteString(encodingAsUTF8: hashesFileContent)
     )
   }
 }

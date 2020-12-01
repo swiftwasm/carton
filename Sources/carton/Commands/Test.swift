@@ -22,7 +22,23 @@ import CartonHelpers
 import SwiftToolchain
 import TSCBasic
 
+private enum Environment: String, CaseIterable, ExpressibleByArgument {
+  case wasmer
+  case defaultBrowser
+
+  var destination: DestinationEnvironment {
+    switch self {
+    case .defaultBrowser:
+      return .browser
+    case .wasmer:
+      return .other
+    }
+  }
+}
+
 struct Test: ParsableCommand {
+  static let entrypoint = Entrypoint(fileName: "test.js", sha256: testEntrypointSHA256)
+
   static let configuration = CommandConfiguration(abstract: "Run the tests in a WASI environment.")
 
   @Flag(help: "When specified, build in the release mode.")
@@ -31,28 +47,57 @@ struct Test: ParsableCommand {
   @Flag(name: .shortAndLong, help: "When specified, list all available test cases.")
   var list = false
 
-  @Argument
+  @Argument(help: "The list of test cases to run in the test suite.")
   var testCases = [String]()
+
+  @Option(
+    help: """
+    Environment used to run the tests, either a browser, or command-line Wasm host.
+    Possible values: `defaultBrowser` or `wasmer`.
+    """
+  )
+  private var environment = Environment.wasmer
+
+  @Option(
+    name: .shortAndLong,
+    help: "Set the HTTP port the testing server will run on for browser environment."
+  )
+  var port = 8080
 
   func run() throws {
     let terminal = InteractiveWriter.stdout
 
-    // FIXME: We're checking for a `Dev` entrypoint, not for a `Test` entrypoint, which doesn't
-    // exist yet. That's because we don't run tests in browsers yet.
-    try Dev.entrypoint.check(on: localFileSystem, terminal)
+    try Self.entrypoint.check(on: localFileSystem, terminal)
     let toolchain = try Toolchain(localFileSystem, terminal)
     let testBundlePath = try toolchain.buildTestBundle(isRelease: release)
 
-    terminal.write("\nRunning the test bundle with wasmer:\n", inColor: .yellow)
-    var wasmerArguments = ["wasmer", testBundlePath.pathString]
-    if list {
-      wasmerArguments.append(contentsOf: ["--", "-l"])
-    } else if !testCases.isEmpty {
-      wasmerArguments.append("--")
-      wasmerArguments.append(contentsOf: testCases)
-    }
-    let runner = ProcessRunner(wasmerArguments, parser: TestsParser(), terminal)
+    if environment == .wasmer {
+      terminal.write("\nRunning the test bundle with wasmer:\n", inColor: .yellow)
+      var wasmerArguments = ["wasmer", testBundlePath.pathString]
+      if list {
+        wasmerArguments.append(contentsOf: ["--", "-l"])
+      } else if !testCases.isEmpty {
+        wasmerArguments.append("--")
+        wasmerArguments.append(contentsOf: testCases)
+      }
+      let runner = ProcessRunner(wasmerArguments, parser: TestsParser(), terminal)
 
-    try runner.waitUntilFinished()
+      try runner.waitUntilFinished()
+    } else {
+      try Server(
+        with: .init(
+          builder: nil,
+          mainWasmPath: testBundlePath,
+          verbose: true,
+          skipAutoOpen: false,
+          port: port,
+          customIndexContent: nil,
+          // swiftlint:disable:next force_try
+          package: try! toolchain.package.get(),
+          entrypoint: Self.entrypoint
+        ),
+        terminal
+      ).run()
+    }
   }
 }

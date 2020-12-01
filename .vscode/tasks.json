@@ -64,6 +64,11 @@
       "command": "swift build && cd TestApp && ../.build/debug/carton test"
     },
     {
+      "label": "build and run browser test",
+      "type": "shell",
+      "command": "swift build && cd TestApp && ../.build/debug/carton test --environment defaultBrowser"
+    },
+    {
       "label": "build and run test list",
       "type": "shell",
       "command": "swift build && cd TestApp && ../.build/debug/carton test -l"

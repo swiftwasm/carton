@@ -24,10 +24,7 @@ import SwiftToolchain
 import TSCBasic
 
 struct Dev: ParsableCommand {
-  static let entrypoint = Entrypoint(
-    fileName: "dev.js",
-    sha256: devEntrypointSHA256
-  )
+  static let entrypoint = Entrypoint(fileName: "dev.js", sha256: devEntrypointSHA256)
 
   @Option(help: "Specify name of an executable product in development.")
   var product: String?
@@ -46,7 +43,7 @@ struct Dev: ParsableCommand {
   @Flag(name: .shortAndLong, help: "Don't clear terminal window after files change.")
   var verbose = false
 
-  @Option(name: .shortAndLong, help: "Set the HTTP port the app will run on.")
+  @Option(name: .shortAndLong, help: "Set the HTTP port the development server will run on.")
   var port = 8080
 
   @Flag(name: .long, help: "Skip automatically opening app in system browser.")
@@ -98,15 +95,24 @@ struct Dev: ParsableCommand {
     let sources = try paths.flatMap { try localFileSystem.traverseRecursively($0) }
 
     try Server(
-      builder: Builder(arguments: arguments, mainWasmPath: mainWasmPath, localFileSystem, terminal),
-      pathsToWatch: sources,
-      customIndexContent: HTML.readCustomIndexPage(at: customIndexPage, on: localFileSystem),
-      // swiftlint:disable:next force_try
-      package: try! toolchain.package.get(),
-      verbose: verbose,
-      skipAutoOpen: skipAutoOpen,
-      terminal,
-      port: port
+      with: .init(
+        builder: Builder(
+          arguments: arguments,
+          mainWasmPath: mainWasmPath,
+          pathsToWatch: sources,
+          localFileSystem,
+          terminal
+        ),
+        mainWasmPath: mainWasmPath,
+        verbose: verbose,
+        skipAutoOpen: skipAutoOpen,
+        port: port,
+        customIndexContent: HTML.readCustomIndexPage(at: customIndexPage, on: localFileSystem),
+        // swiftlint:disable:next force_try
+        package: try! toolchain.package.get(),
+        entrypoint: Self.entrypoint
+      ),
+      terminal
     ).run()
   }
 }

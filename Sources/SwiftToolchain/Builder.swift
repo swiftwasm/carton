@@ -24,6 +24,7 @@ import WasmTransformer
 
 public final class Builder {
   public let mainWasmPath: AbsolutePath
+  public let pathsToWatch: [AbsolutePath]
 
   private var currentProcess: ProcessRunner?
   private let arguments: [String]
@@ -35,12 +36,14 @@ public final class Builder {
   public init(
     arguments: [String],
     mainWasmPath: AbsolutePath,
+    pathsToWatch: [AbsolutePath] = [],
     environment: DestinationEnvironment = .browser,
     _ fileSystem: FileSystem,
     _ terminal: InteractiveWriter
   ) {
     self.arguments = arguments
     self.mainWasmPath = mainWasmPath
+    self.pathsToWatch = pathsToWatch
     self.environment = environment
     self.terminal = terminal
     self.fileSystem = fileSystem
