@@ -23,6 +23,7 @@ extension Application {
     let mainWasmPath: AbsolutePath
     let customIndexContent: String?
     let package: SwiftToolchain.Package
+    let product: Product?
     let entrypoint: Entrypoint
     let onWebSocketOpen: (WebSocket, DestinationEnvironment) -> ()
     let onWebSocketClose: (WebSocket) -> ()
@@ -70,6 +71,20 @@ extension Application {
           $0.parameters.getCatchall().joined(separator: "/")
         ).pathString))
       }
+    }
+
+    let inferredMainTarget = configuration.package.targets.first {
+      configuration.product?.targets.contains($0.name) == true
+    }
+
+    guard let mainTarget = inferredMainTarget else { return }
+
+    let resourcesPath = configuration.package.resourcesPath(for: mainTarget)
+    get("**") {
+      $0.eventLoop.makeSucceededFuture($0.fileio.streamFile(at: AbsolutePath(
+        buildDirectory.appending(component: resourcesPath),
+        $0.parameters.getCatchall().joined(separator: "/")
+      ).pathString))
     }
   }
 }

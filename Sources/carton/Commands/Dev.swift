@@ -78,7 +78,7 @@ struct Dev: ParsableCommand {
       )
     }
 
-    let (arguments, mainWasmPath) = try toolchain.buildCurrentProject(
+    let (arguments, mainWasmPath, inferredProduct) = try toolchain.buildCurrentProject(
       product: product,
       isRelease: release
     )
@@ -110,6 +110,7 @@ struct Dev: ParsableCommand {
         customIndexContent: HTML.readCustomIndexPage(at: customIndexPage, on: localFileSystem),
         // swiftlint:disable:next force_try
         package: try! toolchain.package.get(),
+        product: inferredProduct,
         entrypoint: Self.entrypoint
       ),
       terminal

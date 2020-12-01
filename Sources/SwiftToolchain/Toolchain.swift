@@ -114,26 +114,25 @@ public final class Toolchain {
     return AbsolutePath(binPath)
   }
 
-  private func inferDevProduct(hint: String?) throws -> String? {
+  private func inferDevProduct(hint: String?) throws -> Product? {
     let package = try self.package.get()
 
     var candidateProducts = package.products
       .filter { $0.type.library == nil }
-      .map(\.name)
 
-    if let product = hint {
-      candidateProducts = candidateProducts.filter { $0 == product }
+    if let productName = hint {
+      candidateProducts = candidateProducts.filter { $0.name == productName }
 
       guard candidateProducts.count == 1 else {
         terminal.write("""
         Failed to disambiguate the executable product, \
-        make sure `\(product)` product is present in Package.swift
+        make sure `\(productName)` product is present in Package.swift
         """, inColor: .red)
         return nil
       }
 
-      terminal.logLookup("- development product: ", product)
-      return product
+      terminal.logLookup("- development product: ", productName)
+      return candidateProducts[0]
     } else if candidateProducts.count == 1 {
       return candidateProducts[0]
     } else {
@@ -194,7 +193,7 @@ public final class Toolchain {
   public func buildCurrentProject(
     product: String?,
     isRelease: Bool
-  ) throws -> (builderArguments: [String], mainWasmPath: AbsolutePath) {
+  ) throws -> (builderArguments: [String], mainWasmPath: AbsolutePath, Product) {
     guard let product = try inferDevProduct(hint: product)
     else { throw ToolchainError.noExecutableProduct }
 
@@ -217,14 +216,14 @@ public final class Toolchain {
     }
 
     let binPath = try inferBinPath(isRelease: isRelease)
-    let mainWasmPath = binPath.appending(component: "\(product).wasm")
+    let mainWasmPath = binPath.appending(component: "\(product.name).wasm")
     terminal.logLookup("- development binary to serve: ", mainWasmPath.pathString)
 
     terminal.write("\nBuilding the project before spinning up a server...\n", inColor: .yellow)
 
     let builderArguments = [
-      swiftPath.pathString, "build", "-c", isRelease ? "release" : "debug", "--product", product,
-      "--enable-test-discovery", "--triple", "wasm32-unknown-wasi",
+      swiftPath.pathString, "build", "-c", isRelease ? "release" : "debug",
+      "--product", product.name, "--enable-test-discovery", "--triple", "wasm32-unknown-wasi",
     ]
 
     try Builder(arguments: builderArguments, mainWasmPath: mainWasmPath, fileSystem, terminal)
@@ -235,10 +234,10 @@ public final class Toolchain {
         "Failed to build the main executable binary, fix the build errors and restart\n",
         inColor: .red
       )
-      throw ToolchainError.failedToBuild(product: product)
+      throw ToolchainError.failedToBuild(product: product.name)
     }
 
-    return (builderArguments, mainWasmPath)
+    return (builderArguments, mainWasmPath, product)
   }
 
   /// Returns an absolute path to the resulting test bundle

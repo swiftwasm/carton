@@ -9,7 +9,7 @@ let package = Package(
     .executable(name: "TestApp", targets: ["TestApp"]),
   ],
   dependencies: [
-    .package(url: "https://github.com/swiftwasm/JavaScriptKit", from: "0.8.0"),
+    .package(url: "https://github.com/swiftwasm/JavaScriptKit", from: "0.9.0"),
   ],
   targets: [
     // Targets are the basic building blocks of a package. A target can define a module or a test
