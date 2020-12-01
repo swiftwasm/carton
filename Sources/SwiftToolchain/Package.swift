@@ -66,6 +66,10 @@ struct ProductType: Codable {
 public struct Product: Codable {
   let name: String
   let type: ProductType
+
+  /** List of names of targets that this product is composed of. Can used to infer actual
+   target descriptions used in this product.
+   */
   public let targets: [String]
 }
 

@@ -147,6 +147,12 @@ struct Bundle: ParsableCommand {
       try localFileSystem.copy(from: resourcesPath, to: targetDirectory)
     }
 
+    /* While a product may be composed of multiple targets, not sure this is widely used in
+     practice. Just assuming here that the first target of this product is an executable target,
+     at least until SwiftPM allows specifying executable targets explicitly, as proposed in
+     swiftlint:disable:next line_length
+     https://forums.swift.org/t/pitch-ability-to-declare-executable-targets-in-swiftpm-manifests-to-support-main/41968
+     */
     let inferredMainTarget = package.targets.first {
       product.targets.contains($0.name)
     }
