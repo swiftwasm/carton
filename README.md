@@ -3,13 +3,13 @@
 ## Watcher, bundler, and test runner for your [SwiftWasm](https://swiftwasm.org/) apps
 
 The main goal of `carton` is to provide a smooth zero-config experience when developing for WebAssembly.
-It is still in development, but it aims to support these features (🐥 means "ready to use"):
+It currently supports these features with separate commands:
 
-- 🐥 Creating basic package boilerplate for apps built with SwiftWasm with `carton init`.
-- 🐥 Watching the app for source code changes and reloading it in your browser with `carton dev`.
-- 🐣 Running your XCTest suite in the full JavaScript/DOM environment with `carton test`.
-- 🐥 Optimizing and packaging the app for distribution with `carton bundle`.
-- 🐥 Managing SwiftWasm toolchain and SDK installations with `carton sdk`.
+- Creating basic package boilerplate for apps built with SwiftWasm with `carton init`.
+- Watching the app for source code changes and reloading it in your browser with `carton dev`.
+- Running your XCTest suite in the full JavaScript/DOM environment with `carton test`.
+- Optimizing and packaging the app for distribution with `carton bundle`.
+- Managing SwiftWasm toolchain and SDK installations with `carton sdk`.
 
 It is currently work in progress, so watch the repository for imminent updates!
 
@@ -65,10 +65,9 @@ open. You can also pass a `--verbose` flag to keep the build process output avai
 stale output is cleaned up from your terminal screen by default. If you have a custom `index.html`
 page you'd like to use when serving, pass a path to it with a `--custom-index-page` option.
 
-The `carton test` command runs your test suite in the [`wasmer`](https://wasmer.io/) environment.
-Unfortunately, this currently requires a presence of `LinuxMain.swift` file and explicit test
-manifests, `--enable-test-discovery` flag is not supported yet. Projects that can build their test
-suite on macOS can use `swift test --generate-linuxmain` command to generate this file.
+The `carton test` command runs your test suite in the [`wasmer`](https://wasmer.io/) environment,
+or in the browser environment. You can switch between these with the `--environment` option, passing
+either `wasmer` or `defaultBrowser` values to it respectively.
 
 The `carton sdk` command and its subcommands allow you to manage installed SwiftWasm toolchains, but
 is rarely needed, as `carton dev` installs the recommended version of SwiftWasm automatically.
