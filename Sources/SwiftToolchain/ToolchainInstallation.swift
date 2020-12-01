@@ -124,8 +124,8 @@ extension ToolchainSystem {
       },
       reportProgress: {
         subject.send(.init(
-          step: $1,
-          total: $0 ?? expectedArchiveSize,
+          step: $0.receivedBytes,
+          total: $0.totalBytes ?? expectedArchiveSize,
           text: "saving to \(path)"
         ))
       }
