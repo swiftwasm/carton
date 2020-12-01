@@ -13,7 +13,7 @@ let package = Package(
   name: "carton",
   platforms: [.macOS(.v10_15)],
   dependencies: [
-    .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.1.1"),
+    .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.2.2"),
     .package(
       url: "https://github.com/apple/swift-argument-parser.git",
       .upToNextMinor(from: "0.3.0")
