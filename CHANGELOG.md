@@ -1,3 +1,41 @@
+# 0.9.0 (4 December 2020)
+
+This release adds multiple changes and new features:
+
+- New `--environment` option on `carton test`, which when passed `--environment defaultBrowser` runs
+  test suites of a given package in your default browser, allowing you to use JavaScriptKit and
+  other browser-specific dependencies in your tests. Another available option is `--environment wasmer`, which is the old and still the default behavior, which runs the test suite in `wasmer`.
+
+- Now when your SwiftWasm app crashes in Firefox, the strack trace will printed by `carton dev` and
+  `carton test` in terminal with function symbols demangled, which makes crashes much easier to
+  debug. Since different browsers format their stack traces differently, support for browsers other
+  than Firefox will be added separately in a future version of `carton`.
+
+- `carton dev` and `carton bundle` now serve SwiftPM resources declared on targets of executable
+  products from the root `/` path, in addition to a subpath automatically generated for
+  `Bundle.module`. This was a necessary change [to allow the `Image`
+  view](https://github.com/TokamakUI/Tokamak/pull/155#issuecomment-723677472) to work properly in
+  [Tokamak](https://github.com/TokamakUI/Tokamak).
+
+- Support for [JavaScriptKit](https://github.com/swiftwasm/javascriptkit) 0.9.0, which allows
+  catching JavaScript exceptions in Swift code.
+
+- The default SwiftWasm toolchain is now 5.3.1, which is a recommended bugfix update for all of our
+  users.
+
+**Merged pull requests:**
+
+- Mark all commands as implemented in `README.md` ([#180](https://github.com/swiftwasm/carton/pull/180)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Bump versions of libraries in `Template.swift` ([#182](https://github.com/swiftwasm/carton/pull/182)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Serve main bundle resources from root directory ([#176](https://github.com/swiftwasm/carton/pull/176)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Use `FileDownloadDelegate` from the AHC package ([#171](https://github.com/swiftwasm/carton/pull/171)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Bump JSKit, add support for testing in browsers ([#173](https://github.com/swiftwasm/carton/pull/173)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update dependencies ([#179](https://github.com/swiftwasm/carton/pull/179)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Bump `defaultToolchainVersion` to 5.3.1 ([#178](https://github.com/swiftwasm/carton/pull/178)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Demangle and print Firefox stack traces in terminal ([#162](https://github.com/swiftwasm/carton/pull/162)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update dependencies ([#172](https://github.com/swiftwasm/carton/pull/172)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update dependencies ([#170](https://github.com/swiftwasm/carton/pull/170)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+
 # 0.8.2 (9 November 2020)
 
 This patch release updates the default version of Tokamak in the `carton init` template to fix autocomplete in Xcode.
