@@ -174,12 +174,12 @@ extension Templates {
       try createManifest(
         fileSystem: fileSystem,
         project: project,
-        platforms: [".macOS(.v10_15)"],
+        platforms: [".macOS(.v11)"],
         dependencies: [
           .init(
             name: "Tokamak",
             url: "https://github.com/TokamakUI/Tokamak",
-            version: .from("0.6.0")
+            version: .from("0.6.1")
           ),
         ],
         targetDepencencies: [
