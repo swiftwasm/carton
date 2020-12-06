@@ -40,12 +40,15 @@ wasmFs.fs.writeSync = (fd, buffer, offset, length, position) => {
         break;
       case 2:
         console.error(text);
+        const prevLimit = Error.stackTraceLimit;
+        Error.stackTraceLimit = 1000
         socket.send(
           JSON.stringify({
             kind: "stackTrace",
             stackTrace: new Error().stack,
           })
         );
+        Error.stackTraceLimit = prevLimit;
         break;
     }
   }

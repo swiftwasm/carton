@@ -12,36 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-//  Created by Max Desiatov on 08/11/2020.
+//  Created by Jed Fox on 12/6/20.
 //
 
 import TSCBasic
 
 // swiftlint:disable force_try
-fileprivate let webpackRegex = try! RegEx(pattern: "(.+)@webpack:///(.+)")
-fileprivate let wasmRegex = try! RegEx(pattern: "(.+)@http://127.0.0.1.+WebAssembly.instantiate:(.+)")
+fileprivate let jsRegex = try! RegEx(pattern: "(.+?)(?:@(?:\\[(?:native|wasm) code\\]|(.+)))?$")
+fileprivate let wasmRegex = try! RegEx(pattern: "<\\?>\\.wasm-function\\[(.+)\\]@\\[wasm code\\]")
 // swiftlint:enable force_try
 
 public extension StringProtocol {
-  var firefoxStackTrace: [StackTraceItem] {
+  var safariStackTrace: [StackTraceItem] {
     split(separator: "\n").compactMap {
-      if let webpackMatch = webpackRegex.matchGroups(in: String($0)).first,
-         let symbol = webpackMatch.first,
-         let location = webpackMatch.last
-      {
-        return StackTraceItem(symbol: symbol, location: location, kind: .javaScript)
-      } else if
-        let wasmMatch = wasmRegex.matchGroups(in: String($0)).first,
-        let symbol = wasmMatch.first,
-        let location = wasmMatch.last
+      if let wasmMatch = wasmRegex.matchGroups(in: String($0)).first,
+         let symbol = wasmMatch.first
       {
         return StackTraceItem(
           symbol: demangle(symbol),
-          location: location,
+          location: nil,
           kind: .webAssembly
         )
+      } else if
+        let jsMatch = jsRegex.matchGroups(in: String($0)).first,
+        let symbol = jsMatch.first
+      {
+        let loc: String?
+        if jsMatch.count == 2 && !jsMatch[1].isEmpty {
+          loc = jsMatch[1]
+        } else {
+          loc = nil
+        }
+        return StackTraceItem(symbol: symbol, location: loc, kind: .javaScript)
       }
-
       return nil
     }
   }

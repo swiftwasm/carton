@@ -125,14 +125,18 @@ final class Server {
 
             switch event {
             case let .stackTrace(rawStackTrace):
-              guard environment == .firefox else { break }
-
-              let stackTrace = rawStackTrace.firefoxStackTrace
-
-              terminal.write("\nAn error occurred, here's a stack trace for it:\n", inColor: .red)
-              stackTrace.forEach { item in
-                terminal.write("  \(item.symbol)", inColor: .cyan)
-                terminal.write(" at \(item.location)\n", inColor: .grey)
+              if let stackTrace = rawStackTrace.parsedStackTrace(in: environment) {
+                terminal.write("\nAn error occurred, here's a stack trace for it:\n", inColor: .red)
+                stackTrace.forEach { item in
+                  terminal.write("  \(item.symbol)", inColor: .cyan)
+                  terminal.write(" at \(item.location ?? "<unknown>")\n", inColor: .grey)
+                }
+              } else {
+                terminal.write("\nAn error occurred, here's the raw stack trace for it:\n", inColor: .red)
+                terminal.write("  Please send an issue or PR to the Carton repository\n" +
+                               "  with your browser name and this raw stack trace so\n" +
+                               "  we can add support for it.\n", inColor: .grey)
+                terminal.write(rawStackTrace + "\n")
               }
             case let .testRunOutput(output):
               TestsParser().parse(output, terminal)
