@@ -18,7 +18,8 @@
 @testable import CartonHelpers
 import XCTest
 
-final class StackTraceTests: XCTestCase {
+final class StackTraceTests: XCTestCase {}
+extension StackTraceTests {
   func testFirefoxStackTrace() {
     // swiftlint:disable line_length
     let stackTrace = """
@@ -153,7 +154,8 @@ final class StackTraceTests: XCTestCase {
     ]
     XCTAssertEqual(stackTrace, expected)
   }
-
+}
+extension StackTraceTests {
   func testSafariStackTrace() {
     // swiftlint:disable line_length
     let stackTrace = """
@@ -320,7 +322,8 @@ final class StackTraceTests: XCTestCase {
       ]
     XCTAssertEqual(stackTrace, expected)
   }
-
+}
+extension StackTraceTests {
   func testChromeStackTrace() {
     // swiftlint:disable line_length
     let stackTrace = """
