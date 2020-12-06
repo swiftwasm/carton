@@ -18,8 +18,8 @@
 import TSCBasic
 
 // swiftlint:disable force_try
-fileprivate let webpackRegex = try! RegEx(pattern: "(.+)@webpack:///(.+)")
-fileprivate let wasmRegex = try! RegEx(pattern: "(.+)@http://127.0.0.1.+WebAssembly.instantiate:(.+)")
+private let webpackRegex = try! RegEx(pattern: "(.+)@webpack:///(.+)")
+private let wasmRegex = try! RegEx(pattern: "(.+)@http://127.0.0.1.+WebAssembly.instantiate:(.+)")
 // swiftlint:enable force_try
 
 public extension StringProtocol {

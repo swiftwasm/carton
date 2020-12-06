@@ -18,8 +18,8 @@
 import TSCBasic
 
 // swiftlint:disable force_try
-fileprivate let jsRegex = try! RegEx(pattern: "(.+?)(?:@(?:\\[(?:native|wasm) code\\]|(.+)))?$")
-fileprivate let wasmRegex = try! RegEx(pattern: "<\\?>\\.wasm-function\\[(.+)\\]@\\[wasm code\\]")
+private let jsRegex = try! RegEx(pattern: "(.+?)(?:@(?:\\[(?:native|wasm) code\\]|(.+)))?$")
+private let wasmRegex = try! RegEx(pattern: "<\\?>\\.wasm-function\\[(.+)\\]@\\[wasm code\\]")
 // swiftlint:enable force_try
 
 public extension StringProtocol {

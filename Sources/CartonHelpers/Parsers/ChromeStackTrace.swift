@@ -18,8 +18,8 @@
 import TSCBasic
 
 // swiftlint:disable force_try
-fileprivate let webpackRegex = try! RegEx(pattern: "at (.+) \\(webpack:///(.+?)\\)")
-fileprivate let wasmRegex = try! RegEx(pattern: "at (.+) \\(<anonymous>:(.+?)\\)")
+private let webpackRegex = try! RegEx(pattern: "at (.+) \\(webpack:///(.+?)\\)")
+private let wasmRegex = try! RegEx(pattern: "at (.+) \\(<anonymous>:(.+?)\\)")
 // swiftlint:enable force_try
 
 public extension StringProtocol {
@@ -46,4 +46,3 @@ public extension StringProtocol {
     }
   }
 }
-
