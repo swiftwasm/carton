@@ -56,6 +56,6 @@ public struct StackTraceItem: Equatable {
   }
 
   public let symbol: String
-  public let location: String
+  public let location: String?
   public let kind: Kind
 }
