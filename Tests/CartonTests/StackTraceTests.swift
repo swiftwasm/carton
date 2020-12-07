@@ -188,39 +188,6 @@ extension StackTraceTests {
 
     let expected: [StackTraceItem] =
       [
-//        .init(
-//          symbol: "wasmFs.fs.writeSync",
-//          location: "./entrypoint/dev.js?:35:21",
-//          kind: .javaScript
-//        ),
-//        .init(
-//          symbol: "a/this.wasiImport.fd_write</<",
-//          location: "./node_modules/@wasmer/wasi/lib/index.esm.js?:115:429",
-//          kind: .javaScript
-//        ),
-//        .init(
-//          symbol: "a/this.wasiImport.fd_write<",
-//          location: "./node_modules/@wasmer/wasi/lib/index.esm.js?:115:372",
-//          kind: .javaScript
-//        ),
-//        .init(
-//          symbol: "Z/<",
-//          location: "./node_modules/@wasmer/wasi/lib/index.esm.js?:102:271",
-//          kind: .javaScript
-//        ),
-//        .init(
-//          symbol: "write",
-//          location: "wasm-function[62062]:0x12af331",
-//          kind: .webAssembly
-//        ), .init(
-//          symbol: "swift_reportError",
-//          location: "wasm-function[21654]:0x37c242",
-//          kind: .webAssembly
-//        ), .init(
-//          symbol: "_swift_stdlib_reportFatalErrorInFile",
-//          location: "wasm-function[22950]:0x3e2996",
-//          kind: .webAssembly
-//        ),
         .init(
           symbol: "forEach",
           location: nil,
@@ -314,11 +281,6 @@ extension StackTraceTests {
           location: nil,
           kind: .javaScript
         ),
-//        .init(
-//          symbol: "swjs_create_function/func_ref<",
-//          location: nil,
-//          kind: .javaScript
-//        ),
       ]
     XCTAssertEqual(stackTrace, expected)
   }
