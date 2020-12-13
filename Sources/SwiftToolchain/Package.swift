@@ -76,6 +76,7 @@ public struct Product: Codable {
 public enum TargetType: String, Codable {
   case regular
   case test
+  case system
 }
 
 public struct Target: Codable {
