@@ -176,7 +176,7 @@ public final class Toolchain {
         switch target.type {
         case .regular:
           return "Sources/\(target.name)"
-        case .test:
+        case .test, .system:
           return nil
         }
       }

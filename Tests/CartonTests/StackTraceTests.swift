@@ -155,6 +155,7 @@ extension StackTraceTests {
     XCTAssertEqual(stackTrace, expected)
   }
 }
+
 extension StackTraceTests {
   func testSafariStackTrace() {
     // swiftlint:disable line_length
@@ -285,6 +286,7 @@ extension StackTraceTests {
     XCTAssertEqual(stackTrace, expected)
   }
 }
+
 extension StackTraceTests {
   func testChromeStackTrace() {
     // swiftlint:disable line_length
