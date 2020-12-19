@@ -1,6 +1,6 @@
 # 0.9.1 (19 December 2020)
 
-This is a bugfix release that fixes parsing of `Package.swift` manifests that contain dependencies on system targets.
+This is a bugfix release that fixes parsing of `Package.swift` manifests that contain dependencies on system targets. It also adds support for Chrome and Safari Stack traces. Many thanks to [@j-f1](https://github.com/j-f1) for the contribution!
 
 **Merged pull requests:**
 
