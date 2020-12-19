@@ -34,6 +34,11 @@
       "command": "swift build && cd TestApp && ../.build/debug/carton dev"
     },
     {
+      "label": "build and run dev release",
+      "type": "shell",
+      "command": "swift build && cd TestApp && ../.build/debug/carton dev --release"
+    },
+    {
       "label": "build release and run dev",
       "type": "shell",
       "command": "swift build -c release && cd TestApp && ../.build/release/carton dev"
@@ -87,6 +92,11 @@
       "label": "build and run bundle",
       "type": "shell",
       "command": "swift build && cd TestApp && ../.build/debug/carton bundle"
+    },
+    {
+      "label": "build and run bundle debug",
+      "type": "shell",
+      "command": "swift build && cd TestApp && ../.build/debug/carton bundle --debug"
     },
     {
       "label": "build and run bundle, log to file",
