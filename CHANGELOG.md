@@ -1,3 +1,15 @@
+# 0.9.1 (19 December 2020)
+
+This is a bugfix release that fixes parsing of `Package.swift` manifests that contain dependencies on system targets.
+
+**Merged pull requests:**
+
+- Update dependencies ([#188](https://github.com/swiftwasm/carton/pull/188)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Fix parsing system targets in `Package.swift` ([#189](https://github.com/swiftwasm/carton/pull/189)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Bump ini from 1.3.5 to 1.3.8 ([#187](https://github.com/swiftwasm/carton/pull/187)) via [@dependabot[bot]](https://github.com/dependabot[bot])
+- Add support for Chrome and Safari stack traces ([#186](https://github.com/swiftwasm/carton/pull/186)) via [@j-f1](https://github.com/j-f1)
+- Update dependencies ([#184](https://github.com/swiftwasm/carton/pull/184)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+
 # 0.9.0 (4 December 2020)
 
 This release adds multiple changes and new features:

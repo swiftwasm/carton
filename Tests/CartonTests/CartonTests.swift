@@ -55,7 +55,7 @@ final class CartonTests: XCTestCase {
     let data = pipe.fileHandleForReading.readDataToEndOfFile()
     let output = String(data: data, encoding: .utf8)
 
-    XCTAssertEqual(output?.trimmingCharacters(in: .whitespacesAndNewlines), "0.9.0")
+    XCTAssertEqual(output?.trimmingCharacters(in: .whitespacesAndNewlines), "0.9.1")
   }
 
   final class TestOutputStream: OutputByteStream {
