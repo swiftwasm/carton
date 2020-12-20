@@ -29,7 +29,6 @@ let package = Package(
     .package(url: "https://github.com/apple/swift-crypto.git", from: "1.1.0"),
     .package(url: "https://github.com/JohnSundell/Splash.git", from: "0.14.0"),
     .package(url: "https://github.com/swiftwasm/WasmTransformer", .upToNextMinor(from: "0.0.2")),
-    .package(url: "https://github.com/mxcl/Path.swift.git", .exact("1.0.0")),
   ],
   targets: [
     // Targets are the basic building blocks of a package. A target can define a module
