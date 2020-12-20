@@ -19,6 +19,7 @@ import Combine
 import OpenCombine
 #endif
 import CartonHelpers
+import CartonKit
 import SwiftToolchain
 import TSCBasic
 

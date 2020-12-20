@@ -12,10 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import TSCBasic
+import ArgumentParser
+import CartonHelpers
 
-struct Project {
-  let name: String
-  let path: AbsolutePath
-  let inPlace: Bool
+public struct Carton: ParsableCommand {
+  public static let configuration = CommandConfiguration(
+    abstract: "📦 Watcher, bundler, and test runner for your SwiftWasm apps.",
+    version: cartonVersion,
+    subcommands: [Bundle.self, Dev.self, Init.self, SDK.self, Test.self, Package.self]
+  )
+
+  public init() {}
 }

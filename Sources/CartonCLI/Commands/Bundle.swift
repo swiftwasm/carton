@@ -14,6 +14,7 @@
 
 import ArgumentParser
 import CartonHelpers
+import CartonKit
 import Crypto
 import SwiftToolchain
 import TSCBasic

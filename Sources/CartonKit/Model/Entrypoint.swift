@@ -33,15 +33,20 @@ private let verifyHash = Equality<ByteString, String> {
   """
 }
 
-enum EntrypointError: Error {
+public enum EntrypointError: Error {
   case downloadFailed(url: String)
 }
 
-struct Entrypoint {
+public struct Entrypoint {
   let fileName: String
   let sha256: ByteString
 
-  func paths(
+  public init(fileName: String, sha256: ByteString) {
+    self.fileName = fileName
+    self.sha256 = sha256
+  }
+
+  public func paths(
     on fileSystem: FileSystem
     // swiftlint:disable:next large_tuple
   ) -> (cartonDir: AbsolutePath, staticDir: AbsolutePath, filePath: AbsolutePath) {
@@ -50,7 +55,7 @@ struct Entrypoint {
     return (cartonDir, staticDir, staticDir.appending(component: fileName))
   }
 
-  func check(on fileSystem: FileSystem, _ terminal: InteractiveWriter) throws {
+  public func check(on fileSystem: FileSystem, _ terminal: InteractiveWriter) throws {
     let (cartonDir, staticDir, filePath) = paths(on: fileSystem)
 
     // If hash check fails, download the `static.zip` archive and unpack it

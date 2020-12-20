@@ -20,6 +20,7 @@ import Combine
 #else
 import OpenCombine
 #endif
+import CartonKit
 import SwiftToolchain
 import TSCBasic
 
