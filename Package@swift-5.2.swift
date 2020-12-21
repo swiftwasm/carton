@@ -29,7 +29,6 @@ let package = Package(
     .package(url: "https://github.com/apple/swift-crypto.git", from: "1.1.0"),
     .package(url: "https://github.com/JohnSundell/Splash.git", from: "0.14.0"),
     .package(url: "https://github.com/swiftwasm/WasmTransformer", .upToNextMinor(from: "0.0.1")),
-    .package(url: "https://github.com/mxcl/Path.swift.git", .exact("1.0.0")),
   ],
   targets: [
     // Targets are the basic building blocks of a package. A target can define a module
@@ -104,14 +103,12 @@ let package = Package(
         "CartonHelpers",
         .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
-        .product(name: "Path", package: "Path.swift"),
       ]
     ),
     .testTarget(
       name: "CartonCommandTests",
       dependencies: [
         "CartonCLI",
-        .product(name: "Path", package: "Path.swift"),
       ]
     ),
   ]

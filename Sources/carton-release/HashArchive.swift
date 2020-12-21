@@ -39,8 +39,10 @@ struct HashArchive: ParsableCommand {
     let terminal = InteractiveWriter.stdout
     let cwd = localFileSystem.currentWorkingDirectory!
     let staticPath = AbsolutePath(cwd, "static")
-    let dotFilesStaticPath = AbsolutePath(localFileSystem.homeDirectory)
-      .append(components: ".carton", "static")
+    let dotFilesStaticPath = localFileSystem.homeDirectory.appending(
+      components: ".carton",
+      "static"
+    )
 
     try localFileSystem.createDirectory(dotFilesStaticPath, recursive: true)
     let hashes = try ["dev", "bundle", "test"].map { entrypoint -> (String, String) in

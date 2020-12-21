@@ -16,7 +16,6 @@
 //
 
 @testable import CartonCLI
-import Path
 import XCTest
 
 extension DevCommandTests: Testable {}

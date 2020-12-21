@@ -38,15 +38,6 @@
         }
       },
       {
-        "package": "Path.swift",
-        "repositoryURL": "https://github.com/mxcl/Path.swift.git",
-        "state": {
-          "branch": null,
-          "revision": "f062ed9ce3729fb3ba3f43573136d2a0e0c6d209",
-          "version": "1.0.0"
-        }
-      },
-      {
         "package": "routing-kit",
         "repositoryURL": "https://github.com/vapor/routing-kit.git",
         "state": {
