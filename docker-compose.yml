@@ -1,0 +1,9 @@
+version: '3.7'
+
+services:
+
+  ubuntu20_04-swift5_3:
+    build: .
+    container_name: carton-test
+    volumes:
+      - './:/src'

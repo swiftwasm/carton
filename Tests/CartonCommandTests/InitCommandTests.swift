@@ -34,34 +34,8 @@ final class InitCommandTests: XCTestCase {
     }
   }
 
-  override static func setUp() {
-    // ensure the SDK is installed first
+  override class func setUp() {
     AssertExecuteCommand(command: "carton sdk install")
-  }
-
-  func testHelpString() throws {
-    // given
-    let expectation =
-      """
-      OVERVIEW: Create a Swift package for a new SwiftWasm project.
-
-      USAGE: carton init [--template <template>] [--name <name>] <subcommand>
-
-      OPTIONS:
-        --template <template>   The template to base the project on.
-        --name <name>           The name of the project
-        --version               Show the version.
-        -h, --help              Show help information.
-
-      SUBCOMMANDS:
-        list-templates          List the available templates
-
-        See 'carton help init <subcommand>' for detailed help.
-      """
-    // when
-    // then
-
-    AssertExecuteCommand(command: "carton init -h", expected: expectation)
   }
 
   func testWithNoArguments() throws {
@@ -74,24 +48,43 @@ final class InitCommandTests: XCTestCase {
 
     try packageDirectory.mkdir()
 
-    // when run cartin init with no additional parameters
+    XCTAssertTrue(packageDirectory.exists, "Did not create \(package) directory")
+
     AssertExecuteCommand(
       command: "carton init",
       cwd: packageDirectory.url
     )
 
     // Confirm that the files are actually in the folder
-    XCTAssertTrue(packageDirectory.ls().contains("Package.swift"))
-    XCTAssertTrue(packageDirectory.ls().contains("README.md"))
-    XCTAssertTrue(packageDirectory.ls().contains(".gitignore"))
-    XCTAssertTrue(packageDirectory.ls().contains("Sources"))
-    XCTAssertTrue(packageDirectory.ls().contains("Sources/\(package)"))
-    XCTAssertTrue(packageDirectory.ls().contains("Sources/\(package)/main.swift"))
-    XCTAssertTrue(packageDirectory.ls().contains("Tests"))
-    XCTAssertTrue(packageDirectory.ls().contains("Tests/LinuxMain.swift"))
-    XCTAssertTrue(packageDirectory.ls().contains("Tests/\(package)Tests"))
-    XCTAssertTrue(packageDirectory.ls().contains("Tests/\(package)Tests/\(package)Tests.swift"))
-    XCTAssertTrue(packageDirectory.ls().contains("Tests/\(package)Tests/XCTestManifests.swift"))
+    XCTAssertTrue(packageDirectory.ls().contains("Package.swift"), "Package.swift does not exist")
+    XCTAssertTrue(packageDirectory.ls().contains("README.md"), "README.md does not exist")
+    XCTAssertTrue(packageDirectory.ls().contains(".gitignore"), ".gitignore does not exist")
+    XCTAssertTrue(packageDirectory.ls().contains("Sources"), "Sources does not exist")
+    XCTAssertTrue(
+      packageDirectory.ls().contains("Sources/\(package)"),
+      "Sources/\(package) does not exist"
+    )
+    XCTAssertTrue(
+      packageDirectory.ls().contains("Sources/\(package)/main.swift"),
+      "Sources/\(package)/main.swift does not exist"
+    )
+    XCTAssertTrue(packageDirectory.ls().contains("Tests"), "Tests does not exist")
+    XCTAssertTrue(
+      packageDirectory.ls().contains("Tests/LinuxMain.swift"),
+      "Tests/LinuxMain.swift does not exist"
+    )
+    XCTAssertTrue(
+      packageDirectory.ls().contains("Tests/\(package)Tests"),
+      "Tests/\(package)Tests does not exist"
+    )
+    XCTAssertTrue(
+      packageDirectory.ls().contains("Tests/\(package)Tests/\(package)Tests.swift"),
+      "Tests/\(package)Tests/\(package)Tests.swift does not exist"
+    )
+    XCTAssertTrue(
+      packageDirectory.ls().contains("Tests/\(package)Tests/XCTestManifests.swift"),
+      "Tests/\(package)Tests/XCTestManifests.swift does not exist"
+    )
 
     // finally, clean up
     try packageDirectory.delete()

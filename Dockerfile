@@ -23,11 +23,12 @@ COPY . carton/
 
 RUN cd carton && \
   ./install_ubuntu_deps.sh && \
+  swift test --enable-test-discovery && \
   swift build -c release && \
-  cd TestApp && ../.build/release/carton test && cd .. && \
-  mv .build/release/carton /usr/bin && \
-  cd .. && \
-  rm -rf carton /tmp/wasmer*
+#  cd TestApp && ../.build/release/carton test && cd .. && \
+  mv .build/release/carton /usr/bin
+#  cd .. && \
+#  rm -rf carton /tmp/wasmer*
 
 # Set the default command to run
-CMD ["carton --help"]
+CMD ["carton"]

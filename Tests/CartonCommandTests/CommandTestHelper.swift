@@ -179,6 +179,8 @@ public func AssertHelp<T: ParsableCommand, U: ParsableCommand>(
 
 public class EmptyTest: XCTestCase {}
 
+extension EmptyTest: Testable {}
+
 public extension XCTest {
   static var debugURL: URL {
     let bundleURL = Bundle(for: EmptyTest.self).bundleURL

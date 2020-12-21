@@ -33,12 +33,12 @@ public extension Testable {
     }
     fatalError("couldn't find the products directory")
     #else
-    return AbsolutePath(Bundle.main.bundleURL.absoluteString)
+    return AbsolutePath(Bundle.main.bundleURL.path)
     #endif
   }
 
   var testFixturesDirectory: AbsolutePath {
-    packageDirectory.appending(components: "Test", "Fixtures")
+    packageDirectory.appending(components: "Tests", "Fixtures")
   }
 
   var packageDirectory: AbsolutePath {
@@ -73,6 +73,10 @@ extension AbsolutePath {
 
   var url: URL {
     URL(fileURLWithPath: pathString)
+  }
+
+  var exists: Bool {
+    FileManager.default.fileExists(atPath: pathString)
   }
 
   func ls() -> [String] {
