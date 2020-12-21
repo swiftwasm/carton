@@ -104,13 +104,14 @@ let package = Package(
         "CartonHelpers",
         .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
+        .product(name: "Path", package: "Path.swift"),
       ]
     ),
     .testTarget(
       name: "CartonCommandTests",
       dependencies: [
         "CartonCLI",
-        "Path",
+        .product(name: "Path", package: "Path.swift"),
       ]
     ),
   ]
