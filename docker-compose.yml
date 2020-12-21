@@ -3,7 +3,22 @@ version: '3.7'
 services:
 
   ubuntu20_04-swift5_3:
-    build: .
-    container_name: carton-test
+    image: swift:5.3-focal
+    container_name: carton
+    privileged: true
+    command:
+      - /bin/bash
+      - -c
+      - |
+        apt-get -q update
+        apt-get -q install -y \
+        libsqlite3-0 \
+        libsqlite3-dev \
+        curl unzip
+        mkdir -p /root/.carton/sdk && \
+        mkdir -p /root/.carton/sdk/wasm-5.3.1-RELEASE && \
+        ln -s /usr /root/.carton/sdk/wasm-5.3.1-RELEASE/usr
+        cd /src
+        swift test --enable-test-discovery
     volumes:
       - './:/src'

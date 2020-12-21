@@ -35,7 +35,7 @@ final class InitCommandTests: XCTestCase {
   }
 
   override func setUp() {
-    AssertExecuteCommand(command: "carton sdk install")
+    AssertExecuteCommand(command: "carton sdk install", debug: true)
   }
 
   func testWithNoArguments() throws {
@@ -52,7 +52,8 @@ final class InitCommandTests: XCTestCase {
 
     AssertExecuteCommand(
       command: "carton init",
-      cwd: packageDirectory.url
+      cwd: packageDirectory.url,
+      debug: true
     )
 
     // Confirm that the files are actually in the folder
