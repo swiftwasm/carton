@@ -108,7 +108,11 @@ final class InitCommandTests: XCTestCase {
       """
 
     // when run cartin init with no additional parameters
-    AssertExecuteCommand(command: "carton init", cwd: packageDirectory.url, expected: expectation)
+    AssertExecuteCommand(
+      command: "carton init",
+      cwd: packageDirectory.url,
+      expected: expectation
+    )
 
     // Confirm that the files are actually in the folder
     XCTAssertTrue(packageDirectory.ls().contains("Package.swift"))

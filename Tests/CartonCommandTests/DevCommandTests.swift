@@ -60,6 +60,9 @@ final class DevCommandTests: XCTestCase {
     // when
     // then
 
+    // ensure the SDK is installed first
+    AssertExecuteCommand(command: "carton sdk install")
+
     AssertExecuteCommand(command: "carton dev -h", expected: expectation)
   }
 }
