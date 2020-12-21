@@ -6,10 +6,18 @@ import PackageDescription
 let package = Package(
   name: "carton",
   platforms: [.macOS(.v10_15)],
+  products: [
+    .library(name: "SwiftToolchain", targets: ["SwiftToolchain"]),
+    .library(name: "CartonHelpers", targets: ["CartonHelpers"]),
+    .library(name: "CartonKit", targets: ["CartonKit"]),
+    .library(name: "CartonCLI", targets: ["CartonCLI"]),
+    .executable(name: "carton", targets: ["Carton"]),
+    .executable(name: "carton-release", targets: ["carton-release"]),
+  ],
   dependencies: [
     .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.1.1"),
     .package(
-      url: "https://github.com/apple/swift-argument-parser",
+      url: "https://github.com/apple/swift-argument-parser.git",
       .upToNextMinor(from: "0.3.0")
     ),
     .package(
@@ -27,7 +35,26 @@ let package = Package(
     // or a test suite. Targets can depend on other targets in this package, and on
     // products in packages which this package depends on.
     .target(
-      name: "carton",
+      name: "Carton",
+      dependencies: [
+        "CartonCLI",
+        // commented out for now. Will remove once confirmed working
+//        .product(name: "ArgumentParser", package: "swift-argument-parser"),
+//        .product(name: "AsyncHTTPClient", package: "async-http-client"),
+//        .product(name: "Crypto", package: "swift-crypto"),
+//        .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
+//        .product(name: "Vapor", package: "vapor"),
+//        "CartonHelpers",
+//        openCombineProduct,
+//        "SwiftToolchain",
+      ]
+    ),
+    .target(
+      name: "CartonCLI",
+      dependencies: ["CartonKit"]
+    ),
+    .target(
+      name: "CartonKit",
       dependencies: [
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
@@ -71,7 +98,18 @@ let package = Package(
     ),
     .testTarget(
       name: "CartonTests",
-      dependencies: ["carton"]
+      dependencies: [
+        "Carton",
+        "CartonHelpers",
+        .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
+        .product(name: "ArgumentParser", package: "swift-argument-parser"),
+      ]
+    ),
+    .testTarget(
+      name: "CartonCLITests",
+      dependencies: [
+        "CartonCLI",
+      ]
     ),
   ]
 )

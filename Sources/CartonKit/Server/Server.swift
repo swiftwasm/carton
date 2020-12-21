@@ -66,7 +66,7 @@ extension WebSocket: Hashable {
   }
 }
 
-final class Server {
+public final class Server {
   private let decoder = JSONDecoder()
   private var connections = Set<WebSocket>()
   private var subscriptions = [AnyCancellable]()
@@ -75,7 +75,7 @@ final class Server {
   private let localURL: String
   private let skipAutoOpen: Bool
 
-  struct Configuration {
+  public struct Configuration {
     let builder: Builder?
     let mainWasmPath: AbsolutePath
     let verbose: Bool
@@ -85,9 +85,31 @@ final class Server {
     let package: SwiftToolchain.Package
     let product: Product?
     let entrypoint: Entrypoint
+
+    public init(
+      builder: Builder?,
+      mainWasmPath: AbsolutePath,
+      verbose: Bool,
+      skipAutoOpen: Bool,
+      port: Int,
+      customIndexContent: String?,
+      package: SwiftToolchain.Package,
+      product: Product?,
+      entrypoint: Entrypoint
+    ) {
+      self.builder = builder
+      self.mainWasmPath = mainWasmPath
+      self.verbose = verbose
+      self.skipAutoOpen = skipAutoOpen
+      self.port = port
+      self.customIndexContent = customIndexContent
+      self.package = package
+      self.product = product
+      self.entrypoint = entrypoint
+    }
   }
 
-  init(
+  public init(
     with configuration: Configuration,
     _ terminal: InteractiveWriter
   ) throws {
@@ -151,7 +173,7 @@ final class Server {
   }
 
   /// Blocking function that starts the HTTP server
-  func run() throws {
+  public func run() throws {
     defer { app.shutdown() }
     try app.run()
     for conn in connections {

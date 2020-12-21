@@ -12,24 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import ArgumentParser
-import CartonHelpers
-import SwiftToolchain
-import TSCBasic
+import CartonCLI
 
-/// Proxy swift-package command to locally pinned toolchain version.
-struct Package: ParsableCommand {
-  static let configuration = CommandConfiguration(abstract: """
-  Perform operations on Swift packages.
-  """)
-
-  @Argument(wrappedValue: [], parsing: .remaining)
-  var arguments: [String]
-
-  func run() throws {
-    let terminal = InteractiveWriter.stdout
-
-    let toolchain = try Toolchain(localFileSystem, terminal)
-    try toolchain.runPackage(arguments)
-  }
-}
+Carton.main()

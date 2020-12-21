@@ -58,6 +58,34 @@ final class CartonTests: XCTestCase {
     XCTAssertEqual(output?.trimmingCharacters(in: .whitespacesAndNewlines), "0.9.1")
   }
 
+//  func testDev() throws {
+//    // This is an example of a functional test case.
+//    // Use XCTAssert and related functions to verify your tests produce the correct
+//    // results.
+//
+//    // Some of the APIs that we use below are available in macOS 10.13 and above.
+//    guard #available(macOS 10.13, *) else {
+//      return
+//    }
+//
+//    let fooBinary = productsDirectory.appendingPathComponent("carton")
+//
+//    let process = Process()
+//    process.executableURL = fooBinary
+//
+//    let pipe = Pipe()
+//    process.standardOutput = pipe
+//
+//    process.arguments = ["dev"]
+//    try process.run()
+//    process.waitUntilExit()
+//
+//    let data = pipe.fileHandleForReading.readDataToEndOfFile()
+//    let output = String(data: data, encoding: .utf8)
+//
+//    XCTAssertEqual(output?.trimmingCharacters(in: .whitespacesAndNewlines), "0.9.1")
+//  }
+
   final class TestOutputStream: OutputByteStream {
     var bytes: [UInt8] = []
     var currentOutput: String {

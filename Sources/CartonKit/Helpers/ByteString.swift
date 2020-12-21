@@ -12,13 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import ArgumentParser
-import CartonHelpers
+import Crypto
+import TSCBasic
 
-struct Carton: ParsableCommand {
-  static let configuration = CommandConfiguration(
-    abstract: "📦 Watcher, bundler, and test runner for your SwiftWasm apps.",
-    version: cartonVersion,
-    subcommands: [Bundle.self, Dev.self, Init.self, SDK.self, Test.self, Package.self]
-  )
+public extension ByteString {
+  var hexSHA256: String {
+    ByteString(SHA256.hash(data: contents)).hexadecimalRepresentation
+  }
 }

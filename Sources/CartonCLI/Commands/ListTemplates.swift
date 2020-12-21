@@ -12,4 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-Carton.main()
+import ArgumentParser
+import CartonHelpers
+import CartonKit
+import TSCBasic
+
+struct ListTemplates: ParsableCommand {
+  static let configuration = CommandConfiguration(
+    abstract: "List the available templates"
+  )
+
+  func run() throws {
+    let terminal = InteractiveWriter.stdout
+
+    Templates.allCases.forEach {
+      terminal.write($0.rawValue, inColor: .green, bold: true)
+      terminal.write("\t\($0.template.description)\n")
+    }
+  }
+}

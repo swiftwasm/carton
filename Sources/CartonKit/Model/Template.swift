@@ -16,11 +16,11 @@ import CartonHelpers
 import SwiftToolchain
 import TSCBasic
 
-enum Templates: String, CaseIterable {
+public enum Templates: String, CaseIterable {
   case basic
   case tokamak
 
-  var template: Template.Type {
+  public var template: Template.Type {
     switch self {
     case .basic: return Basic.self
     case .tokamak: return Tokamak.self
@@ -28,7 +28,7 @@ enum Templates: String, CaseIterable {
   }
 }
 
-protocol Template {
+public protocol Template {
   static var description: String { get }
   static func create(
     on fileSystem: FileSystem,

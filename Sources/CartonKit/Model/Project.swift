@@ -12,21 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import ArgumentParser
-import CartonHelpers
 import TSCBasic
 
-struct ListTemplates: ParsableCommand {
-  static let configuration = CommandConfiguration(
-    abstract: "List the available templates"
-  )
+public struct Project {
+  let name: String
+  let path: AbsolutePath
+  let inPlace: Bool
 
-  func run() throws {
-    let terminal = InteractiveWriter.stdout
-
-    Templates.allCases.forEach {
-      terminal.write($0.rawValue, inColor: .green, bold: true)
-      terminal.write("\t\($0.template.description)\n")
-    }
+  public init(name: String, path: AbsolutePath, inPlace: Bool) {
+    self.name = name
+    self.path = path
+    self.inPlace = inPlace
   }
 }
