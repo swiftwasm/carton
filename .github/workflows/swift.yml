@@ -84,9 +84,9 @@ jobs:
 
       - name: Build on Ubuntu 18.04 with Swift 5.3
         run: |
-          mkdir -p /root/.carton/sdk && \
-          mkdir -p /root/.carton/sdk/wasm-5.3.1-RELEASE && \
-          ln -s /usr /root/.carton/sdk/wasm-5.3.1-RELEASE/usr
+          mkdir -p /home/runner/.carton/sdk && \
+          mkdir -p /home/runner/.carton/sdk/wasm-5.3.1-RELEASE && \
+          ln -s /usr /home/runner/.carton/sdk/wasm-5.3.1-RELEASE/usr
           swift test -c release --enable-test-discovery
           swift build -c release
           sudo ./install_ubuntu_deps.sh
@@ -105,9 +105,9 @@ jobs:
 
       - name: Build on Ubuntu 20.04 with Swift 5.3
         run: |
-          mkdir -p /root/.carton/sdk && \
-          mkdir -p /root/.carton/sdk/wasm-5.3.1-RELEASE && \
-          ln -s /usr /root/.carton/sdk/wasm-5.3.1-RELEASE/usr
+          mkdir -p /home/runner/.carton/sdk && \
+          mkdir -p /home/runner/.carton/sdk/wasm-5.3.1-RELEASE && \
+          ln -s /usr /home/runner/.carton/sdk/wasm-5.3.1-RELEASE/usr
           swift test -c release --enable-test-discovery
           swift build -c release
           sudo ./install_ubuntu_deps.sh
