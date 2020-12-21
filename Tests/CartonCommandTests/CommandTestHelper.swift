@@ -177,9 +177,11 @@ public func AssertHelp<T: ParsableCommand, U: ParsableCommand>(
   )
 }
 
+public class EmptyTest: XCTestCase {}
+
 public extension XCTest {
-  var debugURL: URL {
-    let bundleURL = Bundle(for: type(of: self)).bundleURL
+  static var debugURL: URL {
+    let bundleURL = Bundle(for: EmptyTest.self).bundleURL
     return bundleURL.lastPathComponent.hasSuffix("xctest")
       ? bundleURL.deletingLastPathComponent()
       : bundleURL
@@ -265,7 +267,7 @@ public extension XCTest {
     let arguments = splitCommand.dropFirst().map(String.init)
 
     let commandName = String(splitCommand.first!)
-    let commandURL = debugURL.appendingPathComponent(commandName)
+    let commandURL = XCTest.debugURL.appendingPathComponent(commandName)
     guard (try? commandURL.checkResourceIsReachable()) ?? false else {
       XCTFail("No executable at '\(commandURL.standardizedFileURL.path)'.",
               file: file, line: line)
