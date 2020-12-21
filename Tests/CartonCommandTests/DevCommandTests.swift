@@ -16,7 +16,10 @@
 //
 
 @testable import CartonCLI
+import Path
 import XCTest
+
+extension DevCommandTests: Testable {}
 
 final class DevCommandTests: XCTestCase {
   func testDefaultArgumentParsing() throws {

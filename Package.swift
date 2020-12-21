@@ -114,9 +114,10 @@ let package = Package(
       ]
     ),
     .testTarget(
-      name: "CartonCLITests",
+      name: "CartonCommandTests",
       dependencies: [
         "CartonCLI",
+        .product(name: "Path", package: "Path.swift"),
       ]
     ),
   ]

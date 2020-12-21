@@ -187,8 +187,10 @@ public extension XCTest {
 
   func AssertExecuteCommand(
     command: String,
+    cwd: URL? = nil, // To allow for testing of file based output
     expected: String? = nil,
     exitCode: ExitCode = .success,
+    debug: Bool = false,
     file: StaticString = #file, line: UInt = #line
   ) {
     let splitCommand = command.split(separator: " ")
@@ -210,6 +212,10 @@ public extension XCTest {
     }
     process.arguments = arguments
 
+    if let workingDirectory = cwd {
+      process.currentDirectoryURL = workingDirectory
+    }
+
     let output = Pipe()
     process.standardOutput = output
     let error = Pipe()
@@ -228,6 +234,8 @@ public extension XCTest {
     let outputData = output.fileHandleForReading.readDataToEndOfFile()
     let outputActual = String(data: outputData, encoding: .utf8)!
       .trimmingCharacters(in: .whitespacesAndNewlines)
+
+    if debug { print(outputActual) }
 
     let errorData = error.fileHandleForReading.readDataToEndOfFile()
     let errorActual = String(data: errorData, encoding: .utf8)!

@@ -39,7 +39,8 @@ struct HashArchive: ParsableCommand {
     let terminal = InteractiveWriter.stdout
     let cwd = localFileSystem.currentWorkingDirectory!
     let staticPath = AbsolutePath(cwd, "static")
-    let dotFilesStaticPath = AbsolutePath(localFileSystem.homeDirectory, ".carton/static")
+    let dotFilesStaticPath = AbsolutePath(localFileSystem.homeDirectory)
+      .append(components: ".carton", "static")
 
     try localFileSystem.createDirectory(dotFilesStaticPath, recursive: true)
     let hashes = try ["dev", "bundle", "test"].map { entrypoint -> (String, String) in
@@ -85,7 +86,10 @@ struct HashArchive: ParsableCommand {
     """
 
     try localFileSystem.writeFileContents(
-      AbsolutePath(cwd, RelativePath("Sources/carton/Server/StaticArchive.swift")),
+      AbsolutePath(
+        cwd,
+        RelativePath("Sources").appending(components: "carton", "Server", "StaticArchive.swift")
+      ),
       bytes: ByteString(encodingAsUTF8: hashesFileContent)
     )
   }
