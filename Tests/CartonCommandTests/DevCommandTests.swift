@@ -21,6 +21,11 @@ import XCTest
 extension DevCommandTests: Testable {}
 
 final class DevCommandTests: XCTestCase {
+  override static func setUp() {
+    // ensure the SDK is installed first
+    AssertExecuteCommand(command: "carton sdk install")
+  }
+
   func testDefaultArgumentParsing() throws {
     // given
     let arguments: [String] = []
@@ -59,9 +64,6 @@ final class DevCommandTests: XCTestCase {
       """
     // when
     // then
-
-    // ensure the SDK is installed first
-    AssertExecuteCommand(command: "carton sdk install")
 
     AssertExecuteCommand(command: "carton dev -h", expected: expectation)
   }

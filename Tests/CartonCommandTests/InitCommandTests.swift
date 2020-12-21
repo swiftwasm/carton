@@ -34,6 +34,11 @@ final class InitCommandTests: XCTestCase {
     }
   }
 
+  override static func setUp() {
+    // ensure the SDK is installed first
+    AssertExecuteCommand(command: "carton sdk install")
+  }
+
   func testHelpString() throws {
     // given
     let expectation =
