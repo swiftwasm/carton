@@ -74,49 +74,10 @@ final class InitCommandTests: XCTestCase {
 
     try packageDirectory.mkdir()
 
-    // then I expect a default template to be created
-    let expectation =
-      """
-      Creating new project with template basic in \(package)
-      - checking Swift compiler path: \(AbsolutePath
-        .home)/.carton/sdk/wasm-5.3.1-RELEASE/usr/bin/swift
-      - checking Swift compiler path: \(AbsolutePath
-        .home)/.swiftenv/versions/wasm-5.3.1-RELEASE/usr/bin/swift
-      - checking Swift compiler path: \(AbsolutePath
-        .home)/Library/Developer/Toolchains/swift-wasm-5.3.1-RELEASE.xctoolchain/usr/bin/swift
-      Inferring basic settings...
-      - swift executable: \(AbsolutePath
-        .home)/Library/Developer/Toolchains/swift-wasm-5.3.1-RELEASE.xctoolchain/usr/bin/swift
-      SwiftWasm Swift version 5.3 (swiftlang-5.3.1)
-      Target: x86_64-apple-darwin20.2.0
-
-      Parsing package manifest: \(AbsolutePath
-        .home)/Library/Developer/Toolchains/swift-wasm-5.3.1-RELEASE.xctoolchain/usr/bin/swift package dump-package
-
-      Running...
-      \(AbsolutePath
-        .home)/Library/Developer/Toolchains/swift-wasm-5.3.1-RELEASE.xctoolchain/usr/bin/swift package init --type executable
-      Creating executable package: \(package)
-      Creating Package.swift
-      Creating README.md
-      Creating .gitignore
-      Creating Sources/
-      Creating Sources/\(package)/main.swift
-      Creating Tests/
-      Creating Tests/LinuxMain.swift
-      Creating Tests/\(package)Tests/
-      Creating Tests/\(package)Tests/\(package)Tests.swift
-      Creating Tests/\(package)Tests/XCTestManifests.swift
-
-
-      `swift` process finished successfully
-      """
-
     // when run cartin init with no additional parameters
     AssertExecuteCommand(
       command: "carton init",
-      cwd: packageDirectory.url,
-      expected: expectation
+      cwd: packageDirectory.url
     )
 
     // Confirm that the files are actually in the folder
