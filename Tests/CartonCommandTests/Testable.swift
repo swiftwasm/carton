@@ -29,12 +29,11 @@ public extension Testable {
   var productsDirectory: AbsolutePath {
     #if os(macOS)
     for bundle in Bundle.allBundles where bundle.bundlePath.hasSuffix(".xctest") {
-      print(bundle.bundleURL.deletingLastPathComponent().path)
       return AbsolutePath(bundle.bundleURL.deletingLastPathComponent().path)
     }
     fatalError("couldn't find the products directory")
     #else
-    return AbsolutePath(url: Bundle.main.bundleURL.absoluteString)
+    return AbsolutePath(Bundle.main.bundleURL.absoluteString)
     #endif
   }
 
@@ -74,6 +73,12 @@ extension AbsolutePath {
 
   var url: URL {
     URL(fileURLWithPath: pathString)
+  }
+
+  func ls() -> [String] {
+    guard let paths = try? FileManager.default.subpathsOfDirectory(atPath: pathString)
+    else { return [] }
+    return paths
   }
 
   static var home: AbsolutePath {

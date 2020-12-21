@@ -110,6 +110,19 @@ final class InitCommandTests: XCTestCase {
     // when run cartin init with no additional parameters
     AssertExecuteCommand(command: "carton init", cwd: packageDirectory.url, expected: expectation)
 
+    // Confirm that the files are actually in the folder
+    XCTAssertTrue(packageDirectory.ls().contains("Package.swift"))
+    XCTAssertTrue(packageDirectory.ls().contains("README.md"))
+    XCTAssertTrue(packageDirectory.ls().contains(".gitignore"))
+    XCTAssertTrue(packageDirectory.ls().contains("Sources"))
+    XCTAssertTrue(packageDirectory.ls().contains("Sources/\(package)"))
+    XCTAssertTrue(packageDirectory.ls().contains("Sources/\(package)/main.swift"))
+    XCTAssertTrue(packageDirectory.ls().contains("Tests"))
+    XCTAssertTrue(packageDirectory.ls().contains("Tests/LinuxMain.swift"))
+    XCTAssertTrue(packageDirectory.ls().contains("Tests/\(package)Tests"))
+    XCTAssertTrue(packageDirectory.ls().contains("Tests/\(package)Tests/\(package)Tests.swift"))
+    XCTAssertTrue(packageDirectory.ls().contains("Tests/\(package)Tests/XCTestManifests.swift"))
+
     // finally, clean up
     try packageDirectory.delete()
   }
