@@ -180,7 +180,7 @@ public class ToolchainSystem {
     }
 
     guard let releaseData = try? fileSystem.readFileContents(releaseFile).description else {
-      AssertFail("Release Data Not Available")
+      fatalError("Release Data Not Available")
     }
     terminal.write("Release Data = \(releaseData)")
     let ubuntuSuffix: String
