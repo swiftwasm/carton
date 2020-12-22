@@ -169,8 +169,10 @@ public class ToolchainSystem {
     terminal.write("Release = \(release)\n", inColor: .green)
 
     #if os(macOS)
+    terminal.write("Platform is macOS")
     let platformSuffixes = ["osx", "catalina", "macos"]
     #elseif os(Linux)
+    terminal.write("Platform is Linux")
     let releaseFile = AbsolutePath("etc").appending(component: "lsb-release")
     terminal.write("Release file = \(releaseFile)")
     guard fileSystem.isFile(releaseFile) else {
