@@ -5,10 +5,11 @@ LABEL Description="Carton is a watcher, bundler, and test runner for your SwiftW
 LABEL org.opencontainers.image.source https://github.com/swiftwasm/carton
 
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
-    apt-get -q install -y \
-    libsqlite3-0 \
-    libsqlite3-dev \
-    curl unzip \
+  apt-get -q install -y \
+  build-essential \
+  libsqlite3-0 \
+  libsqlite3-dev \
+  curl unzip \
   && export WASMER_DIR=/usr/local && curl https://get.wasmer.io -sSfL | sh && \
   rm -r /var/lib/apt/lists/*
 
@@ -23,12 +24,11 @@ COPY . carton/
 
 RUN cd carton && \
   ./install_ubuntu_deps.sh && \
-  swift test --enable-test-discovery && \
   swift build -c release && \
-#  cd TestApp && ../.build/release/carton test && cd .. && \
-  mv .build/release/carton /usr/bin
-#  cd .. && \
-#  rm -rf carton /tmp/wasmer*
+  cd TestApp && ../.build/release/carton test && cd .. && \
+  mv .build/release/carton /usr/bin && \
+  cd .. && \
+  rm -rf carton /tmp/wasmer*
 
 # Set the default command to run
-CMD ["carton"]
+CMD ["carton --help"]

@@ -24,14 +24,6 @@ final class DevCommandTests: XCTestCase {
   override static func setUp() {
     // ensure the SDK is installed first
     AssertExecuteCommand(command: "carton sdk install")
-
-    let exp = expectation(description: "Test after 5 seconds")
-    let result = XCTWaiter.wait(for: [exp], timeout: 10.0)
-    if result == XCTWaiter.Result.timedOut {
-      XCTAssertTrue(true)
-    } else {
-      XCTFail("Delay interrupted")
-    }
   }
 
   func testDefaultArgumentParsing() throws {

@@ -1,0 +1,51 @@
+FROM ghcr.io/swiftwasm/swift:5.3-focal
+
+LABEL maintainer="SwiftWasm Maintainers <hello@swiftwasm.org>"
+LABEL Description="Carton is a watcher, bundler, and test runner for your SwiftWasm apps"
+LABEL org.opencontainers.image.source https://github.com/swiftwasm/carton
+
+RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
+  apt-get -q install -y \
+  libsqlite3-0 \
+  libsqlite3-dev \
+  curl unzip \
+  sudo \
+  && export WASMER_DIR=/usr/local && curl https://get.wasmer.io -sSfL | sh && \
+  rm -r /var/lib/apt/lists/*
+
+
+# make sure it works with for the non-root user, but has sudo power
+RUN adduser --disabled-password --gecos '' worker
+RUN adduser worker sudo
+RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+USER worker
+
+WORKDIR /home/worker
+
+RUN mkdir -p .carton/sdk/wasm-5.3.1-RELEASE
+RUN ln -s /usr /home/worker/.carton/sdk/wasm-5.3.1-RELEASE/usr
+
+COPY . carton
+
+RUN sudo chown -R worker:worker .
+
+WORKDIR /home/worker/carton
+
+RUN rm -rf DerivedData && rm -rf .build && rm -rf .swiftpm
+
+RUN  swift test -c release --enable-test-discovery
+
+RUN sudo mv .build/release/carton /usr/local/bin
+
+RUN ls -alF /usr/local/bin
+
+WORKDIR /home/worker/
+
+RUN rm -rf carton
+
+RUN whoami
+
+EXPOSE 8080
+
+CMD ["carton", "--help"]
