@@ -179,7 +179,9 @@ public class ToolchainSystem {
       throw ToolchainError.unsupportedOperatingSystem
     }
 
-    let releaseData = try fileSystem.readFileContents(releaseFile).description
+    guard let releaseData = try? fileSystem.readFileContents(releaseFile).description else {
+      AssertFail("Release Data Not Available")
+    }
     terminal.write("Release Data = \(releaseData)")
     let ubuntuSuffix: String
     if releaseData.contains("DISTRIB_RELEASE=18.04") {
