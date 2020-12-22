@@ -99,7 +99,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
       - name: Build on Ubuntu 20.04 with Swift 5.3
         run: |
           sudo ./install_ubuntu_deps.sh
