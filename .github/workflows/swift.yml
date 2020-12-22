@@ -87,6 +87,8 @@ jobs:
           sudo ./install_ubuntu_deps.sh
           curl https://get.wasmer.io -sSfL | sh
           source /home/runner/.wasmer/wasmer.sh
+          mkdir -p /home/runner/.carton/sdk/wasm-5.3.1-RELEASE
+          ln -s /usr /home/worker/.carton/sdk/wasm-5.3.1-RELEASE/usr
           swift test -c release --enable-test-discovery
           swift build -c release
           cd TestApp && ../.build/release/carton test
@@ -99,13 +101,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
       - name: Build on Ubuntu 20.04 with Swift 5.3
         run: |
           sudo ./install_ubuntu_deps.sh
           curl https://get.wasmer.io -sSfL | sh
           source /home/runner/.wasmer/wasmer.sh
+          mkdir -p /home/runner/.carton/sdk/wasm-5.3.1-RELEASE
+          ln -s /usr /home/worker/.carton/sdk/wasm-5.3.1-RELEASE/usr
           swift test -c release --enable-test-discovery
           swift build -c release
           cd TestApp && ../.build/release/carton test
