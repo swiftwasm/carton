@@ -180,6 +180,7 @@ public class ToolchainSystem {
     }
 
     let releaseData = try fileSystem.readFileContents(releaseFile).description
+    terminal.write("Release Data = \(releaseData)")
     let ubuntuSuffix: String
     if releaseData.contains("DISTRIB_RELEASE=18.04") {
       ubuntuSuffix = "ubuntu18.04"
