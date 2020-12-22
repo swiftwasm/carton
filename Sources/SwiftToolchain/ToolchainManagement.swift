@@ -166,10 +166,13 @@ public class ToolchainSystem {
       }.whenComplete($0)
     }
 
+    terminal.write("Release = \(release)\n", inColor: .green)
+
     #if os(macOS)
     let platformSuffixes = ["osx", "catalina", "macos"]
     #elseif os(Linux)
     let releaseFile = AbsolutePath("etc").appending(component: "lsb-release")
+    terminal.write("Release file = \(releaseFile)")
     guard fileSystem.isFile(releaseFile) else {
       throw ToolchainError.unsupportedOperatingSystem
     }
