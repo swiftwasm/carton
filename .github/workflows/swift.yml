@@ -86,7 +86,7 @@ jobs:
         run: |
           mkdir -p /home/runner/.carton/sdk
           mkdir -p /home/runner/.carton/sdk/wasm-5.3.1-RELEASE
-          ln -s /usr /home/worker/.carton/sdk/wasm-5.3.1-RELEASE/usr
+          ln -s /usr /home/runner/.carton/sdk/wasm-5.3.1-RELEASE/usr
           sudo ./install_ubuntu_deps.sh
           curl https://get.wasmer.io -sSfL | sh
           source /home/runner/.wasmer/wasmer.sh
@@ -106,7 +106,7 @@ jobs:
         run: |
           mkdir -p /home/runner/.carton/sdk
           mkdir -p /home/runner/.carton/sdk/wasm-5.3.1-RELEASE
-          ln -s /usr /home/worker/.carton/sdk/wasm-5.3.1-RELEASE/usr
+          ln -s /usr /home/runner/.carton/sdk/wasm-5.3.1-RELEASE/usr
           sudo ./install_ubuntu_deps.sh
           curl https://get.wasmer.io -sSfL | sh
           source /home/runner/.wasmer/wasmer.sh
