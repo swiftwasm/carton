@@ -22,22 +22,6 @@ import XCTest
 extension InitCommandTests: Testable {}
 
 final class InitCommandTests: XCTestCase {
-  func testDefaultArgumentParsing() throws {
-    // given
-    let arguments: [String] = []
-
-    // when
-
-    AssertParse(Dev.self, arguments) { command in
-      // then
-      XCTAssertNotNil(command)
-    }
-  }
-
-  override func setUp() {
-    AssertExecuteCommand(command: "carton sdk install", debug: true)
-  }
-
   func testWithNoArguments() throws {
     // given I've created a directory
     let package = "wasp"
@@ -52,8 +36,7 @@ final class InitCommandTests: XCTestCase {
 
     AssertExecuteCommand(
       command: "carton init",
-      cwd: packageDirectory.url,
-      debug: true
+      cwd: packageDirectory.url
     )
 
     // Confirm that the files are actually in the folder
