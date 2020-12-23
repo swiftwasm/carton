@@ -43,7 +43,7 @@ public extension Testable {
 
   var packageDirectory: AbsolutePath {
     // necessary if you are using xcode
-    if let _ = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] {
+    if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
       return productsDirectory
         .parentDirectory
         .parentDirectory
