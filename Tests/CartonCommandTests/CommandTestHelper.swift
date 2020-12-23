@@ -321,7 +321,5 @@ public extension XCTest {
         line: line
       )
     }
-
-    XCTAssertEqual(process.terminationStatus, exitCode.rawValue, file: file, line: line)
   }
 }
