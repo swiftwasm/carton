@@ -106,7 +106,7 @@ let package = Package(
       ]
     ),
     .testTarget(
-      name: "CartonCLITests",
+      name: "CartonCommandTests",
       dependencies: [
         "CartonCLI",
       ]

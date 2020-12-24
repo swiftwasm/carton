@@ -99,7 +99,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
       - name: Build on Ubuntu 20.04 with Swift 5.3
         run: |
           swift test -c release --enable-test-discovery

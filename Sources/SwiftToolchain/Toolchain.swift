@@ -172,10 +172,11 @@ public final class Toolchain {
     let package = try self.package.get()
 
     let targetPaths = package.targets.compactMap { target -> String? in
+
       guard let path = target.path else {
         switch target.type {
         case .regular:
-          return "Sources/\(target.name)"
+          return RelativePath("Sources").appending(component: target.name).pathString
         case .test, .system:
           return nil
         }
