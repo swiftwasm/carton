@@ -15,7 +15,7 @@ jobs:
       - name: Build on macOS 10.15 with Swift 5.2
         run: |
           sudo xcode-select --switch /Applications/Xcode_11.7.app/Contents/Developer
-          swift build -c release --arch x86_64 --arch arm64
+          swift build -c release
           swift test -c release --enable-test-discovery
           brew bundle
           cd TestApp && ../.build/release/carton test
@@ -33,7 +33,7 @@ jobs:
       - name: Build on macOS 11.0 with Swift 5.2
         run: |
           sudo xcode-select --switch /Applications/Xcode_11.7.app/Contents/Developer
-          swift build -c release --arch x86_64 --arch arm64
+          swift build -c release
           swift test -c release --enable-test-discovery
           brew bundle
           cd TestApp && ../.build/release/carton test
