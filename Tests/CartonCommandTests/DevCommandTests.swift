@@ -37,7 +37,7 @@ final class DevCommandTests: XCTestCase {
     let waitTime: Int64 = 20
 
     // the directory was built using `carton init --template tokamak`
-    let package = "Milk"
+    let package = "milk"
     let packageDirectory = testFixturesDirectory.appending(component: package)
     XCTAssertTrue(
       packageDirectory.exists,
