@@ -22,16 +22,17 @@ import CartonHelpers
 import CartonKit
 import SwiftToolchain
 import TSCBasic
+import WAMR
 
 private enum Environment: String, CaseIterable, ExpressibleByArgument {
-  case wasmer
+  case wamr
   case defaultBrowser
 
   var destination: DestinationEnvironment {
     switch self {
     case .defaultBrowser:
       return .browser
-    case .wasmer:
+    case .wamr:
       return .other
     }
   }
@@ -52,7 +53,7 @@ struct Test: ParsableCommand {
   var testCases = [String]()
 
   @Option(help: "Environment used to run the tests, either a browser, or command-line Wasm host.")
-  private var environment = Environment.wasmer
+  private var environment = Environment.wamr
 
   @Option(
     name: .shortAndLong,
@@ -67,18 +68,16 @@ struct Test: ParsableCommand {
     let toolchain = try Toolchain(localFileSystem, terminal)
     let testBundlePath = try toolchain.buildTestBundle(isRelease: release)
 
-    if environment == .wasmer {
-      terminal.write("\nRunning the test bundle with wasmer:\n", inColor: .yellow)
-      var wasmerArguments = ["wasmer", testBundlePath.pathString]
+    if environment == .wamr {
+      terminal.write("\nRunning the test bundle with WAMR:\n", inColor: .yellow)
+      var arguments = [String]()
       if list {
-        wasmerArguments.append(contentsOf: ["--", "-l"])
+        arguments.append(contentsOf: ["-l"])
       } else if !testCases.isEmpty {
-        wasmerArguments.append("--")
-        wasmerArguments.append(contentsOf: testCases)
+        arguments.append(contentsOf: testCases)
       }
-      let runner = ProcessRunner(wasmerArguments, parser: TestsParser(), terminal)
 
-      try runner.waitUntilFinished()
+      try wasiRuntimeExecute(wasmPath: testBundlePath, cmdLineArgs: arguments)
     } else {
       try Server(
         with: .init(

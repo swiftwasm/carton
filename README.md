@@ -24,8 +24,8 @@ development workflow such as toolchain and SDK installations.
 
 ### Requirements
 
-- macOS 10.15 and Xcode 11.4 or later.
-- [Swift 5.2 or later](https://swift.org/download/) and Ubuntu 18.04 or 20.04 for Linux users.
+- macOS 10.15 and Xcode 12.0 or later.
+- [Swift 5.3 or later](https://swift.org/download/) and Ubuntu 18.04 or 20.04 for Linux users.
 
 ### Installation
 
@@ -170,7 +170,7 @@ Refer to [the pre-commit documentation page](https://pre-commit.com/) for more d
 and installation instructions for other platforms.
 
 SwiftFormat and SwiftLint also run on CI for every PR and thus a CI build can
-fail with incosistent formatting or style. We require CI builds to pass for all
+fail with inconsistent formatting or style. We require CI builds to pass for all
 PRs before merging.
 
 ### Code of Conduct

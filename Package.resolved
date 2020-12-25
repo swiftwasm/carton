@@ -164,8 +164,17 @@
         }
       },
       {
+        "package": "WAMR",
+        "repositoryURL": "https://github.com/swiftwasm/wamr-swift.git",
+        "state": {
+          "branch": "main",
+          "revision": "f06c454fd9c16d5a00c8bdece0b0a57e0bb82f43",
+          "version": null
+        }
+      },
+      {
         "package": "WasmTransformer",
-        "repositoryURL": "https://github.com/swiftwasm/WasmTransformer",
+        "repositoryURL": "https://github.com/swiftwasm/WasmTransformer.git",
         "state": {
           "branch": null,
           "revision": "74bd6559322b43390eb6da5a134f5af7f117bd01",

@@ -18,7 +18,7 @@ let package = Package(
     .library(name: "CartonKit", targets: ["CartonKit"]),
     .library(name: "CartonCLI", targets: ["CartonCLI"]),
     .executable(name: "carton", targets: ["Carton"]),
-    .executable(name: "carton-release", targets: ["carton-release"]),
+    .executable(name: "carton-release", targets: ["CartonRelease"]),
   ],
   dependencies: [
     .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.2.2"),
@@ -34,7 +34,11 @@ let package = Package(
     .package(url: "https://github.com/vapor/vapor.git", from: "4.29.3"),
     .package(url: "https://github.com/apple/swift-crypto.git", from: "1.1.0"),
     .package(url: "https://github.com/JohnSundell/Splash.git", from: "0.14.0"),
-    .package(url: "https://github.com/swiftwasm/WasmTransformer", .upToNextMinor(from: "0.0.2")),
+    .package(
+      url: "https://github.com/swiftwasm/WasmTransformer.git",
+      .upToNextMinor(from: "0.0.2")
+    ),
+    .package(name: "WAMR", url: "https://github.com/swiftwasm/wamr-swift.git", .branch("main")),
   ],
   targets: [
     // Targets are the basic building blocks of a package. A target can define a module
@@ -42,18 +46,7 @@ let package = Package(
     // products in packages which this package depends on.
     .target(
       name: "Carton",
-      dependencies: [
-        "CartonCLI",
-        // commented out for now. Will remove once confirmed working
-//        .product(name: "ArgumentParser", package: "swift-argument-parser"),
-//        .product(name: "AsyncHTTPClient", package: "async-http-client"),
-//        .product(name: "Crypto", package: "swift-crypto"),
-//        .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
-//        .product(name: "Vapor", package: "vapor"),
-//        "CartonHelpers",
-//        openCombineProduct,
-//        "SwiftToolchain",
-      ]
+      dependencies: ["CartonCLI"]
     ),
     .target(
       name: "CartonCLI",
@@ -70,6 +63,7 @@ let package = Package(
         "CartonHelpers",
         openCombineProduct,
         "SwiftToolchain",
+        "WAMR",
       ]
     ),
     .target(
@@ -94,7 +88,7 @@ let package = Package(
     // This target is used only for release automation tasks and
     // should not be installed by `carton` users.
     .target(
-      name: "carton-release",
+      name: "CartonRelease",
       dependencies: [
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
         .product(name: "AsyncHTTPClient", package: "async-http-client"),

@@ -44,7 +44,6 @@ struct Formula: ParsableCommand {
       head "https://github.com/swiftwasm/carton.git"
 
       depends_on :xcode => "11.4"
-      depends_on "wasmer"
       depends_on "binaryen"
 
       stable do

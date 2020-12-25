@@ -10,8 +10,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
   libsqlite3-0 \
   libsqlite3-dev \
   curl unzip \
-  && export WASMER_DIR=/usr/local && curl https://get.wasmer.io -sSfL | sh && \
-  rm -r /var/lib/apt/lists/*
+  && rm -r /var/lib/apt/lists/*
 
 ENV CARTON_ROOT=/root/.carton
 ENV CARTON_DEFAULT_TOOLCHAIN=wasm-5.3.1-RELEASE
@@ -28,8 +27,7 @@ RUN cd carton && \
   swift build -c release && \
   cd TestApp && ../.build/release/carton test && cd .. && \
   mv .build/release/carton /usr/bin && \
-  cd .. && \
-  rm -rf carton /tmp/wasmer*
+  cd ..
 
 # Set the default command to run
 CMD ["carton --help"]
