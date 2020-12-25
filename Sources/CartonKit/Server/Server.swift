@@ -124,7 +124,6 @@ public final class Server {
       arguments: ["vapor"]
     )
     localURL = "http://127.0.0.1:\(configuration.port)/"
-    // localURL = "http://localhost:\(configuration.port)/"
     skipAutoOpen = configuration.skipAutoOpen
 
     try LoggingSystem.bootstrap(from: &env)
