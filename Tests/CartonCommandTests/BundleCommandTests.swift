@@ -24,7 +24,7 @@ extension BundleCommandTests: Testable {}
 final class BundleCommandTests: XCTestCase {
   func testWithNoArguments() throws {
     // given I've created a directory
-    let package = "milk"
+    let package = "Milk"
     let packageDirectory = testFixturesDirectory.appending(component: package)
 
     let bundle = "Bundle"
