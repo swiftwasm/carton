@@ -1,0 +1,8 @@
+[1/2] Compiling CartonCommandTests CommandTestHelper.swift
+/Users/cavellebenjamin/Development/apps/carton/Tests/CartonCommandTests/DevCommandTests.swift:44:67: error: missing argument label 'file:' in call
+    let response = client?.get(url: "http://127.0.0.1:8080").wait(0)
+                                                                  ^
+                                                                  file:
+/Users/cavellebenjamin/Development/apps/carton/Tests/CartonCommandTests/DevCommandTests.swift:44:67: error: cannot convert value of type 'Int' to expected argument type 'StaticString'
+    let response = client?.get(url: "http://127.0.0.1:8080").wait(0)
+                                                                  ^

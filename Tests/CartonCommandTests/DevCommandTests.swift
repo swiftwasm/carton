@@ -15,10 +15,87 @@
 //  Created by Cavelle Benjamin on Dec/20/20.
 //
 
+import AsyncHTTPClient
 @testable import CartonCLI
 import XCTest
 
 extension DevCommandTests: Testable {}
 
-// Dev Command stub
-final class DevCommandTests: XCTestCase {}
+final class DevCommandTests: XCTestCase {
+  var client: HTTPClient?
+
+  override func tearDown() {
+    print("shutting down client")
+    try? client?.syncShutdown()
+    client = nil
+  }
+
+  func testWithNoArguments() throws {
+    let url = "http://127.0.0.1:8080"
+
+    // 20 seconds seems to be the right amount of time.
+    let waitTime: Int64 = 20
+
+    // the directory was built using `carton init --template tokamak`
+    let package = "milk"
+    let packageDirectory = testFixturesDirectory.appending(component: package)
+    XCTAssertTrue(
+      packageDirectory.exists,
+      "\(package) directory does not exist. Cannot execute tests."
+    )
+
+    do { try packageDirectory.appending(component: ".build").delete() } catch {}
+
+    let expectedHtml =
+      """
+      <html>
+        <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <script type="text/javascript" src="dev.js"></script>
+        </head>
+        <body>
+        </body>
+      </html>
+      """
+
+    guard let process = executeCommand(
+      command: "carton dev",
+      cwd: packageDirectory.url
+    ) else {
+      XCTFail("Could not create process")
+      return
+    }
+
+    let timeout = HTTPClient.Configuration.Timeout(
+      connect: .seconds(waitTime),
+      read: .seconds(waitTime)
+    )
+    client = HTTPClient(eventLoopGroupProvider: .createNew,
+                        configuration: HTTPClient.Configuration(timeout: timeout))
+
+    // block until we get a response or fail
+    guard let response = try? client?.get(url: url).wait() else {
+      XCTFail("Could not reach host")
+      return
+    }
+
+    process.terminate()
+
+    XCTAssertTrue(response.status == .ok, "Response was not ok")
+    guard let data = (response.body.flatMap { $0.getData(at: 0, length: $0.readableBytes) }) else {
+      XCTFail("Could not map data")
+      return
+    }
+    guard let actualHtml = String(data: data, encoding: .utf8) else {
+      XCTFail("Could convert data to string")
+      return
+    }
+
+    // test may be brittle as the template may change over time.
+    XCTAssertEqual(actualHtml, expectedHtml, "HTML output does not match")
+
+    // clean up
+    do { try packageDirectory.appending(component: ".build").delete() } catch {}
+  }
+}
