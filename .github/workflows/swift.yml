@@ -87,8 +87,6 @@ jobs:
           swift test -c release --enable-test-discovery
           swift build -c release
           sudo ./install_ubuntu_deps.sh
-          curl https://get.wasmer.io -sSfL | sh
-          source /home/runner/.wasmer/wasmer.sh
           cd TestApp && ../.build/release/carton test
           ../.build/release/carton bundle
         env:
@@ -104,8 +102,6 @@ jobs:
           swift test -c release --enable-test-discovery
           swift build -c release
           sudo ./install_ubuntu_deps.sh
-          curl https://get.wasmer.io -sSfL | sh
-          source /home/runner/.wasmer/wasmer.sh
           cd TestApp && ../.build/release/carton test
           ../.build/release/carton bundle
         env:
