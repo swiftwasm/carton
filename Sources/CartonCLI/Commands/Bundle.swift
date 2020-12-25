@@ -16,6 +16,7 @@ import ArgumentParser
 import CartonHelpers
 import CartonKit
 import Crypto
+import PackageModel
 import SwiftToolchain
 import TSCBasic
 import WasmTransformer
@@ -105,7 +106,7 @@ struct Bundle: ParsableCommand {
     buildDirectory: AbsolutePath,
     bundleDirectory: AbsolutePath,
     toolchain: Toolchain,
-    product: Product
+    product: ProductDescription
   ) throws {
     // Rename the final binary to use a part of its hash to bust browsers and CDN caches.
     let optimizedHash = try localFileSystem.readFileContents(optimizedPath).hexSHA256.prefix(16)
@@ -137,9 +138,9 @@ struct Bundle: ParsableCommand {
       ))
     )
 
-    let package = try toolchain.package.get()
-    for target in package.targets where target.type == .regular && !target.resources.isEmpty {
-      let targetPath = package.resourcesPath(for: target)
+    let manifest = try toolchain.manifest.get()
+    for target in manifest.targets where target.type == .regular && !target.resources.isEmpty {
+      let targetPath = manifest.resourcesPath(for: target)
       let resourcesPath = buildDirectory.appending(component: targetPath)
       let targetDirectory = bundleDirectory.appending(component: targetPath)
 
@@ -154,13 +155,13 @@ struct Bundle: ParsableCommand {
      swiftlint:disable:next line_length
      https://forums.swift.org/t/pitch-ability-to-declare-executable-targets-in-swiftpm-manifests-to-support-main/41968
      */
-    let inferredMainTarget = package.targets.first {
+    let inferredMainTarget = manifest.targets.first {
       product.targets.contains($0.name)
     }
 
     guard let mainTarget = inferredMainTarget else { return }
 
-    let targetPath = package.resourcesPath(for: mainTarget)
+    let targetPath = manifest.resourcesPath(for: mainTarget)
     let resourcesPath = buildDirectory.appending(component: targetPath)
     for file in try localFileSystem.traverseRecursively(resourcesPath) {
       let targetPath = bundleDirectory.appending(component: file.basename)

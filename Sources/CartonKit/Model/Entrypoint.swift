@@ -69,7 +69,7 @@ public struct Entrypoint {
 
       let client = HTTPClient(eventLoopGroupProvider: .createNew)
       let request = try HTTPClient.Request.get(url: staticArchiveURL)
-      let response: HTTPClient.Response = try await {
+      let response: HTTPClient.Response = try tsc_await {
         client.execute(request: request).whenComplete($0)
       }
       try client.syncShutdown()
@@ -91,7 +91,7 @@ public struct Entrypoint {
       terminal.logLookup("Unpacking the archive: ", archiveFile)
 
       try fileSystem.createDirectory(staticDir)
-      try await {
+      try tsc_await {
         ZipArchiver().extract(from: archiveFile, to: staticDir, completion: $0)
       }
     }

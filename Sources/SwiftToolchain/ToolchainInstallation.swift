@@ -49,7 +49,7 @@ extension ToolchainSystem {
     var subscriptions = [AnyCancellable]()
     let request = try HTTPClient.Request.get(url: url)
 
-    _ = try await { (completion: @escaping (Result<(), Error>) -> ()) in
+    _ = try tsc_await { (completion: @escaping (Result<(), Error>) -> ()) in
       client.execute(request: request, delegate: delegate).futureResult.whenComplete { _ in
         subject.send(completion: .finished)
       }
@@ -115,7 +115,7 @@ extension ToolchainSystem {
       path: path,
       reportHead: {
         guard $0.status == .ok,
-              let totalBytes = $0.headers.first(name: "Content-Length").flatMap(Int.init)
+          let totalBytes = $0.headers.first(name: "Content-Length").flatMap(Int.init)
         else {
           subject.send(completion: .failure(ToolchainError.invalidResponseCode($0.status.code)))
           return

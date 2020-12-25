@@ -110,7 +110,7 @@ struct Dev: ParsableCommand {
         port: port,
         customIndexContent: HTML.readCustomIndexPage(at: customIndexPage, on: localFileSystem),
         // swiftlint:disable:next force_try
-        package: try! toolchain.package.get(),
+        manifest: try! toolchain.manifest.get(),
         product: inferredProduct,
         entrypoint: Self.entrypoint
       ),

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import Foundation
+import PackageModel
 import SwiftToolchain
 import TSCBasic
 import Vapor
@@ -22,8 +23,8 @@ extension Application {
     let port: Int
     let mainWasmPath: AbsolutePath
     let customIndexContent: String?
-    let package: SwiftToolchain.Package
-    let product: Product?
+    let manifest: Manifest
+    let product: ProductDescription?
     let entrypoint: Entrypoint
     let onWebSocketOpen: (WebSocket, DestinationEnvironment) -> ()
     let onWebSocketClose: (WebSocket) -> ()
@@ -61,10 +62,10 @@ extension Application {
     }
 
     let buildDirectory = configuration.mainWasmPath.parentDirectory
-    for target in configuration.package.targets
+    for target in configuration.manifest.targets
       where target.type == .regular && !target.resources.isEmpty
     {
-      let resourcesPath = configuration.package.resourcesPath(for: target)
+      let resourcesPath = configuration.manifest.resourcesPath(for: target)
       get(.constant(resourcesPath), "**") {
         $0.eventLoop.makeSucceededFuture($0.fileio.streamFile(at: AbsolutePath(
           buildDirectory.appending(component: resourcesPath),
@@ -73,13 +74,13 @@ extension Application {
       }
     }
 
-    let inferredMainTarget = configuration.package.targets.first {
+    let inferredMainTarget = configuration.manifest.targets.first {
       configuration.product?.targets.contains($0.name) == true
     }
 
     guard let mainTarget = inferredMainTarget else { return }
 
-    let resourcesPath = configuration.package.resourcesPath(for: mainTarget)
+    let resourcesPath = configuration.manifest.resourcesPath(for: mainTarget)
     get("**") {
       $0.eventLoop.makeSucceededFuture($0.fileio.streamFile(at: AbsolutePath(
         buildDirectory.appending(component: resourcesPath),

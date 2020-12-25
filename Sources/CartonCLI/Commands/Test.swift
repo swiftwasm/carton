@@ -89,7 +89,7 @@ struct Test: ParsableCommand {
           port: port,
           customIndexContent: nil,
           // swiftlint:disable:next force_try
-          package: try! toolchain.package.get(),
+          manifest: try! toolchain.manifest.get(),
           product: nil,
           entrypoint: Self.entrypoint
         ),

@@ -27,8 +27,13 @@ let package = Package(
       .upToNextMinor(from: "0.3.0")
     ),
     .package(
+      name: "SwiftPM",
+      url: "https://github.com/apple/swift-package-manager.git",
+      .branch("main")
+    ),
+    .package(
       url: "https://github.com/apple/swift-tools-support-core.git",
-      .upToNextMinor(from: "0.1.10")
+      .branch("main")
     ),
     .package(url: "https://github.com/OpenCombine/OpenCombine.git", from: "0.10.0"),
     .package(url: "https://github.com/vapor/vapor.git", from: "4.29.3"),
@@ -65,7 +70,6 @@ let package = Package(
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
         .product(name: "Crypto", package: "swift-crypto"),
-        .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
         .product(name: "Vapor", package: "vapor"),
         "CartonHelpers",
         openCombineProduct,
@@ -76,7 +80,7 @@ let package = Package(
       name: "SwiftToolchain",
       dependencies: [
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
-        .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
+        .product(name: "SwiftPMDataModel", package: "SwiftPM"),
         "CartonHelpers",
         openCombineProduct,
         "WasmTransformer",
@@ -86,7 +90,6 @@ let package = Package(
       name: "CartonHelpers",
       dependencies: [
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
-        .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
         openCombineProduct,
         "Splash",
       ]
@@ -107,7 +110,6 @@ let package = Package(
       dependencies: [
         "Carton",
         "CartonHelpers",
-        .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
       ]
     ),

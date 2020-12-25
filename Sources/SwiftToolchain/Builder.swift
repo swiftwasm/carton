@@ -92,7 +92,7 @@ public final class Builder {
   }
 
   public func runAndWaitUntilFinished() throws {
-    try await { completion in
+    try tsc_await { completion in
       subscription = run()
         .sink(
           receiveCompletion: { completion($0.result) },

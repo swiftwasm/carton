@@ -18,6 +18,7 @@ import Combine
 #else
 import OpenCombine
 #endif
+import PackageModel
 import SwiftToolchain
 import TSCBasic
 import Vapor
@@ -82,8 +83,8 @@ public final class Server {
     let skipAutoOpen: Bool
     let port: Int
     let customIndexContent: String?
-    let package: SwiftToolchain.Package
-    let product: Product?
+    let manifest: Manifest
+    let product: ProductDescription?
     let entrypoint: Entrypoint
 
     public init(
@@ -93,8 +94,8 @@ public final class Server {
       skipAutoOpen: Bool,
       port: Int,
       customIndexContent: String?,
-      package: SwiftToolchain.Package,
-      product: Product?,
+      manifest: Manifest,
+      product: ProductDescription?,
       entrypoint: Entrypoint
     ) {
       self.builder = builder
@@ -103,7 +104,7 @@ public final class Server {
       self.skipAutoOpen = skipAutoOpen
       self.port = port
       self.customIndexContent = customIndexContent
-      self.package = package
+      self.manifest = manifest
       self.product = product
       self.entrypoint = entrypoint
     }
@@ -133,7 +134,7 @@ public final class Server {
         port: configuration.port,
         mainWasmPath: configuration.mainWasmPath,
         customIndexContent: configuration.customIndexContent,
-        package: configuration.package,
+        manifest: configuration.manifest,
         product: configuration.product,
         entrypoint: configuration.entrypoint,
         onWebSocketOpen: { [weak self] ws, environment in
