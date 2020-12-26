@@ -77,7 +77,7 @@ final class DevCommandTests: XCTestCase {
 
     // block until we get a response or fail
     guard let response = try? client?.get(url: url).wait() else {
-      XCTFail("Could not reach host")
+      XCTFail("Could not reach host at \(url)")
       return
     }
 
