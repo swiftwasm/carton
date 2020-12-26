@@ -30,6 +30,7 @@ extension Application {
   }
 
   func configure(with configuration: Configuration) {
+    http.server.configuration.hostname = "0.0.0.0"
     http.server.configuration.port = configuration.port
 
     let directory = FileManager.default.homeDirectoryForCurrentUser

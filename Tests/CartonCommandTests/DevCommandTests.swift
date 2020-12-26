@@ -31,10 +31,10 @@ final class DevCommandTests: XCTestCase {
   }
 
   func testWithNoArguments() throws {
-    let url = "http://127.0.0.1:8080"
+    let url = "http://localhost:8080"
 
     // 20 seconds seems to be the right amount of time.
-    let waitTime: Int64 = 20
+    let waitTime: Int64 = 60
 
     // the directory was built using `carton init --template tokamak`
     let package = "Milk"
@@ -61,7 +61,8 @@ final class DevCommandTests: XCTestCase {
 
     guard let process = executeCommand(
       command: "carton dev",
-      cwd: packageDirectory.url
+      cwd: packageDirectory.url,
+      debug: true
     ) else {
       XCTFail("Could not create process")
       return
