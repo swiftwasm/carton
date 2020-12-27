@@ -31,10 +31,16 @@ final class DevCommandTests: XCTestCase {
   }
 
   func testWithNoArguments() throws {
-    let url = "http://localhost:8080"
+    let url = "http://127.0.0.1:8080"
 
-    // 20 seconds seems to be the right amount of time.
-    let waitTime: Int64 = 60
+    // client time out for connecting and responding
+    let timeOut: Int64 = 60
+
+    // client delay... let the server start up
+    let delay: UInt32 = 30
+
+    // only try 5 times.
+    let polls = 5
 
     // the directory was built using `carton init --template tokamak`
     let package = "Milk"
@@ -60,7 +66,7 @@ final class DevCommandTests: XCTestCase {
       """
 
     guard let process = executeCommand(
-      command: "carton dev",
+      command: "carton dev --verbose",
       cwd: packageDirectory.url,
       debug: true
     ) else {
@@ -69,32 +75,46 @@ final class DevCommandTests: XCTestCase {
     }
 
     let timeout = HTTPClient.Configuration.Timeout(
-      connect: .seconds(waitTime),
-      read: .seconds(waitTime)
+      connect: .seconds(timeOut),
+      read: .seconds(timeOut)
     )
+
     client = HTTPClient(eventLoopGroupProvider: .createNew,
                         configuration: HTTPClient.Configuration(timeout: timeout))
 
-    // block until we get a response or fail
-    guard let response = try? client?.get(url: url).wait() else {
-      XCTFail("Could not reach host at \(url)")
-      return
-    }
+    var response: HTTPClient.Response?
+    var count = 0
 
+    // give the server some time to start
+    repeat {
+      sleep(delay)
+      response = try? client?.get(url: url).wait()
+      count += 1
+    } while count < polls && response == nil
+
+    // end the process regardless of success
     process.terminate()
 
-    XCTAssertTrue(response.status == .ok, "Response was not ok")
-    guard let data = (response.body.flatMap { $0.getData(at: 0, length: $0.readableBytes) }) else {
-      XCTFail("Could not map data")
-      return
-    }
-    guard let actualHtml = String(data: data, encoding: .utf8) else {
-      XCTFail("Could convert data to string")
-      return
-    }
+    if let response = response {
+      XCTAssertTrue(response.status == .ok, "Response was not ok")
 
-    // test may be brittle as the template may change over time.
-    XCTAssertEqual(actualHtml, expectedHtml, "HTML output does not match")
+      guard let data = (response.body.flatMap { $0.getData(at: 0, length: $0.readableBytes) })
+      else {
+        XCTFail("Could not map data")
+        return
+      }
+      guard let actualHtml = String(data: data, encoding: .utf8) else {
+        XCTFail("Could convert data to string")
+        return
+      }
+
+      // test may be brittle as the template may change over time.
+      XCTAssertEqual(actualHtml, expectedHtml, "HTML output does not match")
+
+    } else {
+      print("no response from server after \(count) tries or \(Int(count) * Int(delay)) seconds")
+      XCTFail("Could not reach server")
+    }
 
     // clean up
     do { try packageDirectory.appending(component: ".build").delete() } catch {}
