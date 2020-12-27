@@ -38,10 +38,7 @@ final class BundleCommandTests: XCTestCase {
     AssertExecuteCommand(
       command: "carton bundle",
       cwd: packageDirectory.url,
-      debug: true
     )
-
-    print(bundleDirectory.ls())
 
     // Confirm that the files are actually in the folder
     XCTAssertTrue(bundleDirectory.exists, "The Bundle directory should exist")
