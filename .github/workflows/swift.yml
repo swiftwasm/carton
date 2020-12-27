@@ -15,9 +15,9 @@ jobs:
       - name: Build on macOS 10.15 with Swift 5.2
         run: |
           sudo xcode-select --switch /Applications/Xcode_11.7.app/Contents/Developer
+          brew bundle
           swift test -c release --enable-test-discovery
           swift build -c release
-          brew bundle
           cd TestApp && ../.build/release/carton test
           ../.build/release/carton test --environment defaultBrowser
           ../.build/release/carton bundle
@@ -33,9 +33,9 @@ jobs:
       - name: Build on macOS 11.0 with Swift 5.2
         run: |
           sudo xcode-select --switch /Applications/Xcode_11.7.app/Contents/Developer
+          brew bundle
           swift test -c release --enable-test-discovery
           swift build -c release
-          brew bundle
           cd TestApp && ../.build/release/carton test
           ../.build/release/carton test --environment defaultBrowser
           ../.build/release/carton bundle
@@ -50,9 +50,9 @@ jobs:
       - name: Build on macOS 10.15 with Swift 5.3
         run: |
           sudo xcode-select --switch /Applications/Xcode_12.app/Contents/Developer
+          brew bundle
           swift test -c release --enable-test-discovery
           swift build -c release
-          brew bundle
           cd TestApp && ../.build/release/carton test
           ../.build/release/carton test --environment defaultBrowser
           ../.build/release/carton bundle
@@ -67,9 +67,9 @@ jobs:
       - name: Build on macOS 11.0 with Swift 5.3
         run: |
           sudo xcode-select --switch /Applications/Xcode_12.2.app/Contents/Developer
+          brew bundle
           swift test -c release --enable-test-discovery
           swift build -c release
-          brew bundle
           cd TestApp && ../.build/release/carton test
           ../.build/release/carton test --environment defaultBrowser
           ../.build/release/carton bundle
@@ -84,11 +84,11 @@ jobs:
 
       - name: Build on Ubuntu 18.04 with Swift 5.3
         run: |
-          swift test -c release --enable-test-discovery
-          swift build -c release
           sudo ./install_ubuntu_deps.sh
           curl https://get.wasmer.io -sSfL | sh
           source /home/runner/.wasmer/wasmer.sh
+          swift test -c release --enable-test-discovery
+          swift build -c release
           cd TestApp && ../.build/release/carton test
           ../.build/release/carton bundle
         env:
@@ -101,11 +101,11 @@ jobs:
       - uses: actions/checkout@v2
       - name: Build on Ubuntu 20.04 with Swift 5.3
         run: |
-          swift test -c release --enable-test-discovery
-          swift build -c release
           sudo ./install_ubuntu_deps.sh
           curl https://get.wasmer.io -sSfL | sh
           source /home/runner/.wasmer/wasmer.sh
+          swift test -c release --enable-test-discovery
+          swift build -c release
           cd TestApp && ../.build/release/carton test
           ../.build/release/carton bundle
         env:
