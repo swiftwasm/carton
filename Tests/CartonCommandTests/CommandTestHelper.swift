@@ -199,7 +199,6 @@ public extension XCTest {
     cwd: URL? = nil, // To allow for testing of file based output
     expected: String? = nil,
     exitCode: ExitCode = .success,
-    // watcher: @escaping (_ pid: Int32) -> Void,
     debug: Bool = false,
     file: StaticString = #file, line: UInt = #line
   ) -> Process? {
