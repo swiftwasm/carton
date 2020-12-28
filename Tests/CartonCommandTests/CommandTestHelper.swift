@@ -1,4 +1,4 @@
-//===----------------------------------------------------------*- swift -*-===//
+// ===----------------------------------------------------------*- swift -*-===//
 //
 // This source file is part of the Swift Argument Parser open source project
 //
@@ -7,10 +7,19 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
-//===----------------------------------------------------------------------===//
+// ===----------------------------------------------------------------------===//
 
 import ArgumentParser
 import XCTest
+
+public extension ExitCode {
+  static var quit = ExitCode(SIGQUIT)
+}
+
+public func stop(process id: Int32, exitCode: ExitCode = .success) {
+  print("sending stop command")
+  kill(id, exitCode.rawValue)
+}
 
 // extensions to the ParsableArguments protocol to facilitate XCTestExpectation support
 public protocol TestableParsableArguments: ParsableArguments {
@@ -177,19 +186,63 @@ public func AssertHelp<T: ParsableCommand, U: ParsableCommand>(
   )
 }
 
-public class EmptyTest: XCTestCase {}
-
-extension EmptyTest: Testable {}
-
 public extension XCTest {
-  static var debugURL: URL {
-    let bundleURL = Bundle(for: EmptyTest.self).bundleURL
+  var debugURL: URL {
+    let bundleURL = Bundle(for: type(of: self)).bundleURL
     return bundleURL.lastPathComponent.hasSuffix("xctest")
       ? bundleURL.deletingLastPathComponent()
       : bundleURL
   }
 
-  static func AssertExecuteCommand(
+  func executeCommand(
+    command: String,
+    cwd: URL? = nil, // To allow for testing of file based output
+    expected: String? = nil,
+    exitCode: ExitCode = .success,
+    debug: Bool = false,
+    file: StaticString = #file, line: UInt = #line
+  ) -> Process? {
+    let splitCommand = command.split(separator: " ")
+    let arguments = splitCommand.dropFirst().map(String.init)
+
+    let commandName = String(splitCommand.first!)
+    let commandURL = debugURL.appendingPathComponent(commandName)
+    guard (try? commandURL.checkResourceIsReachable()) ?? false else {
+      XCTFail("No executable at '\(commandURL.standardizedFileURL.path)'.",
+              file: file, line: line)
+      return nil
+    }
+
+    let process = Process()
+    if #available(macOS 10.13, *) {
+      process.executableURL = commandURL
+    } else {
+      process.launchPath = commandURL.path
+    }
+    process.arguments = arguments
+
+    if let workingDirectory = cwd {
+      process.currentDirectoryURL = workingDirectory
+    }
+
+    let output = Pipe()
+    process.standardOutput = output
+    let error = Pipe()
+    process.standardError = error
+
+    if #available(macOS 10.13, *) {
+      guard (try? process.run()) != nil else {
+        XCTFail("Couldn't run command process.", file: file, line: line)
+        return nil
+      }
+    } else {
+      process.launch()
+    }
+
+    return process
+  }
+
+  func AssertExecuteCommand(
     command: String,
     cwd: URL? = nil, // To allow for testing of file based output
     expected: String? = nil,
@@ -233,74 +286,7 @@ public extension XCTest {
     } else {
       process.launch()
     }
-    process.waitUntilExit()
 
-    let outputData = output.fileHandleForReading.readDataToEndOfFile()
-    let outputActual = String(data: outputData, encoding: .utf8)!
-      .trimmingCharacters(in: .whitespacesAndNewlines)
-
-    if debug { print(outputActual) }
-
-    let errorData = error.fileHandleForReading.readDataToEndOfFile()
-    let errorActual = String(data: errorData, encoding: .utf8)!
-      .trimmingCharacters(in: .whitespacesAndNewlines)
-
-    if let expected = expected {
-      AssertEqualStringsIgnoringTrailingWhitespace(
-        expected,
-        errorActual + outputActual,
-        file: file,
-        line: line
-      )
-    }
-
-    XCTAssertEqual(process.terminationStatus, exitCode.rawValue, file: file, line: line)
-  }
-
-  func AssertExecuteCommand(
-    command: String,
-    cwd: URL? = nil, // To allow for testing of file based output
-    expected: String? = nil,
-    exitCode: ExitCode = .success,
-    debug: Bool = false,
-    file: StaticString = #file, line: UInt = #line
-  ) {
-    let splitCommand = command.split(separator: " ")
-    let arguments = splitCommand.dropFirst().map(String.init)
-
-    let commandName = String(splitCommand.first!)
-    let commandURL = XCTest.debugURL.appendingPathComponent(commandName)
-    guard (try? commandURL.checkResourceIsReachable()) ?? false else {
-      XCTFail("No executable at '\(commandURL.standardizedFileURL.path)'.",
-              file: file, line: line)
-      return
-    }
-
-    let process = Process()
-    if #available(macOS 10.13, *) {
-      process.executableURL = commandURL
-    } else {
-      process.launchPath = commandURL.path
-    }
-    process.arguments = arguments
-
-    if let workingDirectory = cwd {
-      process.currentDirectoryURL = workingDirectory
-    }
-
-    let output = Pipe()
-    process.standardOutput = output
-    let error = Pipe()
-    process.standardError = error
-
-    if #available(macOS 10.13, *) {
-      guard (try? process.run()) != nil else {
-        XCTFail("Couldn't run command process.", file: file, line: line)
-        return
-      }
-    } else {
-      process.launch()
-    }
     process.waitUntilExit()
 
     let outputData = output.fileHandleForReading.readDataToEndOfFile()
