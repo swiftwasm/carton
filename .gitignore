@@ -94,11 +94,14 @@ Public
 
 # Node.js
 node_modules
+node_modules_remove
 
 # carton
 static
 static.zip
-TestApp/Bundle
+# TestApp/Bundle
+Tests/**/Bundle
+Tests/**/node_modules
 
 # macOS
 .DS_Store

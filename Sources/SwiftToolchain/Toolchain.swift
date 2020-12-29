@@ -94,8 +94,10 @@ public final class Toolchain {
     _ terminal: InteractiveWriter
   ) throws {
     let toolchainSystem = ToolchainSystem(fileSystem: fileSystem)
+    print("@thecb4 - filesystem = \(fileSystem)")
     let (swiftPath, version) = try toolchainSystem.inferSwiftPath(from: versionSpec, terminal)
     self.swiftPath = swiftPath
+    print("@thecb4 - swiftPath = \(swiftPath)")
     self.version = version
     self.fileSystem = fileSystem
     self.terminal = terminal
@@ -244,6 +246,7 @@ public final class Toolchain {
   /// Returns an absolute path to the resulting test bundle
   public func buildTestBundle(isRelease: Bool) throws -> AbsolutePath {
     let package = try self.package.get()
+    print("@thecb4 the package = \(package)")
     let binPath = try inferBinPath(isRelease: isRelease)
     let testProductName = "\(package.name)PackageTests"
     let testBundlePath = binPath.appending(component: "\(testProductName).wasm")

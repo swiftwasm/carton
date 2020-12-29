@@ -63,9 +63,12 @@ struct Test: ParsableCommand {
   func run() throws {
     let terminal = InteractiveWriter.stdout
 
+    print("@thecb4 - localfilesystem cwd = \(localFileSystem.currentWorkingDirectory)")
+
     try Self.entrypoint.check(on: localFileSystem, terminal)
     let toolchain = try Toolchain(localFileSystem, terminal)
     let testBundlePath = try toolchain.buildTestBundle(isRelease: release)
+    print("@thecb4 Test bundle path = \(testBundlePath)")
 
     if environment == .wasmer {
       terminal.write("\nRunning the test bundle with wasmer:\n", inColor: .yellow)

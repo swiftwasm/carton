@@ -45,6 +45,7 @@ public struct Package: Codable {
   init(with swiftPath: AbsolutePath, _ terminal: InteractiveWriter) throws {
     terminal.write("\nParsing package manifest: ", inColor: .yellow)
     terminal.write("\(swiftPath) package dump-package\n")
+    print("@thecb4 - swiftPath = \(swiftPath)")
     let output = try Data(processDataOutput([swiftPath.pathString, "package", "dump-package"]))
 
     self = try JSONDecoder().decode(Package.self, from: output)
