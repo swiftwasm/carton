@@ -25,7 +25,7 @@ COPY . carton/
 RUN cd carton && \
   ./install_ubuntu_deps.sh && \
   swift build -c release --build-tests --enable-test-discovery && \
-  swift test --enable-test-discovery && \
+  swift test -c release --enable-test-discovery && \
   mv .build/release/carton /usr/bin && \
   cd .. && \
   rm -rf carton /tmp/wasmer*
