@@ -16,12 +16,8 @@ jobs:
         run: |
           sudo xcode-select --switch /Applications/Xcode_11.7.app/Contents/Developer
           brew bundle
-          swift test -c release --enable-test-discovery
-          swift build -c release
-          cd TestApp && ../.build/release/carton test
-          ../.build/release/carton test --environment defaultBrowser
-          ../.build/release/carton bundle
-        # the token is required to get around GitHub API limits when downloading the toolchain
+          swift build --build-tests --enable-test-discovery
+          swift test --enable-test-discovery
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -34,12 +30,8 @@ jobs:
         run: |
           sudo xcode-select --switch /Applications/Xcode_11.7.app/Contents/Developer
           brew bundle
-          swift test -c release --enable-test-discovery
-          swift build -c release
-          cd TestApp && ../.build/release/carton test
-          ../.build/release/carton test --environment defaultBrowser
-          ../.build/release/carton bundle
-        env:
+          swift build --build-tests --enable-test-discovery
+          swift test --enable-test-discovery
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   catalina-swift5_3:
@@ -51,11 +43,8 @@ jobs:
         run: |
           sudo xcode-select --switch /Applications/Xcode_12.app/Contents/Developer
           brew bundle
-          swift test -c release --enable-test-discovery
-          swift build -c release
-          cd TestApp && ../.build/release/carton test
-          ../.build/release/carton test --environment defaultBrowser
-          ../.build/release/carton bundle
+          swift build --build-tests --enable-test-discovery
+          swift test --enable-test-discovery
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -68,11 +57,8 @@ jobs:
         run: |
           sudo xcode-select --switch /Applications/Xcode_12.2.app/Contents/Developer
           brew bundle
-          swift test -c release --enable-test-discovery
-          swift build -c release
-          cd TestApp && ../.build/release/carton test
-          ../.build/release/carton test --environment defaultBrowser
-          ../.build/release/carton bundle
+          swift build --build-tests --enable-test-discovery
+          swift test --enable-test-discovery
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -87,10 +73,8 @@ jobs:
           sudo ./install_ubuntu_deps.sh
           curl https://get.wasmer.io -sSfL | sh
           source /home/runner/.wasmer/wasmer.sh
-          swift test -c release --enable-test-discovery
-          swift build -c release
-          cd TestApp && ../.build/release/carton test
-          ../.build/release/carton bundle
+          swift build --build-tests --enable-test-discovery
+          swift test --enable-test-discovery
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -104,10 +88,8 @@ jobs:
           sudo ./install_ubuntu_deps.sh
           curl https://get.wasmer.io -sSfL | sh
           source /home/runner/.wasmer/wasmer.sh
-          swift test -c release --enable-test-discovery
-          swift build -c release
-          cd TestApp && ../.build/release/carton test
-          ../.build/release/carton bundle
+          swift build --build-tests --enable-test-discovery
+          swift test --enable-test-discovery
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
