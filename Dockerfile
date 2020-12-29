@@ -24,7 +24,7 @@ COPY . carton/
 
 RUN cd carton && \
   ./install_ubuntu_deps.sh && \
-  swift build --build-tests --enable-test-discovery && \
+  swift build -c release --build-tests --enable-test-discovery && \
   swift test --enable-test-discovery && \
   mv .build/release/carton /usr/bin && \
   cd .. && \
