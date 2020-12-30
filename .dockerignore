@@ -14,13 +14,14 @@
 
 # Node.js
 node_modules
+Tests/**/node_modules
 
 # carton
 static
 static.zip
-TestApp/Bundle
-TestApp/.build
 .git
+Tests/**/Bundle
+Tests/**/.build
 
 # macOS
 .DS_Store
