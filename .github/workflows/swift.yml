@@ -32,6 +32,7 @@ jobs:
           brew bundle
           swift build -c release --build-tests --enable-test-discovery
           swift test -c release --enable-test-discovery
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   catalina-swift5_3:
