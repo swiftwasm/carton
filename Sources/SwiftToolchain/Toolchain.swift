@@ -242,7 +242,10 @@ public final class Toolchain {
   }
 
   /// Returns an absolute path to the resulting test bundle
-  public func buildTestBundle(isRelease: Bool) throws -> AbsolutePath {
+  public func buildTestBundle(
+    isRelease: Bool,
+    _ environment: DestinationEnvironment
+  ) throws -> AbsolutePath {
     let package = try self.package.get()
     let binPath = try inferBinPath(isRelease: isRelease)
     let testProductName = "\(package.name)PackageTests"
@@ -263,7 +266,7 @@ public final class Toolchain {
     try Builder(
       arguments: builderArguments,
       mainWasmPath: testBundlePath,
-      environment: .other,
+      environment: environment,
       fileSystem,
       terminal
     )
