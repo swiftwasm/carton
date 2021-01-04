@@ -24,10 +24,9 @@ extension TestCommandTests: Testable {}
 final class TestCommandTests: XCTestCase {
   func testWithNoArguments() throws {
     // given I've created a directory
-    let package = "TestApp"
-    let packageDirectory = testFixturesDirectory.appending(components: "carton-test", package)
+    let packageDirectory = testFixturesDirectory.appending(components: "TestApp")
 
-    XCTAssertTrue(packageDirectory.exists, "The carton-test/TestApp directory does not exist")
+    XCTAssertTrue(packageDirectory.exists, "The TestApp directory does not exist")
 
     AssertExecuteCommand(
       command: "carton test",
