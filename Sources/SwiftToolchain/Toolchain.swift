@@ -283,21 +283,21 @@ public final class Toolchain {
     return testBundlePath
   }
 
-  public func packageInit(name: String, type: PackageType, inPlace: Bool) throws {
-    var initArgs = [
+  public func runPackageInit(name: String, type: PackageType, initialiseInSubdirectory: Bool) throws {
+    var arguments = [
       swiftPath.pathString, "package", "init",
       "--type", type.rawValue,
     ]
-    if !inPlace {
-      initArgs.append(contentsOf: ["--name", name])
-    }
-    try ProcessRunner(initArgs, terminal)
-      .waitUntilFinished()
+	
+	if initialiseInSubdirectory {
+		arguments += ["--name", name]
+	}
+	
+    try ProcessRunner(arguments, terminal).waitUntilFinished()
   }
 
   public func runPackage(_ arguments: [String]) throws {
-    let args = [swiftPath.pathString, "package"] + arguments
-    try ProcessRunner(args, terminal)
-      .waitUntilFinished()
+    let arguments = [swiftPath.pathString, "package"] + arguments
+    try ProcessRunner(arguments, terminal).waitUntilFinished()
   }
 }

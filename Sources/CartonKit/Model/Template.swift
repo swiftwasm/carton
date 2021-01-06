@@ -30,11 +30,12 @@ public enum Templates: String, CaseIterable {
 
 public protocol Template {
   static var description: String { get }
-  static func create(
-    on fileSystem: FileSystem,
-    project: Project,
-    _ terminal: InteractiveWriter
-  ) throws
+    static func createProject(
+      at projectPath: AbsolutePath,
+      inSubdirectory createInSubdirectory: Bool,
+      on fileSystem: FileSystem,
+      terminal: InteractiveWriter
+    ) throws
 }
 
 enum TemplateError: Error {
@@ -74,13 +75,18 @@ struct TargetDependency: CustomStringConvertible {
 
 extension Template {
   static func createPackage(
+    for project: Project,
     type: PackageType,
-    fileSystem: FileSystem,
-    project: Project,
-    _ terminal: InteractiveWriter
+    inSubdirectory createInSubdirectory: Bool,
+    on fileSystem: FileSystem,
+    terminal: InteractiveWriter
   ) throws {
     try Toolchain(fileSystem, terminal)
-      .packageInit(name: project.name, type: type, inPlace: project.inPlace)
+      .runPackageInit(
+        name: project.name,
+        type: type,
+        initialiseInSubdirectory: createInSubdirectory
+      )
   }
 
   static func createManifest(
@@ -131,13 +137,25 @@ extension Templates {
   struct Basic: Template {
     static let description: String = "A simple SwiftWasm project."
 
-    static func create(
+    static func createProject(
+      at projectPath: AbsolutePath,
+      inSubdirectory createInSubdirectory: Bool,
       on fileSystem: FileSystem,
-      project: Project,
-      _ terminal: InteractiveWriter
+      terminal: InteractiveWriter
     ) throws {
+
+      let project = Project(path: projectPath)
+
       try fileSystem.changeCurrentWorkingDirectory(to: project.path)
-      try createPackage(type: .executable, fileSystem: fileSystem, project: project, terminal)
+
+      try createPackage(
+        for: project,
+        type: .executable,
+        inSubdirectory: createInSubdirectory,
+        on: fileSystem,
+        terminal: terminal
+      )
+
       try createManifest(
         fileSystem: fileSystem,
         project: project,
@@ -153,6 +171,7 @@ extension Templates {
         ],
         terminal
       )
+
     }
   }
 }
@@ -161,16 +180,25 @@ extension Templates {
   struct Tokamak: Template {
     static let description: String = "A simple Tokamak project."
 
-    static func create(
+    static func createProject(
+      at projectPath: AbsolutePath,
+      inSubdirectory createInSubdirectory: Bool,
       on fileSystem: FileSystem,
-      project: Project,
-      _ terminal: InteractiveWriter
+      terminal: InteractiveWriter
     ) throws {
+
+      let project = Project(path: projectPath)
+
       try fileSystem.changeCurrentWorkingDirectory(to: project.path)
-      try createPackage(type: .executable,
-                        fileSystem: fileSystem,
-                        project: project,
-                        terminal)
+
+      try createPackage(
+        for: project,
+        type: .executable,
+        inSubdirectory: createInSubdirectory,
+        on: fileSystem,
+        terminal: terminal
+      )
+
       try createManifest(
         fileSystem: fileSystem,
         project: project,
@@ -187,11 +215,12 @@ extension Templates {
         ],
         terminal
       )
-      try fileSystem.writeFileContents(project.path.appending(
-        components: "Sources",
-        project.name,
-        "main.swift"
-      )) {
+
+      try fileSystem.writeFileContents(
+        project.path.appending(
+          components: "Sources", project.name, "main.swift"
+        )
+      ) {
         """
         import TokamakDOM
 
@@ -216,6 +245,7 @@ extension Templates {
         """
         .write(to: $0)
       }
+
     }
   }
 }
