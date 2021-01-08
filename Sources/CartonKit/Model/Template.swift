@@ -245,7 +245,6 @@ extension Templates {
         """
         .write(to: $0)
       }
-
     }
   }
 }
