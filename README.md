@@ -130,8 +130,9 @@ contributions enabling that.
 
 ### Sponsorship
 
-If this tool saved you any amount of time or money, please consider sponsoring
-the work of its maintainers on their sponsorship pages:
+If this tool saved you any amount of time or money, please consider [sponsoring
+the SwiftWasm organization](https://github.com/sponsors/swiftwasm). Or you can sponsor some of our
+maintainers directly on their personal sponsorship pages:
 [@carson-katri](https://github.com/sponsors/carson-katri),
 [@kateinoigakukun](https://github.com/sponsors/kateinoigakukun), and
 [@MaxDesiatov](https://github.com/sponsors/MaxDesiatov). While some of the
