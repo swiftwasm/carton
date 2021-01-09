@@ -194,12 +194,15 @@ public extension XCTest {
       : bundleURL
   }
 
+  /// Execute shell command and return the process the command is running in
+  ///
+  /// - parameter command: The command to execute.
+  /// - parameter cwd: The current working directory for executing the command.
+  /// - parameter file: The file the assertion is coming from.
+  /// - parameter line: The line the assertion is coming from.
   func executeCommand(
     command: String,
     cwd: URL? = nil, // To allow for testing of file based output
-    expected: String? = nil,
-    exitCode: ExitCode = .success,
-    debug: Bool = false,
     file: StaticString = #file, line: UInt = #line
   ) -> Process? {
     let splitCommand = command.split(separator: " ")
@@ -242,6 +245,16 @@ public extension XCTest {
     return process
   }
 
+  /// Execute shell command and assert output is what is expected
+  ///
+  /// - parameter command: The command to execute.
+  /// - parameter cwd: The current working directory for executing the command.
+  /// - parameter expected: The expect string output of the command.
+  /// - parameter expectedContains: A flag for whether or not it's exact or 'contains' should be used.
+  /// - parameter exitCode: The exit code of the command. Default is 'success'
+  /// - parameter debug: Debug the assertion by printing out the command string.
+  /// - parameter file: The file the assertion is coming from.
+  /// - parameter line: The line the assertion is coming from.
   func AssertExecuteCommand(
     command: String,
     cwd: URL? = nil, // To allow for testing of file based output

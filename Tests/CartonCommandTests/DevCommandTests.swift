@@ -22,10 +22,9 @@ import XCTest
 extension DevCommandTests: Testable {}
 
 final class DevCommandTests: XCTestCase {
-  var client: HTTPClient?
+  private var client: HTTPClient?
 
   override func tearDown() {
-    print("shutting down client")
     try? client?.syncShutdown()
     client = nil
   }
@@ -67,8 +66,7 @@ final class DevCommandTests: XCTestCase {
 
     guard let process = executeCommand(
       command: "carton dev --verbose",
-      cwd: packageDirectory.url,
-      debug: true
+      cwd: packageDirectory.url
     ) else {
       XCTFail("Could not create process")
       return

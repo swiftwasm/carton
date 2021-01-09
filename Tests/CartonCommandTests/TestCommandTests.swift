@@ -23,10 +23,9 @@ import XCTest
 extension TestCommandTests: Testable {}
 
 final class TestCommandTests: XCTestCase {
-  var client: HTTPClient?
+  private var client: HTTPClient?
 
   override func tearDown() {
-    print("shutting down client")
     try? client?.syncShutdown()
     client = nil
   }
