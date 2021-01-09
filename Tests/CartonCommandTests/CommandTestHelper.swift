@@ -306,7 +306,7 @@ public extension XCTest {
       if expectedContains {
         XCTAssertTrue(
           finalString.contains(expected),
-          "@thecb4 - the final string \(finalString) does not contain \(expected)"
+          "The final string \(finalString) does not contain \(expected)"
         )
       } else {
         AssertEqualStringsIgnoringTrailingWhitespace(
