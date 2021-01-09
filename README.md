@@ -120,14 +120,6 @@ By default `carton dev` will compile in the `debug` configuration. Add the `--re
 
 ## Roadmap
 
-Since a subset of Foundation and XCTest already work and are supplied in the latest snapshots of
-SwiftWasm SDK, the next top priority for `carton` is to allow running your XCTest suites directly in
-browsers and receiving test results back to the HTTP server, so that test results can be reported in CLI.
-This was blocked by [`XCTest` not allowing customized test report formats](https://bugs.swift.org/browse/SR-8436),
-which is now partially resolved with [a new argument available on
-`XCTMain`](https://github.com/apple/swift-corelibs-xctest/pull/306) and a custom [JSON test
-reporter](https://github.com/MaxDesiatov/XCTestJSONObserver/).
-
 As cross-compiling to WebAssembly and running apps and tests remotely is not too dissimilar to Android
 development, or even development on macOS for Linux through Docker, `carton` could potentially become
 a generic tool for cross-platform Swift developers. I'm not developing any Android apps currently, but

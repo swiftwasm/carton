@@ -31,57 +31,57 @@
     {
       "label": "build and run dev",
       "type": "shell",
-      "command": "swift build && cd TestApp && ../.build/debug/carton dev"
+      "command": "swift build && cd Tests/Fixtures/TestApp && ../../../.build/debug/carton dev"
     },
     {
       "label": "build and run dev release",
       "type": "shell",
-      "command": "swift build && cd TestApp && ../.build/debug/carton dev --release"
+      "command": "swift build && cd Tests/Fixtures/TestApp && ../../../.build/debug/carton dev --release"
     },
     {
       "label": "build release and run dev",
       "type": "shell",
-      "command": "swift build -c release && cd TestApp && ../.build/release/carton dev"
+      "command": "swift build -c release && cd Tests/Fixtures/TestApp && ../../../.build/release/carton dev"
     },
     {
       "label": "build release and run dev verbose",
       "type": "shell",
-      "command": "swift build -c release && cd TestApp && ../.build/release/carton dev -v"
+      "command": "swift build -c release && cd Tests/Fixtures/TestApp && ../../../.build/release/carton dev -v"
     },
     {
       "label": "build and run dev on 9090 port",
       "type": "shell",
-      "command": "swift build && cd TestApp && ../.build/debug/carton dev --port 9090"
+      "command": "swift build && cd Tests/Fixtures/TestApp && ../../../.build/debug/carton dev --port 9090"
     },
     {
       "label": "build and run dev w/ custom index",
       "type": "shell",
-      "command": "swift build && cd TestApp && ../.build/debug/carton dev --product TestApp --custom-index-page index.html"
+      "command": "swift build && cd Tests/Fixtures/TestApp && ../../../.build/debug/carton dev --product TestApp --custom-index-page index.html"
     },
     {
       "label": "build and run dev in subdirectory",
       "type": "shell",
-      "command": "swift build && cd TestApp/Sources/TestApp && ../../../.build/debug/carton dev --product TestApp"
+      "command": "swift build && cd Tests/Fixtures/TestApp/Sources/TestApp && ../../../.build/debug/carton dev --product TestApp"
     },
     {
       "label": "build and run test",
       "type": "shell",
-      "command": "swift build && cd TestApp && ../.build/debug/carton test"
+      "command": "swift build && cd Tests/Fixtures/TestApp && ../../../.build/debug/carton test"
     },
     {
       "label": "build and run browser test",
       "type": "shell",
-      "command": "swift build && cd TestApp && ../.build/debug/carton test --environment defaultBrowser"
+      "command": "swift build && cd Tests/Fixtures/TestApp && ../../../.build/debug/carton test --environment defaultBrowser"
     },
     {
       "label": "build and run test list",
       "type": "shell",
-      "command": "swift build && cd TestApp && ../.build/debug/carton test -l"
+      "command": "swift build && cd Tests/Fixtures/TestApp && ../../../.build/debug/carton test -l"
     },
     {
       "label": "build and run test case",
       "type": "shell",
-      "command": "swift build && cd TestApp && ../.build/debug/carton test Tests.Test/testTrivial"
+      "command": "swift build && cd Tests/Fixtures/TestApp && ../../../.build/debug/carton test Tests.Test/testTrivial"
     },
     {
       "label": "build and hash static dependencies",
@@ -91,22 +91,22 @@
     {
       "label": "build and run bundle",
       "type": "shell",
-      "command": "swift build && cd TestApp && ../.build/debug/carton bundle"
+      "command": "swift build && cd Tests/Fixtures/TestApp && ../../../.build/debug/carton bundle"
     },
     {
       "label": "build and run bundle debug",
       "type": "shell",
-      "command": "swift build && cd TestApp && ../.build/debug/carton bundle --debug"
+      "command": "swift build && cd Tests/Fixtures/TestApp && ../../../.build/debug/carton bundle --debug"
     },
     {
       "label": "build and run bundle, log to file",
       "type": "shell",
-      "command": "swift build && cd TestApp && ../.build/debug/carton bundle > .build/log"
+      "command": "swift build && cd Tests/Fixtures/TestApp && ../../../.build/debug/carton bundle > .build/log"
     },
     {
       "label": "build and run bundle w/ custom index",
       "type": "shell",
-      "command": "swift build && cd TestApp && ../.build/debug/carton bundle --custom-index-page index.html"
+      "command": "swift build && cd Tests/Fixtures/TestApp && ../../../.build/debug/carton bundle --custom-index-page index.html"
     },
     {
       "type": "npm",
