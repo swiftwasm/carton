@@ -246,6 +246,7 @@ public extension XCTest {
     command: String,
     cwd: URL? = nil, // To allow for testing of file based output
     expected: String? = nil,
+    expectedContains: Bool = false,
     exitCode: ExitCode = .success,
     debug: Bool = false,
     file: StaticString = #file, line: UInt = #line
@@ -299,13 +300,22 @@ public extension XCTest {
     let errorActual = String(data: errorData, encoding: .utf8)!
       .trimmingCharacters(in: .whitespacesAndNewlines)
 
+    let finalString = errorActual + outputActual
+
     if let expected = expected {
-      AssertEqualStringsIgnoringTrailingWhitespace(
-        expected,
-        errorActual + outputActual,
-        file: file,
-        line: line
-      )
+      if expectedContains {
+        XCTAssertTrue(
+          finalString.contains(expected),
+          "@thecb4 - the final string \(finalString) does not contain \(expected)"
+        )
+      } else {
+        AssertEqualStringsIgnoringTrailingWhitespace(
+          expected,
+          errorActual + outputActual,
+          file: file,
+          line: line
+        )
+      }
     }
   }
 }

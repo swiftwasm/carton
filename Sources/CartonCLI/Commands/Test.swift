@@ -67,6 +67,8 @@ struct Test: ParsableCommand {
     let toolchain = try Toolchain(localFileSystem, terminal)
     let testBundlePath = try toolchain.buildTestBundle(isRelease: release)
 
+    print("@thecb4 test bundle path: \(testBundlePath.pathString)")
+
     if environment == .wasmer {
       terminal.write("\nRunning the test bundle with wasmer:\n", inColor: .yellow)
       var wasmerArguments = ["wasmer", testBundlePath.pathString]
