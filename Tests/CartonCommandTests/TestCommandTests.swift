@@ -15,6 +15,7 @@
 //  Created by Cavelle Benjamin on Dec/28/20.
 //
 
+import AsyncHTTPClient
 @testable import CartonCLI
 import TSCBasic
 import XCTest
@@ -22,9 +23,17 @@ import XCTest
 extension TestCommandTests: Testable {}
 
 final class TestCommandTests: XCTestCase {
+  private var client: HTTPClient?
+
+  override func tearDown() {
+    try? client?.syncShutdown()
+    client = nil
+  }
+
   func testWithNoArguments() throws {
     // given I've created a directory
-    let packageDirectory = testFixturesDirectory.appending(components: "TestApp")
+    let package = "TestApp"
+    let packageDirectory = testFixturesDirectory.appending(components: package)
 
     XCTAssertTrue(packageDirectory.exists, "The TestApp directory does not exist")
 
@@ -37,4 +46,41 @@ final class TestCommandTests: XCTestCase {
     let buildDirectory = packageDirectory.appending(component: ".build")
     do { try buildDirectory.delete() } catch {}
   }
+
+  func testEnvironmentDefaultBrowser() throws {
+    // given I've created a directory
+    let package = "TestApp"
+    let packageDirectory = testFixturesDirectory.appending(components: package)
+
+    let expectedTestSuiteCount = 1
+    let expectedTestsCount = 1
+
+    let expectedContent =
+      """
+      Test Suites: \(ControlCode.CSI)32m\(expectedTestSuiteCount) passed\(ControlCode
+        .CSI)0m, \(expectedTestSuiteCount) total
+      Tests:       \(ControlCode.CSI)32m\(expectedTestsCount) passed\(ControlCode
+        .CSI)0m, \(expectedTestsCount) total
+      """
+
+    XCTAssertTrue(packageDirectory.exists, "The TestApp directory does not exist")
+
+    // start clean
+    do { try packageDirectory.appending(component: ".build").delete() } catch {}
+
+    AssertExecuteCommand(
+      command: "carton test",
+      cwd: packageDirectory.url,
+      expected: expectedContent,
+      expectedContains: true
+    )
+
+    // finally, clean up
+    do { try packageDirectory.appending(component: ".build").delete() } catch {}
+  }
+}
+
+enum ControlCode {
+  static let ESC = "\u{001B}"
+  static let CSI = "\(ESC)["
 }
