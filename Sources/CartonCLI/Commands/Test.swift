@@ -65,7 +65,7 @@ struct Test: ParsableCommand {
 
     try Self.entrypoint.check(on: localFileSystem, terminal)
     let toolchain = try Toolchain(localFileSystem, terminal)
-    let testBundlePath = try toolchain.buildTestBundle(isRelease: release)
+    let testBundlePath = try toolchain.buildTestBundle(isRelease: release, environment.destination)
 
     if environment == .wasmer {
       terminal.write("\nRunning the test bundle with wasmer:\n", inColor: .yellow)
