@@ -15,6 +15,7 @@ jobs:
       - name: Build on macOS 10.15 with Swift 5.2
         run: |
           sudo xcode-select --switch /Applications/Xcode_11.7.app/Contents/Developer
+          rm '/usr/local/bin/swiftlint'
           brew bundle
           swift build -c release --build-tests --enable-test-discovery
           swift test -c release --enable-test-discovery
@@ -29,6 +30,7 @@ jobs:
       - name: Build on macOS 11.0 with Swift 5.2
         run: |
           sudo xcode-select --switch /Applications/Xcode_11.7.app/Contents/Developer
+          rm '/usr/local/bin/swiftlint'
           brew bundle
           swift build -c release --build-tests --enable-test-discovery
           swift test -c release --enable-test-discovery
@@ -43,6 +45,7 @@ jobs:
       - name: Build on macOS 10.15 with Swift 5.3
         run: |
           sudo xcode-select --switch /Applications/Xcode_12.app/Contents/Developer
+          rm '/usr/local/bin/swiftlint'
           brew bundle
           swift build -c release --build-tests --enable-test-discovery
           swift test -c release --enable-test-discovery
@@ -57,6 +60,7 @@ jobs:
       - name: Build on macOS 11.0 with Swift 5.3
         run: |
           sudo xcode-select --switch /Applications/Xcode_12.2.app/Contents/Developer
+          rm '/usr/local/bin/swiftlint'
           brew bundle
           swift build -c release --build-tests --enable-test-discovery
           swift test -c release --enable-test-discovery
