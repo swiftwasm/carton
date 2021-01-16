@@ -60,6 +60,12 @@ struct Test: ParsableCommand {
   )
   var port = 8080
 
+  @Option(
+    name: .shortAndLong,
+    help: "Set the location where the testing server will run."
+  )
+  var host = "127.0.0.1"
+
   func run() throws {
     let terminal = InteractiveWriter.stdout
 
@@ -87,6 +93,7 @@ struct Test: ParsableCommand {
           verbose: true,
           skipAutoOpen: false,
           port: port,
+          host: host,
           customIndexContent: nil,
           // swiftlint:disable:next force_try
           package: try! toolchain.package.get(),
