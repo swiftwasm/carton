@@ -62,7 +62,7 @@ struct Test: ParsableCommand {
 
   @Option(
     name: .shortAndLong,
-    help: "Set the location where the testing server will run."
+    help: "Set the location where the testing server will run. Default is `127.0.0.1`."
   )
   var host = "127.0.0.1"
 
