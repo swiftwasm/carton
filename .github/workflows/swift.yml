@@ -22,20 +22,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  bigsur-swift5_2:
-    runs-on: macos-11.0
+#   bigsur-swift5_2:
+#     runs-on: macos-11.0
 
-    steps:
-      - uses: actions/checkout@v2
-      - name: Build on macOS 11.0 with Swift 5.2
-        run: |
-          sudo xcode-select --switch /Applications/Xcode_11.7.app/Contents/Developer
-          rm '/usr/local/bin/swiftlint'
-          brew bundle
-          swift build -c release --build-tests --enable-test-discovery
-          swift test -c release --enable-test-discovery
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#     steps:
+#       - uses: actions/checkout@v2
+#       - name: Build on macOS 11.0 with Swift 5.2
+#         run: |
+#           sudo xcode-select --switch /Applications/Xcode_11.7.app/Contents/Developer
+#           rm '/usr/local/bin/swiftlint'
+#           brew bundle
+#           swift build -c release --build-tests --enable-test-discovery
+#           swift test -c release --enable-test-discovery
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   catalina-swift5_3:
     runs-on: macos-10.15
@@ -52,20 +52,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  bigsur-swift5_3:
-    runs-on: macos-11.0
+#   bigsur-swift5_3:
+#     runs-on: macos-11.0
 
-    steps:
-      - uses: actions/checkout@v2
-      - name: Build on macOS 11.0 with Swift 5.3
-        run: |
-          sudo xcode-select --switch /Applications/Xcode_12.2.app/Contents/Developer
-          rm '/usr/local/bin/swiftlint'
-          brew bundle
-          swift build -c release --build-tests --enable-test-discovery
-          swift test -c release --enable-test-discovery
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#     steps:
+#       - uses: actions/checkout@v2
+#       - name: Build on macOS 11.0 with Swift 5.3
+#         run: |
+#           sudo xcode-select --switch /Applications/Xcode_12.2.app/Contents/Developer
+#           rm '/usr/local/bin/swiftlint'
+#           brew bundle
+#           swift build -c release --build-tests --enable-test-discovery
+#           swift test -c release --enable-test-discovery
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   ubuntu18_04-swift5_3:
     runs-on: ubuntu-18.04
