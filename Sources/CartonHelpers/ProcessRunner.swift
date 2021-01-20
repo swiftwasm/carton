@@ -146,7 +146,7 @@ public final class ProcessRunner {
   }
 
   public func waitUntilFinished() throws {
-    try await { completion in
+    try tsc_await { completion in
       subscription = publisher
         .sink(
           receiveCompletion: { completion($0.result) },

@@ -14,6 +14,7 @@
 
 import CartonHelpers
 import Foundation
+import PackageModel
 import TSCBasic
 import TSCUtility
 
@@ -67,16 +68,29 @@ enum ToolchainError: Error, CustomStringConvertible {
   }
 }
 
-extension Package.Dependency.Requirement {
+extension PackageDependencyDescription.Requirement {
   var isJavaScriptKitCompatible: Bool {
-    if let upperBound = range?.first?.upperBound, let version = Version(string: upperBound) {
-      return version >= compatibleJSKitVersion
+    switch self {
+    case let .exact(version):
+      return version == compatibleJSKitVersion
+    case let .range(range):
+      return range.upperBound >= compatibleJSKitVersion
+    case .localPackage:
+      return true
+    default:
+      return false
     }
-    return exact?.compactMap { Version(string: $0) } == [compatibleJSKitVersion]
   }
 
-  var version: String {
-    revision?.first ?? range?.first?.lowerBound ?? ""
+  var versionDescription: String {
+    switch self {
+    case let .exact(version):
+      return version.description
+    case let .range(range):
+      return range.lowerBound.description
+    default:
+      return "(Unknown)"
+    }
   }
 }
 
@@ -86,7 +100,7 @@ public final class Toolchain {
 
   private let version: String
   private let swiftPath: AbsolutePath
-  public let package: Result<Package, Error>
+  public let manifest: Result<Manifest, Error>
 
   public init(
     for versionSpec: String? = nil,
@@ -99,7 +113,7 @@ public final class Toolchain {
     self.version = version
     self.fileSystem = fileSystem
     self.terminal = terminal
-    package = Result { try Package(with: swiftPath, terminal) }
+    manifest = Result { try Manifest.from(swiftPath: swiftPath, terminal: terminal) }
   }
 
   private func inferBinPath(isRelease: Bool) throws -> AbsolutePath {
@@ -114,11 +128,11 @@ public final class Toolchain {
     return AbsolutePath(binPath)
   }
 
-  private func inferDevProduct(hint: String?) throws -> Product? {
-    let package = try self.package.get()
+  private func inferDevProduct(hint: String?) throws -> ProductDescription? {
+    let manifest = try self.manifest.get()
 
-    var candidateProducts = package.products
-      .filter { $0.type.library == nil }
+    var candidateProducts = manifest.products
+      .filter { $0.type == .executable }
 
     if let productName = hint {
       candidateProducts = candidateProducts.filter { $0.name == productName }
@@ -152,7 +166,7 @@ public final class Toolchain {
   }
 
   private func inferManifestDirectory() throws -> AbsolutePath {
-    guard (try? package.get()) != nil, var cwd = fileSystem.currentWorkingDirectory else {
+    guard (try? manifest.get()) != nil, var cwd = fileSystem.currentWorkingDirectory else {
       throw ToolchainError.missingPackageManifest
     }
 
@@ -169,15 +183,15 @@ public final class Toolchain {
   }
 
   public func inferSourcesPaths() throws -> [AbsolutePath] {
-    let package = try self.package.get()
+    let manifest = try self.manifest.get()
 
-    let targetPaths = package.targets.compactMap { target -> String? in
+    let targetPaths = manifest.targets.compactMap { target -> String? in
 
       guard let path = target.path else {
         switch target.type {
         case .regular:
           return RelativePath("Sources").appending(component: target.name).pathString
-        case .test, .system:
+        case .test, .system, .executable, .binary:
           return nil
         }
       }
@@ -194,20 +208,20 @@ public final class Toolchain {
   public func buildCurrentProject(
     product: String?,
     isRelease: Bool
-  ) throws -> (builderArguments: [String], mainWasmPath: AbsolutePath, Product) {
+  ) throws -> (builderArguments: [String], mainWasmPath: AbsolutePath, ProductDescription) {
     guard let product = try inferDevProduct(hint: product)
     else { throw ToolchainError.noExecutableProduct }
 
-    let package = try self.package.get()
-    if let jsKit = package.dependencies?.first(where: { $0.name == "JavaScriptKit" }),
-       !jsKit.requirement.isJavaScriptKitCompatible
+    let manifest = try self.manifest.get()
+    if let jsKit = manifest.dependencies.first(where: { $0.name == "JavaScriptKit" }),
+      !jsKit.requirement.isJavaScriptKitCompatible
     {
-      let version = jsKit.requirement.version
+      let versionDescription = jsKit.requirement.versionDescription
 
       terminal.write(
         """
 
-        This version of JavaScriptKit \(version) is not known to be compatible with \
+        This version of JavaScriptKit \(versionDescription) is not known to be compatible with \
         carton \(cartonVersion). Please specify a JavaScriptKit dependency on version \
         \(compatibleJSKitVersion) in your `Package.swift`.\n
 
@@ -246,9 +260,9 @@ public final class Toolchain {
     isRelease: Bool,
     _ environment: DestinationEnvironment
   ) throws -> AbsolutePath {
-    let package = try self.package.get()
+    let manifest = try self.manifest.get()
     let binPath = try inferBinPath(isRelease: isRelease)
-    let testProductName = "\(package.name)PackageTests"
+    let testProductName = "\(manifest.name)PackageTests"
     let testBundlePath = binPath.appending(component: "\(testProductName).wasm")
     terminal.logLookup("- test bundle to run: ", testBundlePath.pathString)
 

@@ -41,7 +41,7 @@ private extension StringProtocol {
     _ labelB: TestsParser.Regex.Label
   ) -> (String.SubSequence, String.SubSequence)? {
     guard let a = match(of: regex, named: labelA.rawValue),
-          let b = match(of: regex, named: labelB.rawValue)
+      let b = match(of: regex, named: labelB.rawValue)
     else {
       return nil
     }
@@ -93,10 +93,10 @@ public struct TestsParser: ProcessOutputParser {
 
     enum Assertion: String, CaseIterable {
       case equal = "Equal",
-           greaterThan = "GreaterThan",
-           lessThan = "LessThan",
-           greaterThanOrEqual = "GreaterThanOrEqual",
-           lessThanOrEqual = "LessThanOrEqual"
+        greaterThan = "GreaterThan",
+        lessThan = "LessThan",
+        greaterThanOrEqual = "GreaterThanOrEqual",
+        lessThanOrEqual = "LessThanOrEqual"
 
       var funcName: String {
         "XCTAssert\(rawValue)"
@@ -178,20 +178,20 @@ public struct TestsParser: ProcessOutputParser {
       if let suite = line.match(of: Regex.suiteStarted, labelled: .suite) {
         suites.append(.init(name: suite, cases: []))
       } else if let testCase = line.match(of: Regex.caseFinished, labelled: .testCase),
-                let suite = line.match(of: Regex.caseFinished, labelled: .suite),
-                let suiteIdx = suites.firstIndex(where: { $0.name == suite }),
-                let status = line.match(of: Regex.caseFinished, labelled: .status),
-                let duration = line.match(of: Regex.caseFinished, labelled: .duration)
+        let suite = line.match(of: Regex.caseFinished, labelled: .suite),
+        let suiteIdx = suites.firstIndex(where: { $0.name == suite }),
+        let status = line.match(of: Regex.caseFinished, labelled: .status),
+        let duration = line.match(of: Regex.caseFinished, labelled: .duration)
       {
         suites[suiteIdx].cases.append(
           .init(name: testCase, passed: status == "passed", duration: duration, problems: [])
         )
       } else if let problem = line.matches(regex: Regex.problem),
-                let path = line.match(of: Regex.problem, labelled: .path),
-                let lineNum = line.match(of: Regex.problem, labelled: .line),
-                let status = line.match(of: Regex.problem, labelled: .status),
-                let suite = line.match(of: Regex.problem, labelled: .suite),
-                let testCase = line.match(of: Regex.problem, labelled: .testCase)
+        let path = line.match(of: Regex.problem, labelled: .path),
+        let lineNum = line.match(of: Regex.problem, labelled: .line),
+        let status = line.match(of: Regex.problem, labelled: .status),
+        let suite = line.match(of: Regex.problem, labelled: .suite),
+        let testCase = line.match(of: Regex.problem, labelled: .testCase)
       {
         let diag = DiagnosticsParser.CustomDiagnostic(
           kind: DiagnosticsParser.CustomDiagnostic.Kind(rawValue: String(status)) ?? .note,
@@ -202,7 +202,7 @@ public struct TestsParser: ProcessOutputParser {
           message: String(problem)
         )
         if let suiteIdx = suites.firstIndex(where: { $0.name == suite }),
-           let caseIdx = suites[suiteIdx].cases.firstIndex(where: { $0.name == testCase })
+          let caseIdx = suites[suiteIdx].cases.firstIndex(where: { $0.name == testCase })
         {
           suites[suiteIdx].cases[caseIdx].problems.append(diag)
         } else {
@@ -212,7 +212,7 @@ public struct TestsParser: ProcessOutputParser {
     }
     for problem in unmappedProblems {
       if let suiteIdx = suites.firstIndex(where: { $0.name == problem.suite }),
-         let caseIdx = suites[suiteIdx].cases.firstIndex(where: { $0.name == problem.testCase })
+        let caseIdx = suites[suiteIdx].cases.firstIndex(where: { $0.name == problem.testCase })
       {
         suites[suiteIdx].cases[caseIdx].problems.append(problem.problem)
       }
@@ -269,7 +269,7 @@ public struct TestsParser: ProcessOutputParser {
           }
           // Get the line of code from the file and output it for context.
           if let lineNum = Int(problem.line),
-             lineNum > 0
+            lineNum > 0
           {
             var fileContents: String?
             if let fileBuf = fileBufs.first(where: { $0.path == problem.file })?.contents {

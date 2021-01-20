@@ -104,8 +104,8 @@ public class ToolchainSystem {
   ) throws -> String {
     if let versionSpec = versionSpec {
       if let url = URL(string: versionSpec),
-         let filename = url.pathComponents.last,
-         let match = versionRegEx.matchGroups(in: filename).first?.first
+        let filename = url.pathComponents.last,
+        let match = versionRegEx.matchGroups(in: filename).first?.first
       {
         terminal.logLookup("Inferred swift version: ", match)
         return match
@@ -152,7 +152,7 @@ public class ToolchainSystem {
     terminal.logLookup("Fetching release assets from ", releaseURL)
     let decoder = JSONDecoder()
     let request = try HTTPClient.Request.get(url: releaseURL)
-    let release = try await {
+    let release = try tsc_await {
       client.execute(request: request).flatMapResult { response -> Result<Release, Error> in
         guard (200..<300).contains(response.status.code), let body = response.body else {
           return .failure(ToolchainError.invalidResponse(
@@ -267,10 +267,10 @@ public class ToolchainSystem {
 
   public func fetchLocalSwiftVersion() throws -> String? {
     guard fileSystem.isFile(swiftVersionPath),
-          let version = try fileSystem.readFileContents(swiftVersionPath)
-          .validDescription?
-          // get the first line of the file
-          .components(separatedBy: CharacterSet.newlines).first
+      let version = try fileSystem.readFileContents(swiftVersionPath)
+      .validDescription?
+      // get the first line of the file
+      .components(separatedBy: CharacterSet.newlines).first
     else { return nil }
 
     return version

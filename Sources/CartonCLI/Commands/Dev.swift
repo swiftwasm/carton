@@ -47,7 +47,10 @@ struct Dev: ParsableCommand {
   @Option(name: .shortAndLong, help: "Set the HTTP port the development server will run on.")
   var port = 8080
 
-  @Option(name: .shortAndLong, help: "Set the location where the development server will run. Default is `127.0.0.1`.")
+  @Option(
+    name: .shortAndLong,
+    help: "Set the location where the development server will run. Default is `127.0.0.1`."
+  )
   var host = "127.0.0.1"
 
   @Flag(name: .long, help: "Skip automatically opening app in system browser.")
@@ -114,7 +117,7 @@ struct Dev: ParsableCommand {
         host: host,
         customIndexContent: HTML.readCustomIndexPage(at: customIndexPage, on: localFileSystem),
         // swiftlint:disable:next force_try
-        package: try! toolchain.package.get(),
+        manifest: try! toolchain.manifest.get(),
         product: inferredProduct,
         entrypoint: Self.entrypoint
       ),
