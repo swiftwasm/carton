@@ -23,7 +23,7 @@ struct Formula: ParsableCommand {
     let archiveURL = "https://github.com/swiftwasm/carton/archive/\(version).tar.gz"
 
     let client = HTTPClient(eventLoopGroupProvider: .createNew)
-    let response: HTTPClient.Response = try await {
+    let response: HTTPClient.Response = try tsc_await {
       client.get(url: archiveURL).whenComplete($0)
     }
     try client.syncShutdown()

@@ -29,11 +29,11 @@ let package = Package(
     .package(
       name: "SwiftPM",
       url: "https://github.com/apple/swift-package-manager.git",
-      .branch("main")
+      .branch("release/5.4")
     ),
     .package(
       url: "https://github.com/apple/swift-tools-support-core.git",
-      .branch("main")
+      .branch("release/5.4")
     ),
     .package(url: "https://github.com/OpenCombine/OpenCombine.git", from: "0.10.0"),
     .package(url: "https://github.com/vapor/vapor.git", from: "4.29.3"),

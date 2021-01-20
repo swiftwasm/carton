@@ -86,8 +86,8 @@
         "package": "swift-driver",
         "repositoryURL": "https://github.com/apple/swift-driver.git",
         "state": {
-          "branch": "main",
-          "revision": "6c9985a3b77b7ace9e698e8aa8265ba5b82339e4",
+          "branch": "release/5.4",
+          "revision": "b71abc6384dcf3e765854e2b28b83c618d3726a6",
           "version": null
         }
       },
@@ -95,8 +95,8 @@
         "package": "llbuild",
         "repositoryURL": "https://github.com/apple/swift-llbuild.git",
         "state": {
-          "branch": "main",
-          "revision": "0a37219fcc1e70b3e6c1953eb8975d1d8a3dd56e",
+          "branch": "release/5.4",
+          "revision": "eb56a00ed9dfd62c2ce4ec86183ff0bc0afda997",
           "version": null
         }
       },
@@ -167,8 +167,8 @@
         "package": "SwiftPM",
         "repositoryURL": "https://github.com/apple/swift-package-manager.git",
         "state": {
-          "branch": "main",
-          "revision": "ec407ac14738bf132b23441aa9435a919124eda6",
+          "branch": "release/5.4",
+          "revision": "9c96dd770834d4b02c680cbf63949fab75fb6cca",
           "version": null
         }
       },
@@ -176,8 +176,8 @@
         "package": "swift-tools-support-core",
         "repositoryURL": "https://github.com/apple/swift-tools-support-core.git",
         "state": {
-          "branch": "main",
-          "revision": "2e1e553a57c1fa33f29527b9be9ef422ecde792b",
+          "branch": "release/5.4",
+          "revision": "bc7961701fd94104528b017e969f63ea40bdb22b",
           "version": null
         }
       },
