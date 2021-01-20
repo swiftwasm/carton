@@ -75,6 +75,7 @@ let package = Package(
       dependencies: [
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
         .product(name: "SwiftPMDataModel", package: "SwiftPM"),
+        .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
         "CartonHelpers",
         "OpenCombine",
         "WasmTransformer",
