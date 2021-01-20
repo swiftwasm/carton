@@ -85,6 +85,7 @@ let package = Package(
       name: "CartonHelpers",
       dependencies: [
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
+        .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
         "OpenCombine",
         "Splash",
       ]
