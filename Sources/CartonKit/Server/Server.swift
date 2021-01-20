@@ -82,6 +82,7 @@ public final class Server {
     let verbose: Bool
     let skipAutoOpen: Bool
     let port: Int
+    let host: String
     let customIndexContent: String?
     let manifest: Manifest
     let product: ProductDescription?
@@ -93,6 +94,7 @@ public final class Server {
       verbose: Bool,
       skipAutoOpen: Bool,
       port: Int,
+      host: String,
       customIndexContent: String?,
       manifest: Manifest,
       product: ProductDescription?,
@@ -103,6 +105,7 @@ public final class Server {
       self.verbose = verbose
       self.skipAutoOpen = skipAutoOpen
       self.port = port
+      self.host = host
       self.customIndexContent = customIndexContent
       self.manifest = manifest
       self.product = product
@@ -124,7 +127,7 @@ public final class Server {
       name: configuration.verbose ? "development" : "production",
       arguments: ["vapor"]
     )
-    localURL = "http://127.0.0.1:\(configuration.port)/"
+    localURL = "http://\(configuration.host):\(configuration.port)/"
     skipAutoOpen = configuration.skipAutoOpen
 
     try LoggingSystem.bootstrap(from: &env)
@@ -132,6 +135,7 @@ public final class Server {
     app.configure(
       with: .init(
         port: configuration.port,
+        host: configuration.host,
         mainWasmPath: configuration.mainWasmPath,
         customIndexContent: configuration.customIndexContent,
         manifest: configuration.manifest,

@@ -23,6 +23,7 @@ extension DevCommandTests: Testable {}
 
 final class DevCommandTests: XCTestCase {
   private var client: HTTPClient?
+  private var process: Process?
 
   override func tearDown() {
     try? client?.syncShutdown()
@@ -31,15 +32,6 @@ final class DevCommandTests: XCTestCase {
 
   func testWithNoArguments() throws {
     let url = "http://127.0.0.1:8080"
-
-    // client time out for connecting and responding
-    let timeOut: Int64 = 60
-
-    // client delay... let the server start up
-    let delay: UInt32 = 30
-
-    // only try 5 times.
-    let polls = 5
 
     // the directory was built using `carton init --template tokamak`
     let package = "Milk"
@@ -50,6 +42,59 @@ final class DevCommandTests: XCTestCase {
     )
 
     do { try packageDirectory.appending(component: ".build").delete() } catch {}
+
+    guard let process = executeCommand(
+      command: "carton dev --verbose",
+      cwd: packageDirectory.url
+    ) else {
+      XCTFail("Could not create process")
+      return
+    }
+    self.process = process
+
+    checkForExpectedContent(at: url)
+
+    // clean up
+    do { try packageDirectory.appending(component: ".build").delete() } catch {}
+  }
+
+  func testWithArguments() throws {
+    let url = "http://0.0.0.0:8081"
+
+    // the directory was built using `carton init --template tokamak`
+    let package = "Milk"
+    let packageDirectory = testFixturesDirectory.appending(component: package)
+    XCTAssertTrue(
+      packageDirectory.exists,
+      "\(package) directory does not exist. Cannot execute tests."
+    )
+
+    do { try packageDirectory.appending(component: ".build").delete() } catch {}
+
+    guard let process = executeCommand(
+      command: "carton dev --verbose --port 8081 --host 0.0.0.0",
+      cwd: packageDirectory.url
+    ) else {
+      XCTFail("Could not create process")
+      return
+    }
+    self.process = process
+
+    checkForExpectedContent(at: url)
+
+    // clean up
+    do { try packageDirectory.appending(component: ".build").delete() } catch {}
+  }
+
+  func checkForExpectedContent(at url: String) {
+    // client time out for connecting and responding
+    let timeOut: Int64 = 60
+
+    // client delay... let the server start up
+    let delay: UInt32 = 30
+
+    // only try 5 times.
+    let polls = 5
 
     let expectedHtml =
       """
@@ -63,14 +108,6 @@ final class DevCommandTests: XCTestCase {
         </body>
       </html>
       """
-
-    guard let process = executeCommand(
-      command: "carton dev --verbose",
-      cwd: packageDirectory.url
-    ) else {
-      XCTFail("Could not create process")
-      return
-    }
 
     let timeout = HTTPClient.Configuration.Timeout(
       connect: .seconds(timeOut),
@@ -91,7 +128,7 @@ final class DevCommandTests: XCTestCase {
     } while count < polls && response == nil
 
     // end the process regardless of success
-    process.terminate()
+    process?.terminate()
 
     if let response = response {
       XCTAssertTrue(response.status == .ok, "Response was not ok")
@@ -102,7 +139,7 @@ final class DevCommandTests: XCTestCase {
         return
       }
       guard let actualHtml = String(data: data, encoding: .utf8) else {
-        XCTFail("Could convert data to string")
+        XCTFail("Could not convert data to string")
         return
       }
 
@@ -113,8 +150,5 @@ final class DevCommandTests: XCTestCase {
       print("no response from server after \(count) tries or \(Int(count) * Int(delay)) seconds")
       XCTFail("Could not reach server")
     }
-
-    // clean up
-    do { try packageDirectory.appending(component: ".build").delete() } catch {}
   }
 }

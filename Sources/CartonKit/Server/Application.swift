@@ -21,6 +21,7 @@ import Vapor
 extension Application {
   struct Configuration {
     let port: Int
+    let host: String
     let mainWasmPath: AbsolutePath
     let customIndexContent: String?
     let manifest: Manifest
@@ -32,6 +33,7 @@ extension Application {
 
   func configure(with configuration: Configuration) {
     http.server.configuration.port = configuration.port
+    http.server.configuration.hostname = configuration.host
 
     let directory = FileManager.default.homeDirectoryForCurrentUser
       .appendingPathComponent(".carton")
