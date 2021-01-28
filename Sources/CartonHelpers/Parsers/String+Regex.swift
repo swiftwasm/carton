@@ -19,7 +19,7 @@ extension StringProtocol {
   func matches(regex: NSRegularExpression) -> String.SubSequence? {
     let str = String(self)
     guard let range = str.range(of: regex),
-      range.upperBound < str.endIndex
+          range.upperBound < str.endIndex
     else { return nil }
     return str[range.upperBound..<str.endIndex]
   }
@@ -29,7 +29,7 @@ extension StringProtocol {
     let str = String(self)
     let range = NSRange(location: 0, length: utf16.count)
     guard let match = regex.firstMatch(in: str, options: [], range: range),
-      let matchRange = Range(match.range, in: str)
+          let matchRange = Range(match.range, in: str)
     else {
       return nil
     }
@@ -40,7 +40,7 @@ extension StringProtocol {
     let str = String(self)
     let range = NSRange(location: 0, length: utf16.count)
     guard let matches = regex.matches(in: str, options: [], range: range).first,
-      let matchRange = Range(matches.range(withName: name), in: str)
+          let matchRange = Range(matches.range(withName: name), in: str)
     else {
       return nil
     }
@@ -50,7 +50,7 @@ extension StringProtocol {
   func match(of regex: NSRegularExpression, named name: String) -> String.SubSequence? {
     let str = String(self)
     guard let range = str.range(of: regex, named: name),
-      range.upperBound < str.endIndex && range.lowerBound >= str.startIndex
+          range.upperBound < str.endIndex && range.lowerBound >= str.startIndex
     else { return nil }
     return str[range]
   }

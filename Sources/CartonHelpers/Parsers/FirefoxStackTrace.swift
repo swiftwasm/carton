@@ -26,8 +26,8 @@ public extension StringProtocol {
   var firefoxStackTrace: [StackTraceItem] {
     split(separator: "\n").compactMap {
       if let webpackMatch = webpackRegex.matchGroups(in: String($0)).first,
-        let symbol = webpackMatch.first,
-        let location = webpackMatch.last
+         let symbol = webpackMatch.first,
+         let location = webpackMatch.last
       {
         return StackTraceItem(symbol: symbol, location: location, kind: .javaScript)
       } else if

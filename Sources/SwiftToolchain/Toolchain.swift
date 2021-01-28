@@ -214,7 +214,7 @@ public final class Toolchain {
 
     let manifest = try self.manifest.get()
     if let jsKit = manifest.dependencies.first(where: { $0.name == "JavaScriptKit" }),
-      !jsKit.requirement.isJavaScriptKitCompatible
+       !jsKit.requirement.isJavaScriptKitCompatible
     {
       let versionDescription = jsKit.requirement.versionDescription
 
