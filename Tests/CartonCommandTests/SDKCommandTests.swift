@@ -23,18 +23,6 @@ extension SDKCommandTests: Testable {}
 
 final class SDKCommandTests: XCTestCase {
   func testInstall() throws {
-    // given I've created a directory
-    // let package = "Milk"
-    // let packageDirectory = testFixturesDirectory.appending(component: package)
-
-    // let bundle = "Bundle"
-    // let bundleDirectory = packageDirectory.appending(component: bundle)
-
-    // it's ok if there is nothing to delete
-    // do { try bundleDirectory.delete() } catch {}
-
-    // XCTAssertFalse(bundleDirectory.exists, "The Bundle directory should not exist")
-
     AssertExecuteCommand(
       command: "carton sdk install",
       cwd: packageDirectory.url,
@@ -42,21 +30,5 @@ final class SDKCommandTests: XCTestCase {
       expectedContains: true,
       debug: true
     )
-
-    // Confirm that the files are actually in the folder
-    // XCTAssertTrue(bundleDirectory.exists, "The Bundle directory should exist")
-    // XCTAssertTrue(bundleDirectory.ls().contains("index.html"), "Bundle does not have index.html")
-    // XCTAssertFalse(
-    //   (bundleDirectory.ls().filter { $0.contains("wasm") }).isEmpty,
-    //   ".wasm file does not exist"
-    // )
-    // XCTAssertFalse(
-    //   (bundleDirectory.ls().filter { $0.contains("js") }).isEmpty,
-    //   ".js does not exist"
-    // )
-
-    // finally, clean up
-    // try bundleDirectory.delete()
-    // try packageDirectory.appending(component: ".build").delete()
   }
 }
