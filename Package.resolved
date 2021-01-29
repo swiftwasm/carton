@@ -29,6 +29,15 @@
         }
       },
       {
+        "package": "multipart-kit",
+        "repositoryURL": "https://github.com/vapor/multipart-kit.git",
+        "state": {
+          "branch": null,
+          "revision": "73706f1883f2ba950d41f18aec7e3a53766d4a6d",
+          "version": "4.0.0"
+        }
+      },
+      {
         "package": "OpenCombine",
         "repositoryURL": "https://github.com/OpenCombine/OpenCombine.git",
         "state": {
@@ -168,7 +177,7 @@
         "repositoryURL": "https://github.com/apple/swift-package-manager.git",
         "state": {
           "branch": "release/5.4",
-          "revision": "9c96dd770834d4b02c680cbf63949fab75fb6cca",
+          "revision": "48e477aec0a3856a6b7dfdc9c1c30117b0d91259",
           "version": null
         }
       },
@@ -177,7 +186,7 @@
         "repositoryURL": "https://github.com/apple/swift-tools-support-core.git",
         "state": {
           "branch": "release/5.4",
-          "revision": "bc7961701fd94104528b017e969f63ea40bdb22b",
+          "revision": "e95add83fc1042a0a0e260d342f9fc5608df9a84",
           "version": null
         }
       },
@@ -186,8 +195,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "53d15b27ad59b4c91f6ea5fa401b891bd998e202",
-          "version": "4.37.1"
+          "revision": "967c2d1f9c473dbb3a5ef8f2e2901f56e21ae79a",
+          "version": "4.38.0"
         }
       },
       {

@@ -26,7 +26,7 @@ public extension StringProtocol {
   var safariStackTrace: [StackTraceItem] {
     split(separator: "\n").compactMap {
       if let wasmMatch = wasmRegex.matchGroups(in: String($0)).first,
-        let symbol = wasmMatch.first
+         let symbol = wasmMatch.first
       {
         return StackTraceItem(
           symbol: demangle(symbol),

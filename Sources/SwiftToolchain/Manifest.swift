@@ -94,9 +94,9 @@ struct DumpedManifest: Decodable {
 
   private enum CodingKeys: CodingKey {
     case name, toolsVersion,
-      pkgConfig, providers, cLanguageStandard, cxxLanguageStandard, swiftLanguageVersions,
-      dependencies, products, targets, platforms, packageKind, revision,
-      defaultLocalization
+         pkgConfig, providers, cLanguageStandard, cxxLanguageStandard, swiftLanguageVersions,
+         dependencies, products, targets, platforms, packageKind, revision,
+         defaultLocalization
   }
 
   init(from decoder: Decoder) throws {
