@@ -27,8 +27,66 @@ final class SDKCommandTests: XCTestCase {
       command: "carton sdk install",
       cwd: packageDirectory.url,
       expected: "SDK successfully installed!",
-      expectedContains: true,
-      debug: true
+      expectedContains: true
     )
+  }
+
+  func testVersions() throws {
+    AssertExecuteCommand(
+      command: "carton sdk versions",
+      cwd: packageDirectory.url,
+      expected: "wasm-",
+      expectedContains: true
+    )
+  }
+
+  func testLocalNoFile() throws {
+    let package = "Milk"
+    let packageDirectory = testFixturesDirectory.appending(component: package)
+    let swiftVersion = packageDirectory.appending(component: ".swift-version")
+
+    let versionInfo: String? = try? String(contentsOf: swiftVersion.url)
+
+    // it's ok if there is nothing to delete
+    do { try swiftVersion.delete() } catch {}
+
+    AssertExecuteCommand(
+      command: "carton sdk local",
+      cwd: packageDirectory.url,
+      expected: "Version file is not present: ",
+      expectedContains: true
+    )
+
+    if let info = versionInfo {
+      try info.write(to: swiftVersion.url, atomically: true, encoding: .utf8)
+    }
+  }
+
+  func testLocalWithFile() throws {
+    let package = "Milk"
+    let packageDirectory = testFixturesDirectory.appending(component: package)
+    let swiftVersion = packageDirectory.appending(component: ".swift-version")
+
+    let versionInfo: String? = try? String(contentsOf: swiftVersion.url)
+
+    // it's ok if there is nothing to delete
+    do { try swiftVersion.delete() } catch {}
+
+    let alternateLocal = "wasm-5.3.1"
+
+    try alternateLocal.write(to: swiftVersion.url, atomically: true, encoding: .utf8)
+
+    AssertExecuteCommand(
+      command: "carton sdk local",
+      cwd: packageDirectory.url,
+      expected: "wasm-5.3.1",
+      expectedContains: true
+    )
+
+    // remove the fixture we created and write the original back if there was one
+    do { try swiftVersion.delete() } catch {}
+    if let info = versionInfo {
+      try info.write(to: swiftVersion.url, atomically: true, encoding: .utf8)
+    }
   }
 }
