@@ -42,8 +42,8 @@
         "repositoryURL": "https://github.com/OpenCombine/OpenCombine.git",
         "state": {
           "branch": null,
-          "revision": "9bba5081344163296ddf537048566b95513b8f39",
-          "version": "0.11.0"
+          "revision": "28993ae57de5a4ea7e164787636cafad442d568c",
+          "version": "0.12.0"
         }
       },
       {
@@ -177,7 +177,7 @@
         "repositoryURL": "https://github.com/apple/swift-package-manager.git",
         "state": {
           "branch": "release/5.4",
-          "revision": "48e477aec0a3856a6b7dfdc9c1c30117b0d91259",
+          "revision": "dc41d7f3fc28657c2110df48771cb117d2061c9d",
           "version": null
         }
       },
@@ -195,8 +195,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "967c2d1f9c473dbb3a5ef8f2e2901f56e21ae79a",
-          "version": "4.38.0"
+          "revision": "bb87dcff4cf6d86d386308b4cb1393cefa4891a4",
+          "version": "4.39.2"
         }
       },
       {
