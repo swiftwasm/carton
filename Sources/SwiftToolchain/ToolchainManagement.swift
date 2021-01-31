@@ -259,16 +259,10 @@ public class ToolchainSystem {
   }
 
   public func fetchAllSwiftVersions() throws -> [String] {
-    // attempting to solve for if .swiftenv/versions folder does not exist
     try resolvers.flatMap { (try? $0.fetchVersions()) ?? [] }
       .filter { fileSystem.isDirectory($0.path) }
       .map(\.version)
       .sorted()
-
-    // try resolvers.flatMap { try $0.fetchVersions() }
-    //   .filter { fileSystem.isDirectory($0.path) }
-    //   .map(\.version)
-    //   .sorted()
   }
 
   public func fetchLocalSwiftVersion() throws -> String? {

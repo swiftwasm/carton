@@ -36,8 +36,7 @@ final class SDKCommandTests: XCTestCase {
       command: "carton sdk versions",
       cwd: packageDirectory.url,
       expected: "wasm-",
-      expectedContains: true,
-      debug: true
+      expectedContains: true
     )
   }
 
