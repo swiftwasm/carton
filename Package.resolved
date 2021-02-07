@@ -177,7 +177,7 @@
         "repositoryURL": "https://github.com/apple/swift-package-manager.git",
         "state": {
           "branch": "release/5.4",
-          "revision": "dc41d7f3fc28657c2110df48771cb117d2061c9d",
+          "revision": "b23eb6d0e6cb0a4bb3367f57dc7305c82305c48c",
           "version": null
         }
       },
