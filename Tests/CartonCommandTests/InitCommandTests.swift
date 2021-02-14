@@ -78,29 +78,6 @@ final class InitCommandTests: XCTestCase {
     // given I've created a directory
     let package = "fusion"
     let packageDirectory = testFixturesDirectory.appending(component: package)
-    let expectedTemplateSource =
-      """
-      import TokamakDOM
-
-      struct TokamakApp: App {
-          var body: some Scene {
-              WindowGroup("Tokamak App") {
-                  ContentView()
-              }
-          }
-      }
-
-      struct ContentView: View {
-          var body: some View {
-              Text("Hello, world!")
-          }
-      }
-
-      // @main attribute is not supported in SwiftPM apps.
-      // See https://bugs.swift.org/browse/SR-12683 for more details.
-      TokamakApp.main()
-
-      """
 
     // it's ok if there is nothing to delete
     do { try packageDirectory.delete() } catch {}
@@ -153,4 +130,28 @@ final class InitCommandTests: XCTestCase {
     // finally, clean up
     try packageDirectory.delete()
   }
+
+  let expectedTemplateSource =
+    """
+    import TokamakDOM
+
+    struct TokamakApp: App {
+        var body: some Scene {
+            WindowGroup("Tokamak App") {
+                ContentView()
+            }
+        }
+    }
+
+    struct ContentView: View {
+        var body: some View {
+            Text("Hello, world!")
+        }
+    }
+
+    // @main attribute is not supported in SwiftPM apps.
+    // See https://bugs.swift.org/browse/SR-12683 for more details.
+    TokamakApp.main()
+
+    """
 }
