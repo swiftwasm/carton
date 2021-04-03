@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "webpack --config entrypoint/dev.config.js",
+    "debug": "webpack --config entrypoint/debug.config.js",
     "bundle": "webpack --config entrypoint/bundle.config.js",
     "test": "webpack --config entrypoint/test.config.js"
   },
@@ -29,6 +30,7 @@
     "@wasmer/wasmfs": "^0.12.0",
     "javascript-kit-swift": "^0.9.0",
     "reconnecting-websocket": "^4.4.0",
+    "wasminspect-web": "../../kateinoigakukun/wasminspect-web",
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12"
   }

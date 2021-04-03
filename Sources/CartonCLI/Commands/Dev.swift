@@ -25,8 +25,6 @@ import SwiftToolchain
 import TSCBasic
 
 struct Dev: ParsableCommand {
-  static let entrypoint = Entrypoint(fileName: "dev.js", sha256: devEntrypointSHA256)
-
   @Option(help: "Specify name of an executable product in development.")
   var product: String?
 
@@ -56,6 +54,9 @@ struct Dev: ParsableCommand {
   @Flag(name: .long, help: "Skip automatically opening app in system browser.")
   var skipAutoOpen = false
 
+  @Flag(name: .long, help: "Enable debugging with wasminspect")
+  var debug = false
+
   static let configuration = CommandConfiguration(
     abstract: "Watch the current directory, host the app, rebuild on change."
   )
@@ -63,7 +64,12 @@ struct Dev: ParsableCommand {
   func run() throws {
     let terminal = InteractiveWriter.stdout
 
-    try Self.entrypoint.check(on: localFileSystem, terminal)
+    let entrypoint = Entrypoint(
+      fileName: debug ? "debug.js" : "dev.js",
+      sha256: devEntrypointSHA256
+    )
+
+    try entrypoint.check(on: localFileSystem, terminal)
 
     let toolchain = try Toolchain(localFileSystem, terminal)
 
@@ -119,7 +125,7 @@ struct Dev: ParsableCommand {
         // swiftlint:disable:next force_try
         manifest: try! toolchain.manifest.get(),
         product: inferredProduct,
-        entrypoint: Self.entrypoint
+        entrypoint: entrypoint
       ),
       terminal
     ).run()
