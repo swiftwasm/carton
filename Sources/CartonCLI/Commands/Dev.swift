@@ -66,7 +66,7 @@ struct Dev: ParsableCommand {
 
     let entrypoint = Entrypoint(
       fileName: debug ? "debug.js" : "dev.js",
-      sha256: devEntrypointSHA256
+      sha256: debug ? debugEntrypointSHA256 : devEntrypointSHA256
     )
 
     try entrypoint.check(on: localFileSystem, terminal)
