@@ -27,6 +27,7 @@ extension Application {
     let manifest: Manifest
     let product: ProductDescription?
     let entrypoint: Entrypoint
+    let debug: Bool
     let onWebSocketOpen: (WebSocket, DestinationEnvironment) -> ()
     let onWebSocketClose: (WebSocket) -> ()
   }
@@ -45,7 +46,7 @@ extension Application {
     get { _ in
       HTML(value: HTML.indexPage(
         customContent: configuration.customIndexContent,
-        entrypointName: configuration.entrypoint.fileName
+        scriptFiles: (configuration.debug ? ["debug.js"] : []) + [configuration.entrypoint.fileName]
       ))
     }
 

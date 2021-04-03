@@ -134,7 +134,7 @@ struct Bundle: ParsableCommand {
       AbsolutePath(bundleDirectory, "index.html"),
       bytes: ByteString(encodingAsUTF8: HTML.indexPage(
         customContent: HTML.readCustomIndexPage(at: customIndexPage, on: localFileSystem),
-        entrypointName: entrypointName
+        scriptFiles: [entrypointName]
       ))
     )
 

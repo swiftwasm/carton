@@ -87,6 +87,7 @@ public final class Server {
     let manifest: Manifest
     let product: ProductDescription?
     let entrypoint: Entrypoint
+    let debug: Bool
 
     public init(
       builder: Builder?,
@@ -98,7 +99,8 @@ public final class Server {
       customIndexContent: String?,
       manifest: Manifest,
       product: ProductDescription?,
-      entrypoint: Entrypoint
+      entrypoint: Entrypoint,
+      debug: Bool = false
     ) {
       self.builder = builder
       self.mainWasmPath = mainWasmPath
@@ -110,6 +112,7 @@ public final class Server {
       self.manifest = manifest
       self.product = product
       self.entrypoint = entrypoint
+      self.debug = debug
     }
   }
 
@@ -141,6 +144,7 @@ public final class Server {
         manifest: configuration.manifest,
         product: configuration.product,
         entrypoint: configuration.entrypoint,
+        debug: configuration.debug,
         onWebSocketOpen: { [weak self] ws, environment in
           if let handler = self?.createWSHandler(
             with: configuration,

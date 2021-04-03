@@ -52,8 +52,10 @@ extension HTML: ResponseEncodable {
     }
   }
 
-  public static func indexPage(customContent: String?, entrypointName: String) -> String {
-    let scriptTag = #"<script type="text/javascript" src="\#(entrypointName)"></script>"#
+  public static func indexPage(customContent: String?, scriptFiles: [String]) -> String {
+    let scriptTag = scriptFiles.map {
+      #"<script type="text/javascript" src="\#($0)"></script>"#
+    }.joined(separator: "\n")
     if let customContent = customContent {
       return customContent.replacingOccurrences(
         of: "</head>",

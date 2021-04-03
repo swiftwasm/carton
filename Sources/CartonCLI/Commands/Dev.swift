@@ -65,8 +65,8 @@ struct Dev: ParsableCommand {
     let terminal = InteractiveWriter.stdout
 
     let entrypoint = Entrypoint(
-      fileName: debug ? "debug.js" : "dev.js",
-      sha256: debug ? debugEntrypointSHA256 : devEntrypointSHA256
+      fileName: "dev.js",
+      sha256: devEntrypointSHA256
     )
 
     try entrypoint.check(on: localFileSystem, terminal)
@@ -125,7 +125,8 @@ struct Dev: ParsableCommand {
         // swiftlint:disable:next force_try
         manifest: try! toolchain.manifest.get(),
         product: inferredProduct,
-        entrypoint: entrypoint
+        entrypoint: entrypoint,
+        debug: debug
       ),
       terminal
     ).run()
