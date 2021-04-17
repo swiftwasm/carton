@@ -207,7 +207,7 @@ public final class Toolchain {
 
   public func buildCurrentProject(
     product: String?,
-    isRelease: Bool
+    flavor: BuildFlavor
   ) throws -> (builderArguments: [String], mainWasmPath: AbsolutePath, ProductDescription) {
     guard let product = try inferDevProduct(hint: product)
     else { throw ToolchainError.noExecutableProduct }
@@ -230,18 +230,18 @@ public final class Toolchain {
       )
     }
 
-    let binPath = try inferBinPath(isRelease: isRelease)
+    let binPath = try inferBinPath(isRelease: flavor.isRelease)
     let mainWasmPath = binPath.appending(component: "\(product.name).wasm")
     terminal.logLookup("- development binary to serve: ", mainWasmPath.pathString)
 
     terminal.write("\nBuilding the project before spinning up a server...\n", inColor: .yellow)
 
     let builderArguments = [
-      swiftPath.pathString, "build", "-c", isRelease ? "release" : "debug",
+      swiftPath.pathString, "build", "-c", flavor.isRelease ? "release" : "debug",
       "--product", product.name, "--enable-test-discovery", "--triple", "wasm32-unknown-wasi",
     ]
 
-    try Builder(arguments: builderArguments, mainWasmPath: mainWasmPath, fileSystem, terminal)
+    try Builder(arguments: builderArguments, mainWasmPath: mainWasmPath, flavor, fileSystem, terminal)
       .runAndWaitUntilFinished()
 
     guard fileSystem.exists(mainWasmPath) else {
@@ -257,11 +257,10 @@ public final class Toolchain {
 
   /// Returns an absolute path to the resulting test bundle
   public func buildTestBundle(
-    isRelease: Bool,
-    _ environment: DestinationEnvironment
+    flavor: BuildFlavor
   ) throws -> AbsolutePath {
     let manifest = try self.manifest.get()
-    let binPath = try inferBinPath(isRelease: isRelease)
+    let binPath = try inferBinPath(isRelease: flavor.isRelease)
     let testProductName = "\(manifest.name)PackageTests"
     let testBundlePath = binPath.appending(component: "\(testProductName).wasm")
     terminal.logLookup("- test bundle to run: ", testBundlePath.pathString)
@@ -272,7 +271,7 @@ public final class Toolchain {
     )
 
     let builderArguments = [
-      swiftPath.pathString, "build", "-c", isRelease ? "release" : "debug",
+      swiftPath.pathString, "build", "-c", flavor.isRelease ? "release" : "debug",
       "--product", testProductName, "--enable-test-discovery", "--triple", "wasm32-unknown-wasi",
       "-Xswiftc", "-color-diagnostics",
     ]
@@ -280,7 +279,7 @@ public final class Toolchain {
     try Builder(
       arguments: builderArguments,
       mainWasmPath: testBundlePath,
-      environment: environment,
+      flavor,
       fileSystem,
       terminal
     )

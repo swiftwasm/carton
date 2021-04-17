@@ -28,7 +28,7 @@ public final class Builder {
 
   private var currentProcess: ProcessRunner?
   private let arguments: [String]
-  private let environment: DestinationEnvironment
+  private let flavor: BuildFlavor
   private let terminal: InteractiveWriter
   private let fileSystem: FileSystem
   private var subscription: AnyCancellable?
@@ -37,14 +37,14 @@ public final class Builder {
     arguments: [String],
     mainWasmPath: AbsolutePath,
     pathsToWatch: [AbsolutePath] = [],
-    environment: DestinationEnvironment = .browser,
+    _ flavor: BuildFlavor,
     _ fileSystem: FileSystem,
     _ terminal: InteractiveWriter
   ) {
     self.arguments = arguments
     self.mainWasmPath = mainWasmPath
     self.pathsToWatch = pathsToWatch
-    self.environment = environment
+    self.flavor = flavor
     self.terminal = terminal
     self.fileSystem = fileSystem
   }
@@ -69,7 +69,12 @@ public final class Builder {
           String(format: "%.2f seconds", abs(buildStarted.timeIntervalSinceNow))
         )
 
-        guard self.environment != .other else { return }
+        
+        var transformers: [(inout InputByteStream, inout InMemoryOutputWriter) throws -> Void] = [
+        ]
+        if self.flavor.environment != .other {
+            transformers.append(I64ImportTransformer().transform)
+        }
 
         // FIXME: errors from these `try` expressions should be recoverable, not sure how to
         // do that in `handleEvents`, and `flatMap` doesnt' fit here as we need to track
@@ -77,15 +82,21 @@ public final class Builder {
         // swiftlint:disable force_try
         let binary = try! self.fileSystem.readFileContents(self.mainWasmPath)
 
-        let loweringStarted = Date()
-        let loweredBinary = try! lowerI64Imports(binary.contents)
+        let transformStarted = Date()
+        var inputBinary = binary.contents
+        for transformer in transformers {
+            var input = InputByteStream(bytes: inputBinary)
+            var writer = InMemoryOutputWriter(reservingCapacity: inputBinary.count)
+            try! transformer(&input, &writer)
+            inputBinary = writer.bytes()
+        }
 
         self.terminal.logLookup(
           "Binary transformation for Safari compatibility completed in ",
-          String(format: "%.2f seconds", abs(loweringStarted.timeIntervalSinceNow))
+          String(format: "%.2f seconds", abs(transformStarted.timeIntervalSinceNow))
         )
 
-        try! self.fileSystem.writeFileContents(self.mainWasmPath, bytes: .init(loweredBinary))
+        try! self.fileSystem.writeFileContents(self.mainWasmPath, bytes: .init(inputBinary))
         // swiftlint:enable force_try
       })
       .eraseToAnyPublisher()

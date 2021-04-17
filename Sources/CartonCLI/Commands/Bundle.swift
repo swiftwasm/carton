@@ -39,9 +39,19 @@ struct Bundle: ParsableCommand {
   @Flag(help: "When specified, build in the debug mode.")
   var debug = false
 
+  @Option(help: "Turn on runtime checks for various behavior.")
+  private var sanitize: SanitizeVariant?
+
   static let configuration = CommandConfiguration(
     abstract: "Produces an optimized app bundle for distribution."
   )
+
+  func buildFlavor() -> BuildFlavor {
+    return BuildFlavor(
+      isRelease: !debug, environment: .browser,
+      sanitize: sanitize
+    )
+  }
 
   func run() throws {
     let terminal = InteractiveWriter.stdout
@@ -50,9 +60,10 @@ struct Bundle: ParsableCommand {
 
     let toolchain = try Toolchain(localFileSystem, terminal)
 
+    let flavor = buildFlavor()
     let (_, mainWasmPath, inferredProduct) = try toolchain.buildCurrentProject(
       product: product,
-      isRelease: !debug
+      flavor: flavor
     )
     try terminal.logLookup(
       "Right after building the main binary size is ",
