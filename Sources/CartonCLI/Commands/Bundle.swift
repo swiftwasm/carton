@@ -39,9 +39,6 @@ struct Bundle: ParsableCommand {
   @Flag(help: "When specified, build in the debug mode.")
   var debug = false
 
-  @Option(help: "Turn on runtime checks for various behavior.")
-  private var sanitize: SanitizeVariant?
-
   static let configuration = CommandConfiguration(
     abstract: "Produces an optimized app bundle for distribution."
   )
@@ -49,7 +46,7 @@ struct Bundle: ParsableCommand {
   func buildFlavor() -> BuildFlavor {
     BuildFlavor(
       isRelease: !debug, environment: .browser,
-      sanitize: sanitize
+      sanitize: nil
     )
   }
 
