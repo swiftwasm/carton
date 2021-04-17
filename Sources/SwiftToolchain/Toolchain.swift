@@ -248,11 +248,15 @@ public final class Toolchain {
       buildPrelude = { try $0() }
     case .stackOverflow:
       buildPrelude = { next in
-        try withTemporaryFile { supportingObjectFile in
+        try withTemporaryFile(prefix: "stack-overflow-sanitizer") { supportingObjectFile in
           supportingObjectFile.fileHandle.write(
             Data(StackOverflowSanitizer.supportObjectFile)
           )
-          builderArguments.append(contentsOf: ["-Xlinker", supportingObjectFile.path.pathString])
+          builderArguments.append(contentsOf: [
+            "-Xlinker", supportingObjectFile.path.pathString,
+            // stack-overflow-sanitizer depends on "--stack-first"
+            "-Xlinker", "--stack-first",
+          ])
           try next()
         }
       }
