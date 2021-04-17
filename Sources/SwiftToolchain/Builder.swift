@@ -76,6 +76,15 @@ public final class Builder {
             transformers.append(I64ImportTransformer().transform)
         }
 
+        switch self.flavor.sanitize {
+        case .stackOverflow:
+          transformers.append(StackOverflowSanitizer().transform)
+        case .none:
+          break
+        }
+
+        guard !transformers.isEmpty else { return }
+
         // FIXME: errors from these `try` expressions should be recoverable, not sure how to
         // do that in `handleEvents`, and `flatMap` doesnt' fit here as we need to track
         // publisher completion.
