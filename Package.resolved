@@ -204,7 +204,7 @@
         "repositoryURL": "https://github.com/swiftwasm/WasmTransformer",
         "state": {
           "branch": "katei/stack-overflow-sanitizer",
-          "revision": "712063db1a785798d4ba93fa0695827978b509d2",
+          "revision": "4df043067ea02e7251311b1ab3d029d7a87f63b6",
           "version": null
         }
       },

@@ -17,6 +17,7 @@ import Foundation
 import PackageModel
 import TSCBasic
 import TSCUtility
+import WasmTransformer
 
 public let compatibleJSKitVersion = Version(0, 9, 0)
 
@@ -236,13 +237,37 @@ public final class Toolchain {
 
     terminal.write("\nBuilding the project before spinning up a server...\n", inColor: .yellow)
 
-    let builderArguments = [
+    var builderArguments = [
       swiftPath.pathString, "build", "-c", flavor.isRelease ? "release" : "debug",
       "--product", product.name, "--enable-test-discovery", "--triple", "wasm32-unknown-wasi",
     ]
 
-    try Builder(arguments: builderArguments, mainWasmPath: mainWasmPath, flavor, fileSystem, terminal)
+    let buildPrelude: (() throws -> ()) throws -> ()
+    switch flavor.sanitize {
+    case .none:
+      buildPrelude = { try $0() }
+    case .stackOverflow:
+      buildPrelude = { next in
+        try withTemporaryFile { supportingObjectFile in
+          supportingObjectFile.fileHandle.write(
+            Data(StackOverflowSanitizer.supportObjectFile)
+          )
+          builderArguments.append(contentsOf: ["-Xlinker", supportingObjectFile.path.pathString])
+          try next()
+        }
+      }
+    }
+
+    try buildPrelude {
+      try Builder(
+        arguments: builderArguments,
+        mainWasmPath: mainWasmPath,
+        flavor,
+        fileSystem,
+        terminal
+      )
       .runAndWaitUntilFinished()
+    }
 
     guard fileSystem.exists(mainWasmPath) else {
       terminal.write(

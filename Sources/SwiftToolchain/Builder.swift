@@ -69,11 +69,10 @@ public final class Builder {
           String(format: "%.2f seconds", abs(buildStarted.timeIntervalSinceNow))
         )
 
-        
-        var transformers: [(inout InputByteStream, inout InMemoryOutputWriter) throws -> Void] = [
+        var transformers: [(inout InputByteStream, inout InMemoryOutputWriter) throws -> ()] = [
         ]
         if self.flavor.environment != .other {
-            transformers.append(I64ImportTransformer().transform)
+          transformers.append(I64ImportTransformer().transform)
         }
 
         switch self.flavor.sanitize {
@@ -94,10 +93,10 @@ public final class Builder {
         let transformStarted = Date()
         var inputBinary = binary.contents
         for transformer in transformers {
-            var input = InputByteStream(bytes: inputBinary)
-            var writer = InMemoryOutputWriter(reservingCapacity: inputBinary.count)
-            try! transformer(&input, &writer)
-            inputBinary = writer.bytes()
+          var input = InputByteStream(bytes: inputBinary)
+          var writer = InMemoryOutputWriter(reservingCapacity: inputBinary.count)
+          try! transformer(&input, &writer)
+          inputBinary = writer.bytes()
         }
 
         self.terminal.logLookup(

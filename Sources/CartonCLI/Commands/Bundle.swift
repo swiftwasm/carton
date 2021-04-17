@@ -47,7 +47,7 @@ struct Bundle: ParsableCommand {
   )
 
   func buildFlavor() -> BuildFlavor {
-    return BuildFlavor(
+    BuildFlavor(
       isRelease: !debug, environment: .browser,
       sanitize: sanitize
     )
