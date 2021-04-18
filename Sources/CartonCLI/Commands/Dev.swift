@@ -41,6 +41,9 @@ struct Dev: ParsableCommand {
   @Flag(help: "When specified, build in the release mode.")
   var release = false
 
+  @Option(help: "Turn on runtime checks for various behavior.")
+  private var sanitize: SanitizeVariant?
+
   @Flag(name: .shortAndLong, help: "Don't clear terminal window after files change.")
   var verbose = false
 
@@ -59,6 +62,14 @@ struct Dev: ParsableCommand {
   static let configuration = CommandConfiguration(
     abstract: "Watch the current directory, host the app, rebuild on change."
   )
+
+  func buildFlavor() -> BuildFlavor {
+    let defaultSanitize: SanitizeVariant? = release ? nil : .stackOverflow
+    return BuildFlavor(
+      isRelease: release, environment: .browser,
+      sanitize: sanitize ?? defaultSanitize
+    )
+  }
 
   func run() throws {
     let terminal = InteractiveWriter.stdout
@@ -85,9 +96,10 @@ struct Dev: ParsableCommand {
       )
     }
 
+    let flavor = buildFlavor()
     let (arguments, mainWasmPath, inferredProduct) = try toolchain.buildCurrentProject(
       product: product,
-      isRelease: release
+      flavor: flavor
     )
 
     let paths = try toolchain.inferSourcesPaths()
@@ -107,6 +119,7 @@ struct Dev: ParsableCommand {
           arguments: arguments,
           mainWasmPath: mainWasmPath,
           pathsToWatch: sources,
+          flavor,
           localFileSystem,
           terminal
         ),

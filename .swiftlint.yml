@@ -17,4 +17,4 @@ included:
   - Tests
 
 excluded:
-  - Tests/Fixtures/TestApp/.build
+  - Tests/Fixtures

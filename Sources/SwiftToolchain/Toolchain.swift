@@ -17,6 +17,7 @@ import Foundation
 import PackageModel
 import TSCBasic
 import TSCUtility
+import WasmTransformer
 
 public let compatibleJSKitVersion = Version(0, 9, 0)
 
@@ -205,9 +206,31 @@ public final class Toolchain {
     }
   }
 
+  private func buildPrelude(_ flavor: BuildFlavor, builderArguments: [String],
+                            _ next: (_ builderArguments: [String]) throws -> ()) throws
+  {
+    switch flavor.sanitize {
+    case .none:
+      try next(builderArguments)
+    case .stackOverflow:
+      try withTemporaryFile(prefix: "stack-overflow-sanitizer") { supportingObjectFile in
+        supportingObjectFile.fileHandle.write(
+          Data(StackOverflowSanitizer.supportObjectFile)
+        )
+        var builderArguments = builderArguments
+        builderArguments.append(contentsOf: [
+          "-Xlinker", supportingObjectFile.path.pathString,
+          // stack-overflow-sanitizer depends on "--stack-first"
+          "-Xlinker", "--stack-first",
+        ])
+        try next(builderArguments)
+      }
+    }
+  }
+
   public func buildCurrentProject(
     product: String?,
-    isRelease: Bool
+    flavor: BuildFlavor
   ) throws -> (builderArguments: [String], mainWasmPath: AbsolutePath, ProductDescription) {
     guard let product = try inferDevProduct(hint: product)
     else { throw ToolchainError.noExecutableProduct }
@@ -230,19 +253,27 @@ public final class Toolchain {
       )
     }
 
-    let binPath = try inferBinPath(isRelease: isRelease)
+    let binPath = try inferBinPath(isRelease: flavor.isRelease)
     let mainWasmPath = binPath.appending(component: "\(product.name).wasm")
     terminal.logLookup("- development binary to serve: ", mainWasmPath.pathString)
 
     terminal.write("\nBuilding the project before spinning up a server...\n", inColor: .yellow)
 
     let builderArguments = [
-      swiftPath.pathString, "build", "-c", isRelease ? "release" : "debug",
+      swiftPath.pathString, "build", "-c", flavor.isRelease ? "release" : "debug",
       "--product", product.name, "--enable-test-discovery", "--triple", "wasm32-unknown-wasi",
     ]
 
-    try Builder(arguments: builderArguments, mainWasmPath: mainWasmPath, fileSystem, terminal)
+    try buildPrelude(flavor, builderArguments: builderArguments) { builderArguments in
+      try Builder(
+        arguments: builderArguments,
+        mainWasmPath: mainWasmPath,
+        flavor,
+        fileSystem,
+        terminal
+      )
       .runAndWaitUntilFinished()
+    }
 
     guard fileSystem.exists(mainWasmPath) else {
       terminal.write(
@@ -257,11 +288,10 @@ public final class Toolchain {
 
   /// Returns an absolute path to the resulting test bundle
   public func buildTestBundle(
-    isRelease: Bool,
-    _ environment: DestinationEnvironment
+    flavor: BuildFlavor
   ) throws -> AbsolutePath {
     let manifest = try self.manifest.get()
-    let binPath = try inferBinPath(isRelease: isRelease)
+    let binPath = try inferBinPath(isRelease: flavor.isRelease)
     let testProductName = "\(manifest.name)PackageTests"
     let testBundlePath = binPath.appending(component: "\(testProductName).wasm")
     terminal.logLookup("- test bundle to run: ", testBundlePath.pathString)
@@ -272,19 +302,21 @@ public final class Toolchain {
     )
 
     let builderArguments = [
-      swiftPath.pathString, "build", "-c", isRelease ? "release" : "debug",
+      swiftPath.pathString, "build", "-c", flavor.isRelease ? "release" : "debug",
       "--product", testProductName, "--enable-test-discovery", "--triple", "wasm32-unknown-wasi",
       "-Xswiftc", "-color-diagnostics",
     ]
 
-    try Builder(
-      arguments: builderArguments,
-      mainWasmPath: testBundlePath,
-      environment: environment,
-      fileSystem,
-      terminal
-    )
-    .runAndWaitUntilFinished()
+    try buildPrelude(flavor, builderArguments: builderArguments) { builderArguments in
+      try Builder(
+        arguments: builderArguments,
+        mainWasmPath: testBundlePath,
+        flavor,
+        fileSystem,
+        terminal
+      )
+      .runAndWaitUntilFinished()
+    }
 
     guard fileSystem.exists(testBundlePath) else {
       terminal.write(

@@ -37,6 +37,8 @@ private enum Environment: String, CaseIterable, ExpressibleByArgument {
   }
 }
 
+extension SanitizeVariant: ExpressibleByArgument {}
+
 struct Test: ParsableCommand {
   static let entrypoint = Entrypoint(fileName: "test.js", sha256: testEntrypointSHA256)
 
@@ -54,6 +56,9 @@ struct Test: ParsableCommand {
   @Option(help: "Environment used to run the tests, either a browser, or command-line Wasm host.")
   private var environment = Environment.wasmer
 
+  @Option(help: "Turn on runtime checks for various behavior.")
+  private var sanitize: SanitizeVariant?
+
   @Option(
     name: .shortAndLong,
     help: "Set the HTTP port the testing server will run on for browser environment."
@@ -66,12 +71,20 @@ struct Test: ParsableCommand {
   )
   var host = "127.0.0.1"
 
+  func buildFlavor() -> BuildFlavor {
+    BuildFlavor(
+      isRelease: release, environment: environment.destination,
+      sanitize: sanitize
+    )
+  }
+
   func run() throws {
     let terminal = InteractiveWriter.stdout
 
     try Self.entrypoint.check(on: localFileSystem, terminal)
     let toolchain = try Toolchain(localFileSystem, terminal)
-    let testBundlePath = try toolchain.buildTestBundle(isRelease: release, environment.destination)
+    let flavor = buildFlavor()
+    let testBundlePath = try toolchain.buildTestBundle(flavor: flavor)
 
     if environment == .wasmer {
       terminal.write("\nRunning the test bundle with wasmer:\n", inColor: .yellow)

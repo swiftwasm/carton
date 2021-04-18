@@ -43,6 +43,13 @@ struct Bundle: ParsableCommand {
     abstract: "Produces an optimized app bundle for distribution."
   )
 
+  func buildFlavor() -> BuildFlavor {
+    BuildFlavor(
+      isRelease: !debug, environment: .browser,
+      sanitize: nil
+    )
+  }
+
   func run() throws {
     let terminal = InteractiveWriter.stdout
 
@@ -50,9 +57,10 @@ struct Bundle: ParsableCommand {
 
     let toolchain = try Toolchain(localFileSystem, terminal)
 
+    let flavor = buildFlavor()
     let (_, mainWasmPath, inferredProduct) = try toolchain.buildCurrentProject(
       product: product,
-      isRelease: !debug
+      flavor: flavor
     )
     try terminal.logLookup(
       "Right after building the main binary size is ",
