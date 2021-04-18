@@ -206,6 +206,28 @@ public final class Toolchain {
     }
   }
 
+  private func buildPrelude(_ flavor: BuildFlavor, builderArguments: [String],
+                            _ next: (_ builderArguments: [String]) throws -> ()) throws
+  {
+    switch flavor.sanitize {
+    case .none:
+      try next(builderArguments)
+    case .stackOverflow:
+      try withTemporaryFile(prefix: "stack-overflow-sanitizer") { supportingObjectFile in
+        supportingObjectFile.fileHandle.write(
+          Data(StackOverflowSanitizer.supportObjectFile)
+        )
+        var builderArguments = builderArguments
+        builderArguments.append(contentsOf: [
+          "-Xlinker", supportingObjectFile.path.pathString,
+          // stack-overflow-sanitizer depends on "--stack-first"
+          "-Xlinker", "--stack-first",
+        ])
+        try next(builderArguments)
+      }
+    }
+  }
+
   public func buildCurrentProject(
     product: String?,
     flavor: BuildFlavor
@@ -237,32 +259,12 @@ public final class Toolchain {
 
     terminal.write("\nBuilding the project before spinning up a server...\n", inColor: .yellow)
 
-    var builderArguments = [
+    let builderArguments = [
       swiftPath.pathString, "build", "-c", flavor.isRelease ? "release" : "debug",
       "--product", product.name, "--enable-test-discovery", "--triple", "wasm32-unknown-wasi",
     ]
 
-    let buildPrelude: (() throws -> ()) throws -> ()
-    switch flavor.sanitize {
-    case .none:
-      buildPrelude = { try $0() }
-    case .stackOverflow:
-      buildPrelude = { next in
-        try withTemporaryFile(prefix: "stack-overflow-sanitizer") { supportingObjectFile in
-          supportingObjectFile.fileHandle.write(
-            Data(StackOverflowSanitizer.supportObjectFile)
-          )
-          builderArguments.append(contentsOf: [
-            "-Xlinker", supportingObjectFile.path.pathString,
-            // stack-overflow-sanitizer depends on "--stack-first"
-            "-Xlinker", "--stack-first",
-          ])
-          try next()
-        }
-      }
-    }
-
-    try buildPrelude {
+    try buildPrelude(flavor, builderArguments: builderArguments) { builderArguments in
       try Builder(
         arguments: builderArguments,
         mainWasmPath: mainWasmPath,
@@ -305,14 +307,16 @@ public final class Toolchain {
       "-Xswiftc", "-color-diagnostics",
     ]
 
-    try Builder(
-      arguments: builderArguments,
-      mainWasmPath: testBundlePath,
-      flavor,
-      fileSystem,
-      terminal
-    )
-    .runAndWaitUntilFinished()
+    try buildPrelude(flavor, builderArguments: builderArguments) { builderArguments in
+      try Builder(
+        arguments: builderArguments,
+        mainWasmPath: testBundlePath,
+        flavor,
+        fileSystem,
+        terminal
+      )
+      .runAndWaitUntilFinished()
+    }
 
     guard fileSystem.exists(testBundlePath) else {
       terminal.write(
