@@ -72,10 +72,9 @@ struct Test: ParsableCommand {
   var host = "127.0.0.1"
 
   func buildFlavor() -> BuildFlavor {
-    let defaultSanitize: SanitizeVariant? = release ? nil : .stackOverflow
-    return BuildFlavor(
+    BuildFlavor(
       isRelease: release, environment: environment.destination,
-      sanitize: sanitize ?? defaultSanitize
+      sanitize: sanitize
     )
   }
 
