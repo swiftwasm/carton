@@ -41,7 +41,7 @@ let package = Package(
     .package(url: "https://github.com/JohnSundell/Splash.git", from: "0.14.0"),
     .package(
       url: "https://github.com/swiftwasm/WasmTransformer",
-      .branch("katei/stack-overflow-sanitizer")
+      .upToNextMinor(from: "0.0.3")
     ),
   ],
   targets: [
