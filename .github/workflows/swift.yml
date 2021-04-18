@@ -50,6 +50,13 @@ jobs:
           curl https://get.wasmer.io -sSfL | sh
         if: startsWith(matrix.os, 'ubuntu')
 
+      - name: Build and install JavaScript resources
+        run: |
+          npm install
+          npm run build
+          rm -rf $HOME/.carton/static
+          mkdir -p $HOME/.carton
+          cp -r static $HOME/.carton/static
       - name: Build Project
         run: swift build -c release --build-tests --enable-test-discovery
       - name: Run Tests
