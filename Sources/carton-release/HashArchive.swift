@@ -75,13 +75,13 @@ struct HashArchive: ParsableCommand {
 
     \(hashes.map {
       """
-      let \($0)EntrypointSHA256 = ByteString([
+      public let \($0)EntrypointSHA256 = ByteString([
       \(arrayString(from: $1))
       ])
 
 
       """
-    }.joined())let staticArchiveHash = ByteString([
+    }.joined())public let staticArchiveHash = ByteString([
     \(arrayString(from: archiveHash)),
     ])
 
@@ -90,7 +90,7 @@ struct HashArchive: ParsableCommand {
     try localFileSystem.writeFileContents(
       AbsolutePath(
         cwd,
-        RelativePath("Sources").appending(components: "carton", "Server", "StaticArchive.swift")
+        RelativePath("Sources").appending(components: "CartonKit", "Server", "StaticArchive.swift")
       ),
       bytes: ByteString(encodingAsUTF8: hashesFileContent)
     )

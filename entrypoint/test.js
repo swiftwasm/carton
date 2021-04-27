@@ -74,6 +74,11 @@ const startWasiTask = async () => {
   const { instance } = await WebAssembly.instantiate(wasmBytes, {
     wasi_snapshot_preview1: wasi.wasiImport,
     javascript_kit: swift.importObjects(),
+    __stack_sanitizer: {
+      report_stack_overflow: () => {
+        throw new Error("Detected stack-buffer-overflow.")
+      }
+    }
   });
 
   if (instance.exports.swjs_library_version) {

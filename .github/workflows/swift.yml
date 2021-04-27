@@ -7,96 +7,64 @@ on:
     branches: [main]
 
 jobs:
-  catalina-swift5_2:
-    runs-on: macos-10.15
-
-    steps:
-      - uses: actions/checkout@v2
-      - name: Build on macOS 10.15 with Swift 5.2
-        run: |
-          set -ex
-          sudo xcode-select --switch /Applications/Xcode_11.7.app/Contents/Developer
-          rm '/usr/local/bin/swiftlint'
-          brew bundle
-          swift build -c release --build-tests --enable-test-discovery
-          swift test -c release --enable-test-discovery
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-#   bigsur-swift5_2:
-#     runs-on: macos-11.0
-
-#     steps:
-#       - uses: actions/checkout@v2
-#       - name: Build on macOS 11.0 with Swift 5.2
-#         run: |
-#           sudo xcode-select --switch /Applications/Xcode_11.7.app/Contents/Developer
-#           rm '/usr/local/bin/swiftlint'
-#           brew bundle
-#           swift build -c release --build-tests --enable-test-discovery
-#           swift test -c release --enable-test-discovery
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  catalina-swift5_3:
-    runs-on: macos-10.15
-
-    steps:
-      - uses: actions/checkout@v2
-      - name: Build on macOS 10.15 with Swift 5.3
-        run: |
-          set -ex
-          sudo xcode-select --switch /Applications/Xcode_12.app/Contents/Developer
-          rm '/usr/local/bin/swiftlint'
-          brew bundle
-          swift build -c release --build-tests --enable-test-discovery
-          swift test -c release --enable-test-discovery
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-#   bigsur-swift5_3:
-#     runs-on: macos-11.0
-
-#     steps:
-#       - uses: actions/checkout@v2
-#       - name: Build on macOS 11.0 with Swift 5.3
-#         run: |
-#           sudo xcode-select --switch /Applications/Xcode_12.2.app/Contents/Developer
-#           rm '/usr/local/bin/swiftlint'
-#           brew bundle
-#           swift build -c release --build-tests --enable-test-discovery
-#           swift test -c release --enable-test-discovery
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  ubuntu18_04-swift5_3:
-    runs-on: ubuntu-18.04
+  swift-test:
+    strategy:
+      matrix:
+        include:
+          - os: macos-10.15
+            swift_version: 5.2
+            xcode: /Applications/Xcode_11.7.app/Contents/Developer
+          - os: macos-10.15
+            swift_version: 5.3
+            xcode: /Applications/Xcode_12.app/Contents/Developer
+          # - os: macos-11.0
+          #   swift_version: 5.2
+          #   xcode: /Applications/Xcode_11.7.app/Contents/Developer
+          # - os: macos-11.0
+          #   swift_version: 5.3
+          #   xcode: /Applications/Xcode_12.2.app/Contents/Developer
+          - os: ubuntu-18.04
+            swift_version: 5.3
+          - os: ubuntu-20.04
+            swift_version: 5.3
+    name: Build on ${{ matrix.os }} with Swift ${{ matrix.swift_version }}
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Build on Ubuntu 18.04 with Swift 5.3
-        run: |
-          set -ex
-          sudo ./install_ubuntu_deps.sh
-          curl https://get.wasmer.io -sSfL | sh
-          source /home/runner/.wasmer/wasmer.sh
-          swift build -c release --build-tests --enable-test-discovery
-          swift test -c release --enable-test-discovery
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Select Xcode version
+        run: sudo xcode-select --switch ${{ matrix.xcode }}
+        if: startsWith(matrix.os, 'macos')
 
-  ubuntu20_04-swift5_3:
-    runs-on: ubuntu-20.04
+      - name: Cleanup pre-installed SwiftLint
+        run: rm -f '/usr/local/bin/swiftlint'
 
-    steps:
-      - uses: actions/checkout@v2
-      - name: Build on Ubuntu 20.04 with Swift 5.3
+      - name: Install dependencies for macOS
+        run: brew bundle
+        if: startsWith(matrix.os, 'macos')
+
+      - name: Install dependencies for Ubuntu
         run: |
           sudo ./install_ubuntu_deps.sh
           curl https://get.wasmer.io -sSfL | sh
-          source /home/runner/.wasmer/wasmer.sh
-          swift build -c release --build-tests --enable-test-discovery
+        if: startsWith(matrix.os, 'ubuntu')
+
+      - name: Build and install JavaScript resources
+        run: |
+          npm install
+          npm run build
+          rm -rf $HOME/.carton/static
+          mkdir -p $HOME/.carton
+          cp -r static $HOME/.carton/static
+      - name: Build Project
+        run: swift build -c release --build-tests --enable-test-discovery
+      - name: Run Tests
+        run: |
+          set -ex
+          if [ -e /home/runner/.wasmer/wasmer.sh ]; then
+            source /home/runner/.wasmer/wasmer.sh
+          fi
           swift test -c release --enable-test-discovery
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
