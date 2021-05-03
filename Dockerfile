@@ -10,6 +10,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
   libsqlite3-0 \
   libsqlite3-dev \
   curl unzip \
+  wabt binaryen \
   && export WASMER_DIR=/usr/local && curl https://get.wasmer.io -sSfL | sh && \
   rm -r /var/lib/apt/lists/*
 
@@ -23,7 +24,6 @@ RUN mkdir -p $CARTON_ROOT/sdk && \
 COPY . carton/
 
 RUN cd carton && \
-  ./install_ubuntu_deps.sh && \
   swift build -c release --build-tests --enable-test-discovery && \
   mv .build/release/carton /usr/bin && \
   cd .. && \
