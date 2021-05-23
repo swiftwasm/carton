@@ -24,9 +24,9 @@ jobs:
           #   swift_version: 5.3
           #   xcode: /Applications/Xcode_12.2.app/Contents/Developer
           - os: ubuntu-18.04
-            swift_version: 5.3
+            swift_version: 5.4
           - os: ubuntu-20.04
-            swift_version: 5.3
+            swift_version: 5.4
     name: Build on ${{ matrix.os }} with Swift ${{ matrix.swift_version }}
     runs-on: ${{ matrix.os }}
 
@@ -58,14 +58,14 @@ jobs:
           mkdir -p $HOME/.carton
           cp -r static $HOME/.carton/static
       - name: Build Project
-        run: swift build -c release --build-tests --enable-test-discovery
+        run: swift build
       - name: Run Tests
         run: |
           set -ex
           if [ -e /home/runner/.wasmer/wasmer.sh ]; then
             source /home/runner/.wasmer/wasmer.sh
           fi
-          swift test -c release --enable-test-discovery
+          swift test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
