@@ -31,7 +31,7 @@ extension Application {
     let onWebSocketClose: (WebSocket) -> ()
   }
 
-  func configure(with configuration: Configuration) {
+  func configure(_ configuration: Configuration) {
     http.server.configuration.port = configuration.port
     http.server.configuration.hostname = configuration.host
 

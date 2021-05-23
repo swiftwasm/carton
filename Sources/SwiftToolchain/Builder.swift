@@ -49,12 +49,12 @@ public final class Builder {
     self.fileSystem = fileSystem
   }
 
-  public func run() -> AnyPublisher<String, Error> {
+  private func processPublisher(builderArguments: [String]) -> AnyPublisher<String, Error> {
     let buildStarted = Date()
     let process = ProcessRunner(
-      arguments,
+      builderArguments,
       loadingMessage: "Compiling...",
-      parser: DiagnosticsParser(),
+      parser: nil,
       terminal
     )
     currentProcess = process
@@ -69,8 +69,7 @@ public final class Builder {
           String(format: "%.2f seconds", abs(buildStarted.timeIntervalSinceNow))
         )
 
-        var transformers: [(inout InputByteStream, inout InMemoryOutputWriter) throws -> ()] = [
-        ]
+        var transformers: [(inout InputByteStream, inout InMemoryOutputWriter) throws -> ()] = []
         if self.flavor.environment != .other {
           transformers.append(I64ImportTransformer().transform)
         }
@@ -85,7 +84,7 @@ public final class Builder {
         guard !transformers.isEmpty else { return }
 
         // FIXME: errors from these `try` expressions should be recoverable, not sure how to
-        // do that in `handleEvents`, and `flatMap` doesnt' fit here as we need to track
+        // do that in `handleEvents`, and `flatMap` doesn't fit here as we need to track
         // publisher completion.
         // swiftlint:disable force_try
         let binary = try! self.fileSystem.readFileContents(self.mainWasmPath)
@@ -108,6 +107,24 @@ public final class Builder {
         // swiftlint:enable force_try
       })
       .eraseToAnyPublisher()
+  }
+
+  public func run() -> AnyPublisher<String, Error> {
+    switch flavor.sanitize {
+    case .none:
+      return processPublisher(builderArguments: arguments)
+    case .stackOverflow:
+      let sanitizerFile =
+        fileSystem.homeDirectory.appending(components: ".carton", "static", "so_sanitizer.wasm")
+
+      var modifiedArguments = arguments
+      modifiedArguments.append(contentsOf: [
+        "-Xlinker", sanitizerFile.pathString,
+        // stack-overflow-sanitizer depends on "--stack-first"
+        "-Xlinker", "--stack-first",
+      ])
+      return processPublisher(builderArguments: modifiedArguments)
+    }
   }
 
   public func runAndWaitUntilFinished() throws {
