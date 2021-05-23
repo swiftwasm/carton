@@ -91,7 +91,7 @@ final class DevCommandTests: XCTestCase {
     let timeOut: Int64 = 60
 
     // client delay... let the server start up
-    let delay: UInt32 = 30
+    let delay: UInt32 = 60
 
     // only try 5 times.
     let polls = 5
