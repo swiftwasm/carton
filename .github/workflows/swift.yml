@@ -50,7 +50,7 @@ jobs:
           curl https://get.wasmer.io -sSfL | sh
         if: startsWith(matrix.os, 'ubuntu')
 
-      - name: Build Project
+      - name: Build the project
         run: swift build
 
       - name: Build and install JavaScript and sanitizer resources
