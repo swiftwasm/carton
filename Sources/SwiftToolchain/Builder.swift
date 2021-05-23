@@ -54,7 +54,7 @@ public final class Builder {
     let process = ProcessRunner(
       builderArguments,
       loadingMessage: "Compiling...",
-      parser: nil,
+      parser: DiagnosticsParser(),
       terminal
     )
     currentProcess = process
