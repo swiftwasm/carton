@@ -259,7 +259,7 @@ public class ToolchainSystem {
   }
 
   public func fetchAllSwiftVersions() throws -> [String] {
-    try resolvers.flatMap { (try? $0.fetchVersions()) ?? [] }
+    resolvers.flatMap { (try? $0.fetchVersions()) ?? [] }
       .filter { fileSystem.isDirectory($0.path) }
       .map(\.version)
       .sorted()

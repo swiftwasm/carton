@@ -109,6 +109,11 @@
       "command": "swift build && cd Tests/Fixtures/TestApp && ../../../.build/debug/carton bundle --custom-index-page index.html"
     },
     {
+      "label": "test",
+      "type": "shell",
+      "command": "swift test"
+    },
+    {
       "type": "npm",
       "script": "build",
       "group": "build",

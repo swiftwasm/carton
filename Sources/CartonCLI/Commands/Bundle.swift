@@ -58,21 +58,21 @@ struct Bundle: ParsableCommand {
     let toolchain = try Toolchain(localFileSystem, terminal)
 
     let flavor = buildFlavor()
-    let (_, mainWasmPath, inferredProduct) = try toolchain.buildCurrentProject(
+    let build = try toolchain.buildCurrentProject(
       product: product,
       flavor: flavor
     )
     try terminal.logLookup(
       "Right after building the main binary size is ",
-      localFileSystem.humanReadableFileSize(mainWasmPath),
+      localFileSystem.humanReadableFileSize(build.mainWasmPath),
       newline: true
     )
 
-    try strip(mainWasmPath)
+    try strip(build.mainWasmPath)
 
     try terminal.logLookup(
       "After stripping debug info the main binary size is ",
-      localFileSystem.humanReadableFileSize(mainWasmPath),
+      localFileSystem.humanReadableFileSize(build.mainWasmPath),
       newline: true
     )
 
@@ -81,7 +81,7 @@ struct Bundle: ParsableCommand {
     try localFileSystem.createDirectory(bundleDirectory)
     let optimizedPath = AbsolutePath(bundleDirectory, "main.wasm")
     try ProcessRunner(
-      ["wasm-opt", "-Os", mainWasmPath.pathString, "-o", optimizedPath.pathString],
+      ["wasm-opt", "-Os", build.mainWasmPath.pathString, "-o", optimizedPath.pathString],
       terminal
     ).waitUntilFinished()
     try terminal.logLookup(
@@ -93,10 +93,10 @@ struct Bundle: ParsableCommand {
     try copyToBundle(
       terminal: terminal,
       optimizedPath: optimizedPath,
-      buildDirectory: mainWasmPath.parentDirectory,
+      buildDirectory: build.mainWasmPath.parentDirectory,
       bundleDirectory: bundleDirectory,
       toolchain: toolchain,
-      product: inferredProduct
+      product: build.product
     )
 
     terminal.write("Bundle generation finished successfully\n", inColor: .green, bold: true)

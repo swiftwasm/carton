@@ -206,32 +206,10 @@ public final class Toolchain {
     }
   }
 
-  private func buildPrelude(_ flavor: BuildFlavor, builderArguments: [String],
-                            _ next: (_ builderArguments: [String]) throws -> ()) throws
-  {
-    switch flavor.sanitize {
-    case .none:
-      try next(builderArguments)
-    case .stackOverflow:
-      try withTemporaryFile(prefix: "stack-overflow-sanitizer") { supportingObjectFile in
-        supportingObjectFile.fileHandle.write(
-          Data(StackOverflowSanitizer.supportObjectFile)
-        )
-        var builderArguments = builderArguments
-        builderArguments.append(contentsOf: [
-          "-Xlinker", supportingObjectFile.path.pathString,
-          // stack-overflow-sanitizer depends on "--stack-first"
-          "-Xlinker", "--stack-first",
-        ])
-        try next(builderArguments)
-      }
-    }
-  }
-
   public func buildCurrentProject(
     product: String?,
     flavor: BuildFlavor
-  ) throws -> (builderArguments: [String], mainWasmPath: AbsolutePath, ProductDescription) {
+  ) throws -> BuildDescription {
     guard let product = try inferDevProduct(hint: product)
     else { throw ToolchainError.noExecutableProduct }
 
@@ -264,16 +242,14 @@ public final class Toolchain {
       "--product", product.name, "--enable-test-discovery", "--triple", "wasm32-unknown-wasi",
     ]
 
-    try buildPrelude(flavor, builderArguments: builderArguments) { builderArguments in
-      try Builder(
-        arguments: builderArguments,
-        mainWasmPath: mainWasmPath,
-        flavor,
-        fileSystem,
-        terminal
-      )
-      .runAndWaitUntilFinished()
-    }
+    try Builder(
+      arguments: builderArguments,
+      mainWasmPath: mainWasmPath,
+      flavor,
+      fileSystem,
+      terminal
+    )
+    .runAndWaitUntilFinished()
 
     guard fileSystem.exists(mainWasmPath) else {
       terminal.write(
@@ -283,7 +259,7 @@ public final class Toolchain {
       throw ToolchainError.failedToBuild(product: product.name)
     }
 
-    return (builderArguments, mainWasmPath, product)
+    return .init(arguments: builderArguments, mainWasmPath: mainWasmPath, product: product)
   }
 
   /// Returns an absolute path to the resulting test bundle
@@ -307,16 +283,14 @@ public final class Toolchain {
       "-Xswiftc", "-color-diagnostics",
     ]
 
-    try buildPrelude(flavor, builderArguments: builderArguments) { builderArguments in
-      try Builder(
-        arguments: builderArguments,
-        mainWasmPath: testBundlePath,
-        flavor,
-        fileSystem,
-        terminal
-      )
-      .runAndWaitUntilFinished()
-    }
+    try Builder(
+      arguments: builderArguments,
+      mainWasmPath: testBundlePath,
+      flavor,
+      fileSystem,
+      terminal
+    )
+    .runAndWaitUntilFinished()
 
     guard fileSystem.exists(testBundlePath) else {
       terminal.write(
