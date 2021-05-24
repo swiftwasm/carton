@@ -33,7 +33,7 @@ let package = Package(
     .package(url: "https://github.com/vapor/vapor.git", from: "4.29.3"),
     .package(url: "https://github.com/apple/swift-crypto.git", from: "1.1.0"),
     .package(url: "https://github.com/JohnSundell/Splash.git", from: "0.14.0"),
-    .package(url: "https://github.com/swiftwasm/WasmTransformer", .upToNextMinor(from: "0.0.1")),
+    .package(url: "https://github.com/swiftwasm/WasmTransformer", .upToNextMinor(from: "0.0.3")),
   ],
   targets: [
     // Targets are the basic building blocks of a package. A target can define a module
@@ -43,15 +43,6 @@ let package = Package(
       name: "Carton",
       dependencies: [
         "CartonCLI",
-        // commented out for now. Will remove once confirmed working
-//        .product(name: "ArgumentParser", package: "swift-argument-parser"),
-//        .product(name: "AsyncHTTPClient", package: "async-http-client"),
-//        .product(name: "Crypto", package: "swift-crypto"),
-//        .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
-//        .product(name: "Vapor", package: "vapor"),
-//        "CartonHelpers",
-//        openCombineProduct,
-//        "SwiftToolchain",
       ]
     ),
     .target(
@@ -88,6 +79,7 @@ let package = Package(
         .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
         "OpenCombine",
         "Splash",
+        "WasmTransformer",
       ]
     ),
     // This target is used only for release automation tasks and

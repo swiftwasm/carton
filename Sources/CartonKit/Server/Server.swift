@@ -114,7 +114,7 @@ public final class Server {
   }
 
   public init(
-    with configuration: Configuration,
+    _ configuration: Configuration,
     _ terminal: InteractiveWriter
   ) throws {
     if let builder = configuration.builder {
@@ -133,7 +133,7 @@ public final class Server {
     try LoggingSystem.bootstrap(from: &env)
     app = Application(env)
     app.configure(
-      with: .init(
+      .init(
         port: configuration.port,
         host: configuration.host,
         mainWasmPath: configuration.mainWasmPath,
@@ -143,7 +143,7 @@ public final class Server {
         entrypoint: configuration.entrypoint,
         onWebSocketOpen: { [weak self] ws, environment in
           if let handler = self?.createWSHandler(
-            with: configuration,
+            configuration,
             in: environment,
             terminal: terminal
           ) {
@@ -177,7 +177,7 @@ public final class Server {
       .store(in: &subscriptions)
   }
 
-  /// Blocking function that starts the HTTP server
+  /// Blocking function that starts the HTTP server.
   public func run() throws {
     defer { app.shutdown() }
     try app.run()
@@ -205,8 +205,9 @@ public final class Server {
 }
 
 extension Server {
+  /// Returns a handler that responds to WebSocket messages coming from the browser.
   func createWSHandler(
-    with configuration: Configuration,
+    _ configuration: Configuration,
     in environment: DestinationEnvironment,
     terminal: InteractiveWriter
   ) -> (WebSocket, String) -> () {

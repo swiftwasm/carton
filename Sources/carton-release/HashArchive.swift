@@ -15,6 +15,7 @@
 import ArgumentParser
 import CartonHelpers
 import TSCBasic
+import WasmTransformer
 
 struct HashArchive: ParsableCommand {
   /** Converts a hexadecimal hash string to Swift code that represents a static
@@ -55,6 +56,12 @@ struct HashArchive: ParsableCommand {
       return (entrypoint, try SHA256().hash(localFileSystem.readFileContents(entrypointPath))
         .hexadecimalRepresentation.uppercased())
     }
+
+    try localFileSystem.writeFileContents(
+      staticPath.appending(component: "so_sanitizer.wasm"),
+      bytes: .init(StackOverflowSanitizer.supportObjectFile)
+    )
+    print("file written to \(staticPath.appending(component: "so_sanitizer.wasm"))")
 
     let archiveSources = try localFileSystem.traverseRecursively(staticPath)
       // `traverseRecursively` also returns the `staticPath` directory itself, dropping it here

@@ -197,11 +197,13 @@ public extension XCTest {
   /// Execute shell command and return the process the command is running in
   ///
   /// - parameter command: The command to execute.
+  /// - paramater shouldPrintOutput: whether the command output should be printed to stdout/stderr.
   /// - parameter cwd: The current working directory for executing the command.
   /// - parameter file: The file the assertion is coming from.
   /// - parameter line: The line the assertion is coming from.
   func executeCommand(
     command: String,
+    shouldPrintOutput: Bool = false,
     cwd: URL? = nil, // To allow for testing of file based output
     file: StaticString = #file, line: UInt = #line
   ) -> Process? {
@@ -229,9 +231,9 @@ public extension XCTest {
     }
 
     let output = Pipe()
-    process.standardOutput = output
+    process.standardOutput = shouldPrintOutput ? FileHandle.standardOutput : output
     let error = Pipe()
-    process.standardError = error
+    process.standardError = shouldPrintOutput ? FileHandle.standardError : error
 
     if #available(macOS 10.13, *) {
       guard (try? process.run()) != nil else {

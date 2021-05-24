@@ -100,7 +100,7 @@ struct Test: ParsableCommand {
       try runner.waitUntilFinished()
     } else {
       try Server(
-        with: .init(
+        .init(
           builder: nil,
           mainWasmPath: testBundlePath,
           verbose: true,

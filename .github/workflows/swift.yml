@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: "*"
 
 jobs:
   swift-test:
@@ -50,15 +50,17 @@ jobs:
           curl https://get.wasmer.io -sSfL | sh
         if: startsWith(matrix.os, 'ubuntu')
 
-      - name: Build and install JavaScript resources
-        run: |
-          npm install
-          npm run build
-          rm -rf $HOME/.carton/static
-          mkdir -p $HOME/.carton
-          cp -r static $HOME/.carton/static
-      - name: Build Project
+      - name: Build the project
         run: swift build
+
+      - name: Build and install JavaScript and sanitizer resources
+        run: |
+          set -ex
+          npm install
+          swift run carton-release hash-archive
+          mkdir -p $HOME/.carton
+          cp -r static $HOME/.carton
+
       - name: Run Tests
         run: |
           set -ex
