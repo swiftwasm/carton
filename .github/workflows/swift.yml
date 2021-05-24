@@ -59,7 +59,7 @@ jobs:
           npm install
           swift run carton-release hash-archive
           mkdir -p $HOME/.carton
-          cp -r static $HOME/.carton/static
+          cp -r static $HOME/.carton
           ls -R  $HOME/.carton/static
 
       - name: Run Tests
