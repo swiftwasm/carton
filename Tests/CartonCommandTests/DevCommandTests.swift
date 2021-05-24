@@ -45,7 +45,6 @@ final class DevCommandTests: XCTestCase {
 
     guard let process = executeCommand(
       command: "carton dev --verbose",
-      shouldPrintOutput: true,
       cwd: packageDirectory.url
     ) else {
       XCTFail("Could not create process")
@@ -74,7 +73,6 @@ final class DevCommandTests: XCTestCase {
 
     guard let process = executeCommand(
       command: "carton dev --verbose --port 8081 --host 0.0.0.0",
-      shouldPrintOutput: true,
       cwd: packageDirectory.url
     ) else {
       XCTFail("Could not create process")
