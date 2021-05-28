@@ -42,17 +42,19 @@ brew install swiftwasm/tap/carton
 docker pull ghcr.io/swiftwasm/carton:latest
 ```
 
-If Docker images are not suitable for you, you'll have to build `carton` from sources on Ubuntu, and
-unfortunately other Linux distributions are currently not supported. Clone the repository and run
-`swift build -c release`, the `carton` binary will be located in the `.build/release` directory
-after that.
+If Docker images are not suitable for you, you'll have to build `carton` from sources on Ubuntu.
+Clone the repository and run `./install_ubuntu_deps.sh` in the root directory of the clone. After
+that completes successfully, run `swift build -c release`, the `carton` binary will be located in
+the `.build/release` directory after that. Unfortunately, other Linux distributions are currently
+not supported.
 
 ### Usage
 
-The `carton init` command initializes a new SwiftWasm project for you (similarly to `swift package init`) with multiple templates available at your choice. `carton init --template tokamak` creates a
-new [Tokamak](https://tokamak.dev/) project, while `carton init --template basic` (equivalent to
-`carton init`) creates an empty SwiftWasm project with no dependencies. Also, `carton init list-templates` provides a complete list of templates (with only `basic` and `tokamak` available
-currently).
+The `carton init` command initializes a new SwiftWasm project for you (similarly to
+`swift package init`) with multiple templates available at your choice. `carton init --template tokamak`
+creates a new [Tokamak](https://tokamak.dev/) project, while `carton init --template basic` (equivalent
+to `carton init`) creates an empty SwiftWasm project with no dependencies. Also, `carton init list-templates`
+provides a complete list of templates (with only `basic` and `tokamak` available currently).
 
 The `carton dev` command builds your project with the SwiftWasm toolchain and starts an HTTP server
 that hosts your WebAssembly executable and a corresponding JavaScript entrypoint that loads it. The
