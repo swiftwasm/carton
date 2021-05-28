@@ -35,12 +35,13 @@ func crash() {
 }
 
 var buttonNode = document.getElementsByTagName("button")[0]
-let handler = JSClosure { _ -> () in
+let handler = JSClosure { _ in
   print(text)
   crash()
+  return .undefined
 }
 
-buttonNode.onclick = .function(handler)
+buttonNode.onclick = .object(handler)
 
 var div = document.createElement("div")
 div.innerHTML = .string(#"""

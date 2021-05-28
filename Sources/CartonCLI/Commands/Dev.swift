@@ -97,7 +97,7 @@ struct Dev: ParsableCommand {
     }
 
     let flavor = buildFlavor()
-    let (arguments, mainWasmPath, inferredProduct) = try toolchain.buildCurrentProject(
+    let build = try toolchain.buildCurrentProject(
       product: product,
       flavor: flavor
     )
@@ -114,16 +114,16 @@ struct Dev: ParsableCommand {
     let sources = try paths.flatMap { try localFileSystem.traverseRecursively($0) }
 
     try Server(
-      with: .init(
+      .init(
         builder: Builder(
-          arguments: arguments,
-          mainWasmPath: mainWasmPath,
+          arguments: build.arguments,
+          mainWasmPath: build.mainWasmPath,
           pathsToWatch: sources,
           flavor,
           localFileSystem,
           terminal
         ),
-        mainWasmPath: mainWasmPath,
+        mainWasmPath: build.mainWasmPath,
         verbose: verbose,
         skipAutoOpen: skipAutoOpen,
         port: port,
@@ -131,7 +131,7 @@ struct Dev: ParsableCommand {
         customIndexContent: HTML.readCustomIndexPage(at: customIndexPage, on: localFileSystem),
         // swiftlint:disable:next force_try
         manifest: try! toolchain.manifest.get(),
-        product: inferredProduct,
+        product: build.product,
         entrypoint: Self.entrypoint
       ),
       terminal

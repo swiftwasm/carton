@@ -52,15 +52,6 @@ let package = Package(
       name: "Carton",
       dependencies: [
         "CartonCLI",
-        // commented out for now. Will remove once confirmed working
-//        .product(name: "ArgumentParser", package: "swift-argument-parser"),
-//        .product(name: "AsyncHTTPClient", package: "async-http-client"),
-//        .product(name: "Crypto", package: "swift-crypto"),
-//        .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
-//        .product(name: "Vapor", package: "vapor"),
-//        "CartonHelpers",
-//        openCombineProduct,
-//        "SwiftToolchain",
       ]
     ),
     .target(
@@ -95,6 +86,7 @@ let package = Package(
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
         openCombineProduct,
         "Splash",
+        "WasmTransformer",
       ]
     ),
     // This target is used only for release automation tasks and
