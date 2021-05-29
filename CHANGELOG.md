@@ -1,3 +1,46 @@
+# 0.10.0 (30 May 2020)
+
+This is a bugfix release that resolves issues with incorrect or missing diagnostic output, improves
+our end-to-end test coverage, and updates dependencies and `carton init` templates.
+
+Additionally, we improved support for demangling stack traces in different browsers, and added
+a stack overflow sanitizer that's enabled by default for debug builds.
+
+Many thanks (in alphabetical order) to [@j-f1](https://github.com/j-f1),
+[@kateinoigakukun](https://github.com/kateinoigakukun), [@literalpie](https://github.com/literalpie),
+[@thecb4](https://github.com/thecb4), and [@yonihemi](https://github.com/yonihemi) for their
+contributions to this release!
+
+**Closed issues:**
+
+- `carton test` command unable to find gtk+3 using `--template tokamak` ([#241](https://github.com/swiftwasm/carton/issues/241))
+- `carton` also requires zlib.h to compile from source ([#237](https://github.com/swiftwasm/carton/issues/237))
+- `carton test --environment defaultBrowser` broken on GitHub Actions ([#200](https://github.com/swiftwasm/carton/issues/200))
+- Add `--host` option to `carton dev` and `carton test` ([#193](https://github.com/swiftwasm/carton/issues/193))
+- Replace hard-coded path delimiters ([#183](https://github.com/swiftwasm/carton/issues/183))
+- Use libSwiftPM instead of custom model types ([#120](https://github.com/swiftwasm/carton/issues/120))
+
+**Merged pull requests:**
+
+- Update JSKit and Tokamak versions in templates ([#243](https://github.com/swiftwasm/carton/pull/243)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Fix Ubuntu deps, clarify Linux support in `README.md` ([#242](https://github.com/swiftwasm/carton/pull/242)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Add more browsers to `DestinationEnvironment` ([#228](https://github.com/swiftwasm/carton/pull/228)) via [@j-f1](https://github.com/j-f1)
+- Fix `carton dev` crashing with SO sanitizer ([#239](https://github.com/swiftwasm/carton/pull/239)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Avoid building in `release` mode when testing ([#240](https://github.com/swiftwasm/carton/pull/240)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update JS dependencies in `package-lock.json` ([#231](https://github.com/swiftwasm/carton/pull/231)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Integrate stack sanitizer ([#230](https://github.com/swiftwasm/carton/pull/230)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+- Add `carton init` with template test. Supports #99 ([#221](https://github.com/swiftwasm/carton/pull/221)) via [@thecb4](https://github.com/thecb4)
+- Add host argument to `dev` and `test` commands ([#213](https://github.com/swiftwasm/carton/pull/213)) via [@literalpie](https://github.com/literalpie)
+- Add tests for `sdk versions` and `sdk local` commands ([#218](https://github.com/swiftwasm/carton/pull/218)) via [@thecb4](https://github.com/thecb4)
+- Add test for `carton sdk install` ([#217](https://github.com/swiftwasm/carton/pull/217)) via [@thecb4](https://github.com/thecb4)
+- Use libSwiftPM instead of custom model types ([#194](https://github.com/swiftwasm/carton/pull/194)) via [@yonihemi](https://github.com/yonihemi)
+- Add end-to-end tests for `carton test ` command ([#209](https://github.com/swiftwasm/carton/pull/209)) via [@thecb4](https://github.com/thecb4)
+- Link to the org sponsorship page from `README.md` ([#210](https://github.com/swiftwasm/carton/pull/210)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update the "Roadmap" section in `README.md` ([#207](https://github.com/swiftwasm/carton/pull/207)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Avoid running tests while building the Docker image ([#204](https://github.com/swiftwasm/carton/pull/204)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Fix browser testing for Safari, update `tasks.json` ([#202](https://github.com/swiftwasm/carton/pull/202)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Add `test` command test with no arguments ([#198](https://github.com/swiftwasm/carton/pull/198)) via [@thecb4](https://github.com/thecb4)
+
 # 0.9.1 (19 December 2020)
 
 This is a bugfix release that fixes parsing of `Package.swift` manifests that contain dependencies on system targets. It also adds support for Chrome and Safari stack traces. Many thanks to [@j-f1](https://github.com/j-f1) for the contribution!
