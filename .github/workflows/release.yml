@@ -27,6 +27,8 @@ jobs:
         run: |
           brew install --build-bottle --verbose swiftwasm/tap/carton
           brew bottle swiftwasm/tap/carton
+          mv ./carton--${{ github.event.release.tag_name }}.catalina.bottle*.tar.gz \
+            ./carton--${{ github.event.release.tag_name }}.catalina.bottle.tar.gz
       - name: Upload the bottle to the GitHub release
         uses: actions/upload-release-asset@v1.0.1
         env:
@@ -48,7 +50,7 @@ jobs:
           tap: swiftwasm/homebrew-tap
           formula: carton.rb
           message: |
-              Add bottle for carton ${{ github.event.release.tag_name }}
-              on macOS Catalina
+            Add bottle for carton ${{ github.event.release.tag_name }}
+            on macOS Catalina
         env:
           GH_PERSONAL_ACCESS_TOKEN: ${{ secrets.PAT }}
