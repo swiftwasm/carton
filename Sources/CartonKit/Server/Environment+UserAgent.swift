@@ -15,20 +15,20 @@
 import SwiftToolchain
 
 extension DestinationEnvironment {
-  init?(userAgent: String) {
+  static func from(userAgent: String) -> DestinationEnvironment? {
     if userAgent.contains("Firefox") {
-      self = .firefox
+      return .firefox
     }
     // Edge UA string contains `Chrome` and `Safari` so this must go first
     if userAgent.contains("Edg/") {
-      self = .edge
+      return .edge
     }
     // Chrome UA string contains `Safari` so this must go first
     if userAgent.contains("Chrome/") {
-      self = .chrome
+      return .chrome
     }
     if userAgent.contains("Safari/") {
-      self = .safari
+      return .safari
     }
 
     return nil
