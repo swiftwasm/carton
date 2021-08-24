@@ -54,10 +54,6 @@ final class InitCommandTests: XCTestCase {
     )
     XCTAssertTrue(packageDirectory.ls().contains("Tests"), "Tests does not exist")
     XCTAssertTrue(
-      packageDirectory.ls().contains("Tests/LinuxMain.swift"),
-      "Tests/LinuxMain.swift does not exist"
-    )
-    XCTAssertTrue(
       packageDirectory.ls().contains("Tests/\(package)Tests"),
       "Tests/\(package)Tests does not exist"
     )
@@ -105,10 +101,6 @@ final class InitCommandTests: XCTestCase {
       "Sources/\(package)/main.swift does not exist"
     )
     XCTAssertTrue(packageDirectory.ls().contains("Tests"), "Tests does not exist")
-    XCTAssertTrue(
-      packageDirectory.ls().contains("Tests/LinuxMain.swift"),
-      "Tests/LinuxMain.swift does not exist"
-    )
     XCTAssertTrue(
       packageDirectory.ls().contains("Tests/\(package)Tests"),
       "Tests/\(package)Tests does not exist"
