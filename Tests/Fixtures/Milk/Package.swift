@@ -7,7 +7,7 @@ let package = Package(
     .executable(name: "Milk", targets: ["Milk"]),
   ],
   dependencies: [
-    .package(name: "Tokamak", url: "https://github.com/TokamakUI/Tokamak", from: "0.6.1"),
+    .package(name: "Tokamak", url: "https://github.com/TokamakUI/Tokamak", from: "0.8.0"),
   ],
   targets: [
     .target(

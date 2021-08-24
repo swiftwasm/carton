@@ -6,17 +6,17 @@
         "repositoryURL": "https://github.com/swiftwasm/JavaScriptKit.git",
         "state": {
           "branch": null,
-          "revision": "b7a02434c6e973c08c3fd5069105ef44dd82b891",
-          "version": "0.9.0"
+          "revision": "b19e7c8b10a2750ed47753e31ed13613171f3294",
+          "version": "0.10.1"
         }
       },
       {
         "package": "OpenCombine",
-        "repositoryURL": "https://github.com/TokamakUI/OpenCombine.git",
+        "repositoryURL": "https://github.com/OpenCombine/OpenCombine.git",
         "state": {
           "branch": null,
-          "revision": "bccff3e7c84bc559e1aa0aa9ca878400360d439d",
-          "version": "0.12.0-alpha2"
+          "revision": "28993ae57de5a4ea7e164787636cafad442d568c",
+          "version": "0.12.0"
         }
       },
       {
@@ -24,17 +24,26 @@
         "repositoryURL": "https://github.com/swiftwasm/OpenCombineJS.git",
         "state": {
           "branch": null,
-          "revision": "b346f955ed21ab44576e204a7554210c77f69b9b",
-          "version": "0.0.1"
+          "revision": "eaf324ce78710f53b52fb82e9a8de4693633e33a",
+          "version": "0.1.1"
         }
       },
       {
-        "package": "Runtime",
-        "repositoryURL": "https://github.com/MaxDesiatov/Runtime.git",
+        "package": "swift-argument-parser",
+        "repositoryURL": "https://github.com/apple/swift-argument-parser",
         "state": {
           "branch": null,
-          "revision": "a617ead8a125a97e69d6100e4d27922006e82e0a",
-          "version": "2.1.2"
+          "revision": "83b23d940471b313427da226196661856f6ba3e0",
+          "version": "0.4.4"
+        }
+      },
+      {
+        "package": "Benchmark",
+        "repositoryURL": "https://github.com/google/swift-benchmark",
+        "state": {
+          "branch": null,
+          "revision": "8e0ef8bb7482ab97dcd2cd1d6855bd38921c345d",
+          "version": "0.1.0"
         }
       },
       {
@@ -42,8 +51,8 @@
         "repositoryURL": "https://github.com/TokamakUI/Tokamak",
         "state": {
           "branch": null,
-          "revision": "b4b0efca4de0ce9cff771649dfbcd13c5736e7f0",
-          "version": "0.6.1"
+          "revision": "c2ed28ca40445b1b63bfdfe45de2507e5eb24a21",
+          "version": "0.8.0"
         }
       }
     ]
