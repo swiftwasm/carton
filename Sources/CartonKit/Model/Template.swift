@@ -179,7 +179,7 @@ extension Templates {
           .init(
             name: "Tokamak",
             url: "https://github.com/TokamakUI/Tokamak",
-            version: .from("0.7.0")
+            version: .from("0.8.0")
           ),
         ],
         targetDepencencies: [
