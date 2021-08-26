@@ -113,7 +113,7 @@ for WebAssembly and served when you start `carton dev` in the directory where `P
 
 `carton` is built with [Vapor](https://vapor.codes/), [SwiftNIO](https://github.com/apple/swift-nio),
 [swift-tools-support-core](https://github.com/apple/swift-tools-support-core), and
-[OpenCombine](https://github.com/broadwaylamb/OpenCombine), and supports both macOS and Linux. (Many
+[OpenCombine](https://github.com/OpenCombine/OpenCombine), and supports both macOS and Linux. (Many
 thanks to everyone supporting and maintaining those projects!)
 
 ### Running `carton dev` with the `release` configuration
