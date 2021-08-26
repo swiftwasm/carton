@@ -61,10 +61,6 @@ final class InitCommandTests: XCTestCase {
       packageDirectory.ls().contains("Tests/\(package)Tests/\(package)Tests.swift"),
       "Tests/\(package)Tests/\(package)Tests.swift does not exist"
     )
-    XCTAssertTrue(
-      packageDirectory.ls().contains("Tests/\(package)Tests/XCTestManifests.swift"),
-      "Tests/\(package)Tests/XCTestManifests.swift does not exist"
-    )
 
     // finally, clean up
     try packageDirectory.delete()
@@ -108,10 +104,6 @@ final class InitCommandTests: XCTestCase {
     XCTAssertTrue(
       packageDirectory.ls().contains("Tests/\(package)Tests/\(package)Tests.swift"),
       "Tests/\(package)Tests/\(package)Tests.swift does not exist"
-    )
-    XCTAssertTrue(
-      packageDirectory.ls().contains("Tests/\(package)Tests/XCTestManifests.swift"),
-      "Tests/\(package)Tests/XCTestManifests.swift does not exist"
     )
 
     let actualTemplateSource = try String(contentsOfFile: packageDirectory
