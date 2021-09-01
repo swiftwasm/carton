@@ -120,14 +120,6 @@ thanks to everyone supporting and maintaining those projects!)
 
 By default `carton dev` will compile in the `debug` configuration. Add the `--release` flag to compile in the `release` configuration.
 
-## Roadmap
-
-As cross-compiling to WebAssembly and running apps and tests remotely is not too dissimilar to Android
-development, or even development on macOS for Linux through Docker, `carton` could potentially become
-a generic tool for cross-platform Swift developers. I'm not developing any Android apps currently, but
-if there are interested Swift for Android developers, I'd be very happy to review and merge their
-contributions enabling that.
-
 ## Contributing
 
 ### Sponsorship
