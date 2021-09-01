@@ -233,7 +233,7 @@ public extension XCTest {
     let output = Pipe()
     process.standardOutput = shouldPrintOutput ? FileHandle.standardOutput : output
     let error = Pipe()
-    process.standardError = shouldPrintOutput ? FileHandle.standardOutput : error
+    process.standardError = shouldPrintOutput ? FileHandle.standardError : error
 
     if #available(macOS 10.13, *) {
       guard (try? process.run()) != nil else {
