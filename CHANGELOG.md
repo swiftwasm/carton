@@ -1,4 +1,18 @@
-# 0.10.0 (30 May 2020)
+# 0.11.0 (2 September 2021)
+
+This release bumps the default version of SwiftWasm distribution to 5.4.0. For projects that don't
+specify their preferred version of SwiftWasm in `.swift-version`, starting with this version
+`carton` will download SwiftWasm 5.4.0.
+
+No other major changes are included in this release.
+
+**Merged pull requests:**
+
+- Bump version to 0.11.0, update dependencies ([#251](https://github.com/swiftwasm/carton/pull/251)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update link in `README.md` ([#252](https://github.com/swiftwasm/carton/pull/252)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update dependencies ([#247](https://github.com/swiftwasm/carton/pull/247)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+
+# 0.10.0 (30 May 2021)
 
 This is a bugfix release that resolves issues with incorrect or missing diagnostic output, improves
 our end-to-end test coverage, and updates dependencies and `carton init` templates.
