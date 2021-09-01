@@ -54,20 +54,12 @@ final class InitCommandTests: XCTestCase {
     )
     XCTAssertTrue(packageDirectory.ls().contains("Tests"), "Tests does not exist")
     XCTAssertTrue(
-      packageDirectory.ls().contains("Tests/LinuxMain.swift"),
-      "Tests/LinuxMain.swift does not exist"
-    )
-    XCTAssertTrue(
       packageDirectory.ls().contains("Tests/\(package)Tests"),
       "Tests/\(package)Tests does not exist"
     )
     XCTAssertTrue(
       packageDirectory.ls().contains("Tests/\(package)Tests/\(package)Tests.swift"),
       "Tests/\(package)Tests/\(package)Tests.swift does not exist"
-    )
-    XCTAssertTrue(
-      packageDirectory.ls().contains("Tests/\(package)Tests/XCTestManifests.swift"),
-      "Tests/\(package)Tests/XCTestManifests.swift does not exist"
     )
 
     // finally, clean up
@@ -106,20 +98,12 @@ final class InitCommandTests: XCTestCase {
     )
     XCTAssertTrue(packageDirectory.ls().contains("Tests"), "Tests does not exist")
     XCTAssertTrue(
-      packageDirectory.ls().contains("Tests/LinuxMain.swift"),
-      "Tests/LinuxMain.swift does not exist"
-    )
-    XCTAssertTrue(
       packageDirectory.ls().contains("Tests/\(package)Tests"),
       "Tests/\(package)Tests does not exist"
     )
     XCTAssertTrue(
       packageDirectory.ls().contains("Tests/\(package)Tests/\(package)Tests.swift"),
       "Tests/\(package)Tests/\(package)Tests.swift does not exist"
-    )
-    XCTAssertTrue(
-      packageDirectory.ls().contains("Tests/\(package)Tests/XCTestManifests.swift"),
-      "Tests/\(package)Tests/XCTestManifests.swift does not exist"
     )
 
     let actualTemplateSource = try String(contentsOfFile: packageDirectory

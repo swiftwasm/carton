@@ -72,14 +72,14 @@ final class SDKCommandTests: XCTestCase {
     // it's ok if there is nothing to delete
     do { try swiftVersion.delete() } catch {}
 
-    let alternateLocal = "wasm-5.3.1"
+    let alternateLocal = "wasm-5.4.0"
 
     try alternateLocal.write(to: swiftVersion.url, atomically: true, encoding: .utf8)
 
     AssertExecuteCommand(
       command: "carton sdk local",
       cwd: packageDirectory.url,
-      expected: "wasm-5.3.1",
+      expected: "wasm-5.4.0",
       expectedContains: true
     )
 
