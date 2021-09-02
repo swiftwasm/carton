@@ -229,9 +229,9 @@ extension Server {
           }
         } else {
           terminal.write("\nAn error occurred, here's the raw stack trace for it:\n", inColor: .red)
-          terminal.write("  Please send an issue or PR to the Carton repository\n" +
+          terminal.write("  Please create an issue or PR to the Carton repository\n" +
             "  with your browser name and this raw stack trace so\n" +
-            "  we can add support for it.\n", inColor: .grey)
+            "  we can add support for it: https://github.com/swiftwasm/carton\n", inColor: .grey)
           terminal.write(rawStackTrace + "\n")
         }
 

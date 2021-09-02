@@ -297,7 +297,7 @@ public struct TestsParser: ProcessOutputParser {
     let suitesWithCases = suites.filter { $0.cases.count > 0 }
 
     terminal.write("Test Suites: ")
-    let suitesPassed = suitesWithCases.filter { $0.passed }.count
+    let suitesPassed = suitesWithCases.filter(\.passed).count
     if suitesPassed > 0 {
       terminal.write("\("\(suitesPassed) passed", color: "[32m"), ")
     }
@@ -308,7 +308,7 @@ public struct TestsParser: ProcessOutputParser {
 
     terminal.write("Tests:       ")
     let allTests = suitesWithCases.map(\.cases).reduce([], +)
-    let testsPassed = allTests.filter { $0.passed }.count
+    let testsPassed = allTests.filter(\.passed).count
     if testsPassed > 0 {
       terminal.write("\("\(testsPassed) passed", color: "[32m"), ")
     }
