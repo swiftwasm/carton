@@ -1,3 +1,7 @@
+# 0.11.1 (2 September 2021)
+
+This is a bugfix release that fixes an issue with dynamic linking to `libSwiftPMDataModel.so` in Ubuntu images for Docker.
+
 # 0.11.0 (2 September 2021)
 
 This release bumps the default version of SwiftWasm distribution to 5.4.0. For projects that don't
