@@ -237,10 +237,16 @@ public final class Toolchain {
 
     terminal.write("\nBuilding the project before spinning up a server...\n", inColor: .yellow)
 
-    let builderArguments = [
+    var builderArguments = [
       swiftPath.pathString, "build", "-c", flavor.isRelease ? "release" : "debug",
-      "--product", product.name, "--enable-test-discovery", "--triple", "wasm32-unknown-wasi",
+      "--product", product.name, "--triple", "wasm32-unknown-wasi",
     ]
+
+    // Versions later than 5.3.x have test discovery enabled by default and the explicit flag
+    // deprecated.
+    if ["wasm-5.3.0-RELEASE", "wasm-5.3.1-RELEASE"].contains(version) {
+      builderArguments.append("--enable-test-discovery")
+    }
 
     try Builder(
       arguments: builderArguments,
@@ -277,11 +283,17 @@ public final class Toolchain {
       inColor: .yellow
     )
 
-    let builderArguments = [
+    var builderArguments = [
       swiftPath.pathString, "build", "-c", flavor.isRelease ? "release" : "debug",
-      "--product", testProductName, "--enable-test-discovery", "--triple", "wasm32-unknown-wasi",
+      "--product", testProductName, "--triple", "wasm32-unknown-wasi",
       "-Xswiftc", "-color-diagnostics",
     ]
+
+    // Versions later than 5.3.x have test discovery enabled by default and the explicit flag
+    // deprecated.
+    if ["wasm-5.3.0-RELEASE", "wasm-5.3.1-RELEASE"].contains(version) {
+      builderArguments.append("--enable-test-discovery")
+    }
 
     try Builder(
       arguments: builderArguments,
