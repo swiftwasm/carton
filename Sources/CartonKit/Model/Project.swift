@@ -15,13 +15,6 @@
 import TSCBasic
 
 public struct Project {
-  let name: String
   let path: AbsolutePath
-  let inPlace: Bool
-
-  public init(name: String, path: AbsolutePath, inPlace: Bool) {
-    self.name = name
-    self.path = path
-    self.inPlace = inPlace
-  }
+  var name: String { path.basename }
 }
