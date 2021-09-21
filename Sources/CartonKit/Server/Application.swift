@@ -50,7 +50,7 @@ extension Application {
     }
 
     webSocket("watcher") { request, ws in
-      let environment = request.headers["User-Agent"].compactMap(DestinationEnvironment.init).first
+      let environment = request.headers["User-Agent"].compactMap(DestinationEnvironment.from).first
         ?? .other
 
       configuration.onWebSocketOpen(ws, environment)
