@@ -26,6 +26,7 @@ let package = Package(
       url: "https://github.com/apple/swift-argument-parser.git",
       from: "0.4.3"
     ),
+    .package(url: "https://github.com/apple/swift-nio.git", from: "2.33.0"),
     .package(
       name: "SwiftPM",
       url: "https://github.com/apple/swift-package-manager.git",
@@ -74,6 +75,7 @@ let package = Package(
       name: "SwiftToolchain",
       dependencies: [
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
+        .product(name: "NIOFoundationCompat", package: "swift-nio"),
         .product(name: "SwiftPMDataModel", package: "SwiftPM"),
         "CartonHelpers",
         openCombineProduct,

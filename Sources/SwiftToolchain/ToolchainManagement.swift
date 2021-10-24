@@ -15,6 +15,7 @@
 import AsyncHTTPClient
 import CartonHelpers
 import Foundation
+import NIOFoundationCompat
 import TSCBasic
 import TSCUtility
 
