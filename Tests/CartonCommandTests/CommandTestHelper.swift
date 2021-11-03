@@ -204,7 +204,7 @@ public extension XCTest {
   func executeCommand(
     command: String,
     shouldPrintOutput: Bool = false,
-    cwd: URL? = nil, // To allow for testing of file based output
+    cwd: URL? = nil, // To allow for testing of file-based output
     file: StaticString = #file, line: UInt = #line
   ) -> Process? {
     let splitCommand = command.split(separator: " ")
