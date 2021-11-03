@@ -39,7 +39,7 @@ let package = Package(
     .package(url: "https://github.com/OpenCombine/OpenCombine.git", from: "0.12.0"),
     .package(url: "https://github.com/vapor/vapor.git", from: "4.49.2"),
     .package(url: "https://github.com/apple/swift-crypto.git", from: "1.1.0"),
-    .package(url: "https://github.com/JohnSundell/Splash.git", .upToNextMinor(from: "0.15.0")),
+    .package(url: "https://github.com/JohnSundell/Splash.git", from: "0.16.0"),
     .package(
       url: "https://github.com/swiftwasm/WasmTransformer",
       .upToNextMinor(from: "0.0.3")
