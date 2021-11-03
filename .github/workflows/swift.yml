@@ -14,9 +14,15 @@ jobs:
           - os: macos-10.15
             swift_version: 5.3
             xcode: /Applications/Xcode_12.4.app/Contents/Developer
+          - os: macos-10.15
+            swift_version: 5.4
+            xcode: /Applications/Xcode_12.5.1.app/Contents/Developer
+          - os: macos-11
+            swift_version: 5.4
+            xcode: /Applications/Xcode_12.5.1.app/Contents/Developer
           - os: macos-11
             swift_version: 5.5
-            xcode: /Applications/Xcode_13.0.app/Contents/Developer
+            xcode: /Applications/Xcode_13.1.app/Contents/Developer
           - os: ubuntu-18.04
             swift_version: 5.5
           - os: ubuntu-20.04
