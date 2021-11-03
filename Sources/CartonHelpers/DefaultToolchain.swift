@@ -12,4 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-public let defaultToolchainVersion = "wasm-5.5-SNAPSHOT-2021-10-23-a"
+public let defaultToolchainVersion = "wasm-5.5-SNAPSHOT-2021-10-30-a"
