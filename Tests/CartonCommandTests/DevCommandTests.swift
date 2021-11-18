@@ -124,6 +124,12 @@ final class DevCommandTests: XCTestCase {
 
     // give the server some time to start
     repeat {
+      // Don't wait for anything if the process is dead.
+      guard process?.isRunning == true else {
+        process = nil
+        break
+      }
+
       sleep(delay)
       response = try? client?.get(url: url).wait()
       count += 1

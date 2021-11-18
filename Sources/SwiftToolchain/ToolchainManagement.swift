@@ -15,6 +15,7 @@
 import AsyncHTTPClient
 import CartonHelpers
 import Foundation
+import NIOFoundationCompat
 import TSCBasic
 import TSCUtility
 
@@ -166,6 +167,12 @@ public class ToolchainSystem {
       }.whenComplete($0)
     }
 
+    #if arch(x86_64)
+    let archSuffix = "x86_64"
+    #elseif arch(arm64)
+    let archSuffix = "arm64"
+    #endif
+
     #if os(macOS)
     let platformSuffixes = ["osx", "catalina", "macos"]
     #elseif os(Linux)
@@ -191,8 +198,9 @@ public class ToolchainSystem {
       "Response succesfully parsed, choosing from this number of assets: ",
       release.assets.count
     )
+    let nameSuffixes = platformSuffixes.map { "\($0)_\(archSuffix)" }
     return release.assets.map(\.url).filter { url in
-      platformSuffixes.contains { url.absoluteString.contains($0) }
+      nameSuffixes.contains { url.absoluteString.contains($0) }
     }.first
   }
 

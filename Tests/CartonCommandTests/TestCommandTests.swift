@@ -39,7 +39,8 @@ final class TestCommandTests: XCTestCase {
 
     AssertExecuteCommand(
       command: "carton test",
-      cwd: packageDirectory.url
+      cwd: packageDirectory.url,
+      debug: true
     )
 
     // finally, clean up

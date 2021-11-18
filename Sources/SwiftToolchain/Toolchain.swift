@@ -76,8 +76,6 @@ extension PackageDependencyDescription.Requirement {
       return version == compatibleJSKitVersion
     case let .range(range):
       return range.upperBound >= compatibleJSKitVersion
-    case .localPackage:
-      return true
     default:
       return false
     }
@@ -192,7 +190,7 @@ public final class Toolchain {
         switch target.type {
         case .regular:
           return RelativePath("Sources").appending(component: target.name).pathString
-        case .test, .system, .executable, .binary:
+        case .test, .system, .executable, .binary, .plugin:
           return nil
         }
       }
@@ -214,21 +212,39 @@ public final class Toolchain {
     else { throw ToolchainError.noExecutableProduct }
 
     let manifest = try self.manifest.get()
-    if let jsKit = manifest.dependencies.first(where: { $0.name == "JavaScriptKit" }),
-       !jsKit.requirement.isJavaScriptKitCompatible
-    {
+    let jsKit = manifest.dependencies.first {
+      $0.nameForTargetDependencyResolutionOnly == "JavaScriptKit"
+    }
+
+    switch jsKit {
+    case let .scm(jsKit) where !jsKit.requirement.isJavaScriptKitCompatible:
       let versionDescription = jsKit.requirement.versionDescription
 
       terminal.write(
         """
 
-        This version of JavaScriptKit \(versionDescription) is not known to be compatible with \
-        carton \(cartonVersion). Please specify a JavaScriptKit dependency on version \
+        JavaScriptKit \(versionDescription), which is present in your dependency tree is not \
+        known to be compatible with carton \(cartonVersion). Please specify a JavaScriptKit \
+        dependency on version \(compatibleJSKitVersion) in your `Package.swift`.\n
+
+        """,
+        inColor: .red
+      )
+
+    case .local:
+      terminal.write(
+        """
+
+        The version of JavaScriptKit found in your dependency tree is not known to be compatible \
+        with carton \(cartonVersion). Please specify a JavaScriptKit dependency on version \
         \(compatibleJSKitVersion) in your `Package.swift`.\n
 
         """,
         inColor: .red
       )
+
+    case nil, .scm:
+      break
     }
 
     let binPath = try inferBinPath(isRelease: flavor.isRelease)
@@ -286,7 +302,9 @@ public final class Toolchain {
     var builderArguments = [
       swiftPath.pathString, "build", "-c", flavor.isRelease ? "release" : "debug",
       "--product", testProductName, "--triple", "wasm32-unknown-wasi",
-      "-Xswiftc", "-color-diagnostics",
+      "-Xswiftc", "-color-diagnostics", 
+      // workaround for 5.5 linking issues, see https://github.com/swiftwasm/swift/issues/3891
+      "-Xlinker", "-licuuc", "-Xlinker", "-licui18n"
     ]
 
     // Versions later than 5.3.x have test discovery enabled by default and the explicit flag
