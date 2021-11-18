@@ -69,29 +69,38 @@ enum ToolchainError: Error, CustomStringConvertible {
   }
 }
 
-extension PackageDependencyDescription.Requirement {
+extension PackageDependencyDescription {
   var isJavaScriptKitCompatible: Bool {
     switch self {
-    case let .exact(version):
-      return version == compatibleJSKitVersion
-    case let .range(range):
-      return range.upperBound >= compatibleJSKitVersion
-    case .localPackage:
+    case .local:
       return true
-    default:
-      return false
+    case let .scm(repository):
+      switch repository.requirement {
+      case let .exact(version):
+        return version == compatibleJSKitVersion
+      case let .range(range):
+        return range.upperBound >= compatibleJSKitVersion
+      default:
+        return false
+      }
     }
   }
 
   var versionDescription: String {
     switch self {
-    case let .exact(version):
-      return version.description
-    case let .range(range):
-      return range.lowerBound.description
+    case let .scm(repository):
+      switch repository.requirement {
+      case let .exact(version):
+        return version.description
+      case let .range(range):
+        return range.lowerBound.description
+      default:
+        break
+      }
     default:
-      return "(Unknown)"
+      break
     }
+    return "(Unknown)"
   }
 }
 
@@ -192,7 +201,7 @@ public final class Toolchain {
         switch target.type {
         case .regular:
           return RelativePath("Sources").appending(component: target.name).pathString
-        case .test, .system, .executable, .binary:
+        case .test, .system, .executable, .binary, .plugin:
           return nil
         }
       }
@@ -214,10 +223,11 @@ public final class Toolchain {
     else { throw ToolchainError.noExecutableProduct }
 
     let manifest = try self.manifest.get()
-    if let jsKit = manifest.dependencies.first(where: { $0.name == "JavaScriptKit" }),
-       !jsKit.requirement.isJavaScriptKitCompatible
+    if let jsKit = manifest.dependencies
+      .first(where: { $0.nameForTargetDependencyResolutionOnly == "JavaScriptKit" }),
+      !jsKit.isJavaScriptKitCompatible
     {
-      let versionDescription = jsKit.requirement.versionDescription
+      let versionDescription = jsKit.versionDescription
 
       terminal.write(
         """
