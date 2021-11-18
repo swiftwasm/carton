@@ -302,7 +302,9 @@ public final class Toolchain {
     var builderArguments = [
       swiftPath.pathString, "build", "-c", flavor.isRelease ? "release" : "debug",
       "--product", testProductName, "--triple", "wasm32-unknown-wasi",
-      "-Xswiftc", "-color-diagnostics", "-Xlinker", "-licuuc", "-Xlinker", "-licui18n"
+      "-Xswiftc", "-color-diagnostics", 
+      // workaround for 5.5 linking issues, see https://github.com/swiftwasm/swift/issues/3891
+      "-Xlinker", "-licuuc", "-Xlinker", "-licui18n"
     ]
 
     // Versions later than 5.3.x have test discovery enabled by default and the explicit flag
