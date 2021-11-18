@@ -39,7 +39,8 @@ final class TestCommandTests: XCTestCase {
 
     AssertExecuteCommand(
       command: "carton test",
-      cwd: packageDirectory.url
+      cwd: packageDirectory.url,
+      debug: true
     )
 
     // finally, clean up
@@ -47,38 +48,37 @@ final class TestCommandTests: XCTestCase {
     do { try buildDirectory.delete() } catch {}
   }
 
-  // FIXME: this test is hanging due to unknown reasons, temporarily disabled for now
-  // func testEnvironmentDefaultBrowser() throws {
-  //   // given I've created a directory
-  //   let package = "TestApp"
-  //   let packageDirectory = testFixturesDirectory.appending(components: package)
+  func testEnvironmentDefaultBrowser() throws {
+    // given I've created a directory
+    let package = "TestApp"
+    let packageDirectory = testFixturesDirectory.appending(components: package)
 
-  //   let expectedTestSuiteCount = 1
-  //   let expectedTestsCount = 1
+    let expectedTestSuiteCount = 1
+    let expectedTestsCount = 1
 
-  //   let expectedContent =
-  //     """
-  //     Test Suites: \(ControlCode.CSI)32m\(expectedTestSuiteCount) passed\(ControlCode
-  //       .CSI)0m, \(expectedTestSuiteCount) total
-  //     Tests:       \(ControlCode.CSI)32m\(expectedTestsCount) passed\(ControlCode
-  //       .CSI)0m, \(expectedTestsCount) total
-  //     """
+    let expectedContent =
+      """
+      Test Suites: \(ControlCode.CSI)32m\(expectedTestSuiteCount) passed\(ControlCode
+        .CSI)0m, \(expectedTestSuiteCount) total
+      Tests:       \(ControlCode.CSI)32m\(expectedTestsCount) passed\(ControlCode
+        .CSI)0m, \(expectedTestsCount) total
+      """
 
-  //   XCTAssertTrue(packageDirectory.exists, "The TestApp directory does not exist")
+    XCTAssertTrue(packageDirectory.exists, "The TestApp directory does not exist")
 
-  //   // start clean
-  //   do { try packageDirectory.appending(component: ".build").delete() } catch {}
+    // start clean
+    do { try packageDirectory.appending(component: ".build").delete() } catch {}
 
-  //   AssertExecuteCommand(
-  //     command: "carton test",
-  //     cwd: packageDirectory.url,
-  //     expected: expectedContent,
-  //     expectedContains: true
-  //   )
+    AssertExecuteCommand(
+      command: "carton test",
+      cwd: packageDirectory.url,
+      expected: expectedContent,
+      expectedContains: true
+    )
 
-  //   // finally, clean up
-  //   do { try packageDirectory.appending(component: ".build").delete() } catch {}
-  // }
+    // finally, clean up
+    do { try packageDirectory.appending(component: ".build").delete() } catch {}
+  }
 }
 
 enum ControlCode {
