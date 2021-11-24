@@ -49,6 +49,12 @@ extension ToolchainSystem {
     var subscriptions = [AnyCancellable]()
     let request = try HTTPClient.Request.get(url: url)
 
+    // Clean up the downloaded file (especially important for failed downloads, otherwise running
+    // `carton` again will fail trying to pick up the broken download).
+    defer {
+      try fileSystem.removeFileTree(archivePath)
+    }
+
     _ = try tsc_await { (completion: @escaping (Result<(), Error>) -> ()) in
       client.execute(request: request, delegate: delegate).futureResult.whenComplete {
         switch $0 {
@@ -105,8 +111,6 @@ extension ToolchainSystem {
     }
     terminal.logLookup("Unpacking the archive: ", arguments.joined(separator: " "))
     _ = try processDataOutput(arguments)
-
-    try fileSystem.removeFileTree(archivePath)
 
     return installationPath
   }
