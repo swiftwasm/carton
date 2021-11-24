@@ -21,12 +21,12 @@ let package = Package(
     .executable(name: "carton-release", targets: ["carton-release"]),
   ],
   dependencies: [
-    .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.6.3"),
+    .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.7.0"),
     .package(
       url: "https://github.com/apple/swift-argument-parser.git",
       from: "0.4.3"
     ),
-    .package(url: "https://github.com/apple/swift-nio.git", from: "2.33.0"),
+    .package(url: "https://github.com/apple/swift-nio.git", from: "2.34.0"),
     .package(
       name: "SwiftPM",
       url: "https://github.com/apple/swift-package-manager.git",
@@ -37,7 +37,7 @@ let package = Package(
       .branch("release/5.5")
     ),
     .package(url: "https://github.com/OpenCombine/OpenCombine.git", from: "0.12.0"),
-    .package(url: "https://github.com/vapor/vapor.git", from: "4.49.2"),
+    .package(url: "https://github.com/vapor/vapor.git", from: "4.53.0"),
     .package(url: "https://github.com/apple/swift-crypto.git", from: "1.1.0"),
     .package(url: "https://github.com/JohnSundell/Splash.git", from: "0.16.0"),
     .package(

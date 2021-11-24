@@ -50,8 +50,13 @@ extension ToolchainSystem {
     let request = try HTTPClient.Request.get(url: url)
 
     _ = try tsc_await { (completion: @escaping (Result<(), Error>) -> ()) in
-      client.execute(request: request, delegate: delegate).futureResult.whenComplete { _ in
-        subject.send(completion: .finished)
+      client.execute(request: request, delegate: delegate).futureResult.whenComplete {
+        switch $0 {
+        case .success:
+          subject.send(completion: .finished)
+        case let .failure(error):
+          subject.send(completion: .failure(error))
+        }
       }
 
       subject
