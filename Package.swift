@@ -21,7 +21,7 @@ let package = Package(
     .executable(name: "carton-release", targets: ["carton-release"]),
   ],
   dependencies: [
-    .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.7.0"),
+    .package(url: "https://github.com/swift-server/async-http-client.git", from: "1.8.0"),
     .package(
       url: "https://github.com/apple/swift-argument-parser.git",
       from: "0.4.3"
