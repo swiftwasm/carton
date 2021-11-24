@@ -52,7 +52,11 @@ extension ToolchainSystem {
     // Clean up the downloaded file (especially important for failed downloads, otherwise running
     // `carton` again will fail trying to pick up the broken download).
     defer {
-      try fileSystem.removeFileTree(archivePath)
+      do {
+        try fileSystem.removeFileTree(archivePath)
+      } catch {
+        terminal.write("Failed to remove downloaded file with error \(error)\n", inColor: .red)
+      }
     }
 
     _ = try tsc_await { (completion: @escaping (Result<(), Error>) -> ()) in
