@@ -1,3 +1,33 @@
+# 0.12.0 (27 November 2021)
+
+This release bumps the default version of SwiftWasm distribution to 5.5.0. For projects that don't
+specify their preferred version of SwiftWasm in `.swift-version`, `carton` will now download SwiftWasm
+5.5.0.
+
+Since SwiftWasm 5.5.0 now provides distributions for Apple Silicon, `carton` will
+download such distributions by default on compatible hardware. Run `carton` under Rosetta if you
+prefer to use x86_64 builds of SwiftWasm on macOS.
+
+JavaScriptKit and Tokamak versions in templates were bumped to 0.11.1 and 0.9.0 respectively.
+
+Additionally, a bug with demangling of stack traces was fixed. Thanks to [@Feuermurmel](https://github.com/Feuermurmel)
+for the contribution!
+
+**Closed issues:**
+
+- Download Apple Silicon builds for releases that have them available ([#262](https://github.com/swiftwasm/carton/issues/262))
+- Stack trace demangling ([#248](https://github.com/swiftwasm/carton/issues/248))
+- Docker tag for 0.10.0? ([#246](https://github.com/swiftwasm/carton/issues/246))
+
+**Merged pull requests:**
+
+- Use SwiftWasm 5.5.0, bump version to 0.12.0 ([#266](https://github.com/swiftwasm/carton/pull/266)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update JavaScriptKit to v0.11.1 ([#265](https://github.com/swiftwasm/carton/pull/265)) via [@yonihemi](https://github.com/yonihemi)
+- Update dependencies, add support for SwiftWasm 5.5 ([#263](https://github.com/swiftwasm/carton/pull/263)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Fix environment detection from User-Agent header ([#249](https://github.com/swiftwasm/carton/pull/249)) via [@Feuermurmel](https://github.com/Feuermurmel)
+- Update dependencies ([#260](https://github.com/swiftwasm/carton/pull/260)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Disable `--enable-test-discovery` for old versions ([#257](https://github.com/swiftwasm/carton/pull/257)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+
 # 0.11.1 (2 September 2021)
 
 This is a bugfix release that fixes an issue with dynamic linking to `libSwiftPMDataModel.so` in Ubuntu images for Docker.
