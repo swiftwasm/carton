@@ -1,7 +1,7 @@
 # 0.12.0 (27 November 2021)
 
 This release bumps the default version of SwiftWasm distribution to 5.5.0. For projects that don't
-specify their preferred version of SwiftWasm in `.swift-version`, `carton` will now download SwiftWas
+specify their preferred version of SwiftWasm in `.swift-version`, `carton` will now download SwiftWasm
 5.5.0.
 
 Since SwiftWasm 5.5.0 now provides distributions for Apple Silicon, `carton` will
