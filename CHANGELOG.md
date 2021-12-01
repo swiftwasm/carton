@@ -1,3 +1,19 @@
+# 0.12.1 (1 December 2021)
+
+This is a bugfix release that fixes linking issues with ICU that some users could've experienced
+with `carton dev` and `carton bundle`. Many thanks to [@Sefford](https://github.com/Sefford) for
+reporting this and providing detailed issue description!
+
+**Closed issues:**
+
+- Carton 0.12.0 with SwiftWasm 5.5.0 fails with linker command ([#268](https://github.com/swiftwasm/carton/issues/268))
+
+**Merged pull requests:**
+
+- Bump SwiftWasm to 5.5 in `Dockerfile`, bump AHC ([#269](https://github.com/swiftwasm/carton/pull/269)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Add ICU linker flags to all build invocation ([#270](https://github.com/swiftwasm/carton/pull/270)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update dependencies ([#261](https://github.com/swiftwasm/carton/pull/261)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+
 # 0.12.0 (27 November 2021)
 
 This release bumps the default version of SwiftWasm distribution to 5.5.0. For projects that don't
