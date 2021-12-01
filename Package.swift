@@ -23,7 +23,7 @@ let package = Package(
   dependencies: [
     .package(
       url: "https://github.com/swift-server/async-http-client.git",
-      .upToNextMinor(from: "1.6.4")
+      from: "1.8.1"
     ),
     .package(
       url: "https://github.com/apple/swift-argument-parser.git",
