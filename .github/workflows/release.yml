@@ -43,43 +43,6 @@ jobs:
         env:
           GH_PERSONAL_ACCESS_TOKEN: ${{ secrets.PAT }}
 
-  catalina_bottle:
-    name: Build and distribute Homebrew bottle for macOS Catalina
-    runs-on: macos-10.15
-    needs: [formula]
-    steps:
-      - name: Build a bottle using Homebrew
-        run: |
-          brew install --build-bottle --verbose swiftwasm/tap/carton
-          brew bottle swiftwasm/tap/carton
-          mv ./carton--${{ github.event.release.tag_name }}.catalina.bottle*.tar.gz \
-            ./carton--${{ github.event.release.tag_name }}.catalina.bottle.tar.gz
-      - name: Upload the bottle to the GitHub release
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./carton--${{ github.event.release.tag_name }}.catalina.bottle.tar.gz
-          asset_name: carton-${{ github.event.release.tag_name }}.catalina.bottle.tar.gz
-          asset_content_type: application/gzip
-
-  update_formula_catalina_bottle:
-    name: Update the Homebrew formula again with bottle for Catalina
-    runs-on: ubuntu-20.04
-    needs: [catalina_bottle]
-    steps:
-      - uses: NSHipster/update-homebrew-formula-action@main
-        with:
-          repository: swiftwasm/carton
-          tap: swiftwasm/homebrew-tap
-          formula: carton.rb
-          message: |
-            Add bottle for carton ${{ github.event.release.tag_name }}
-            on macOS Catalina
-        env:
-          GH_PERSONAL_ACCESS_TOKEN: ${{ secrets.PAT }}
-
   bigsur_bottle:
     name: Build and distribute Homebrew bottle for macOS Big Sur
     runs-on: macos-11
@@ -113,6 +76,6 @@ jobs:
           formula: carton.rb
           message: |
             Add bottle for carton ${{ github.event.release.tag_name }}
-            on macOS Catalina
+            on macOS Big Sur
         env:
           GH_PERSONAL_ACCESS_TOKEN: ${{ secrets.PAT }}
