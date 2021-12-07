@@ -79,7 +79,7 @@ let package = Package(
       dependencies: [
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
         .product(name: "NIOFoundationCompat", package: "swift-nio"),
-        .product(name: "SwiftPMDataModel", package: "SwiftPM"),
+        .product(name: "SwiftPMDataModel-auto", package: "SwiftPM"),
         "CartonHelpers",
         openCombineProduct,
         "WasmTransformer",
