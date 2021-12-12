@@ -7,6 +7,7 @@ LABEL org.opencontainers.image.source https://github.com/swiftwasm/carton
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
   apt-get -q install -y \
   build-essential \
+  libncurses5 \
   libsqlite3-0 \
   libsqlite3-dev \
   curl unzip \
