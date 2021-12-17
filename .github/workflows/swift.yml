@@ -97,5 +97,5 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ghcr.io/swiftwasm/carton:0.12.1
-            ghcr.io/swiftwasm/carton:latest
+            ghcr.io/${{ github.repository }}:0.12.1
+            ghcr.io/${{ github.repository }}:latest
