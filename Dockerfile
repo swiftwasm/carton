@@ -8,6 +8,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
   apt-get -q install -y \
   build-essential \
   libncurses5 \
+  libtinfo5 \
   libsqlite3-0 \
   libsqlite3-dev \
   curl unzip \
