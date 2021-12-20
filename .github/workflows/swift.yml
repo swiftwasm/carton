@@ -97,5 +97,4 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:0.12.1
             ghcr.io/${{ github.repository }}:latest
