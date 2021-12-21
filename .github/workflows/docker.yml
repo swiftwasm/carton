@@ -1,4 +1,4 @@
-name: Build nightly Docker image
+name: Build main Docker image
 
 on:
   push:
@@ -26,4 +26,4 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:nightly
+            ghcr.io/${{ github.repository }}:main
