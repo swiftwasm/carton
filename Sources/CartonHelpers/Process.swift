@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import Dispatch
-import struct Foundation.Data
+import Foundation
 import TSCBasic
 
 public func processDataOutput(_ arguments: [String]) throws -> [UInt8] {

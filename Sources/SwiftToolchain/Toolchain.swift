@@ -23,7 +23,6 @@ public let compatibleJSKitVersion = Version(0, 11, 1)
 
 enum ToolchainError: Error, CustomStringConvertible {
   case directoryDoesNotExist(AbsolutePath)
-  case invalidResponseCode(UInt)
   case invalidInstallationArchive(AbsolutePath)
   case noExecutableProduct
   case failedToBuild(product: String)
@@ -38,10 +37,6 @@ enum ToolchainError: Error, CustomStringConvertible {
     switch self {
     case let .directoryDoesNotExist(path):
       return "Directory at path \(path.pathString) does not exist and could not be created"
-    case let .invalidResponseCode(code):
-      return """
-      While attempting to download an archive, the server returned an invalid response code \(code)
-      """
     case let .invalidInstallationArchive(path):
       return "Invalid toolchain/SDK archive was installed at path \(path)"
     case .noExecutableProduct:
