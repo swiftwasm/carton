@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import AsyncHTTPClient
+import Foundation
 
 struct InvalidResponseCode: Error {
   let code: UInt
@@ -21,14 +22,12 @@ struct InvalidResponseCode: Error {
 public final class AsyncFileDownload {
   public let progressStream: AsyncThrowingStream<FileDownloadDelegate.Progress, Error>
 
-  // swiftlint:disable:next weak_delegate
-  public let delegate: FileDownloadDelegate
-
-  public init(path: String, onTotalBytes: @escaping (Int) -> ()) {
-    var delegate: FileDownloadDelegate?
+  public init(path: String, _ url: URL, _ client: HTTPClient, onTotalBytes: @escaping (Int) -> ()) {
     progressStream = .init { continuation in
       do {
-        delegate = try FileDownloadDelegate(
+        let request = try HTTPClient.Request.get(url: url)
+
+        let delegate = try FileDownloadDelegate(
           path: path,
           reportHead: {
             guard $0.status == .ok,
@@ -44,11 +43,17 @@ public final class AsyncFileDownload {
             continuation.yield($0)
           }
         )
+
+        Task {
+          _ = try await client.execute(request: request, delegate: delegate)
+            .futureResult
+            .get()
+
+          continuation.finish()
+        }
       } catch {
         continuation.finish(throwing: error)
       }
     }
-
-    self.delegate = delegate!
   }
 }
