@@ -15,8 +15,14 @@
 import AsyncHTTPClient
 import Foundation
 
-struct InvalidResponseCode: Error {
+public struct InvalidResponseCode: Error {
   let code: UInt
+
+  var description: String {
+    """
+    While attempting to download an archive, the server returned an invalid response code \(code)
+    """
+  }
 }
 
 public final class AsyncFileDownload {

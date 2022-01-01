@@ -45,9 +45,6 @@ extension ToolchainSystem {
     let ext = url.pathExtension
 
     let archivePath = sdkPath.appending(component: "\(version).\(ext)")
-    let fileDownload = AsyncFileDownload(path: archivePath.pathString, url, client, onTotalBytes: {
-      terminal.write("Archive size is \($0 / 1_000_000) MB\n", inColor: .yellow)
-    })
 
     // Clean up the downloaded file (especially important for failed downloads, otherwise running
     // `carton` again will fail trying to pick up the broken download).
@@ -60,6 +57,15 @@ extension ToolchainSystem {
     }
 
     do {
+      let fileDownload = AsyncFileDownload(
+        path: archivePath.pathString,
+        url,
+        client,
+        onTotalBytes: {
+          terminal.write("Archive size is \($0 / 1_000_000) MB\n", inColor: .yellow)
+        }
+      )
+
       let animation = PercentProgressAnimation(
         stream: stdoutStream,
         header: "Downloading the archive"
