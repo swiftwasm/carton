@@ -71,7 +71,7 @@ struct Dev: AsyncParsableCommand {
 
     try Self.entrypoint.check(on: localFileSystem, terminal)
 
-    let toolchain = try Toolchain(localFileSystem, terminal)
+    let toolchain = try await Toolchain(localFileSystem, terminal)
 
     if !verbose {
       terminal.clearWindow()

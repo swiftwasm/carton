@@ -15,15 +15,16 @@
 import AsyncHTTPClient
 import CartonHelpers
 import Foundation
-#if canImport(Combine)
-import Combine
-#else
-import OpenCombine
-#endif
 import TSCBasic
 import TSCUtility
 
 private let expectedArchiveSize = 891_856_371
+
+private extension FileDownloadDelegate.Progress {
+  var totalOrEstimatedBytes: Int {
+    totalBytes ?? expectedArchiveSize
+  }
+}
 
 extension ToolchainSystem {
   func installSDK(
@@ -32,7 +33,7 @@ extension ToolchainSystem {
     to sdkPath: AbsolutePath,
     _ client: HTTPClient,
     _ terminal: InteractiveWriter
-  ) throws -> AbsolutePath {
+  ) async throws -> AbsolutePath {
     if !fileSystem.exists(sdkPath, followSymlink: true) {
       try fileSystem.createDirectory(sdkPath, recursive: true)
     }
@@ -44,9 +45,13 @@ extension ToolchainSystem {
     let ext = url.pathExtension
 
     let archivePath = sdkPath.appending(component: "\(version).\(ext)")
-    let (delegate, subject) = try downloadDelegate(path: archivePath.pathString, terminal)
+    let fileDownload = AsyncFileDownload(
+      path: archivePath.pathString,
+      onTotalBytes: {
+        terminal.write("Archive size is \($0 / 1_000_000) MB\n", inColor: .yellow)
+      }
+    )
 
-    var subscriptions = [AnyCancellable]()
     let request = try HTTPClient.Request.get(url: url)
 
     // Clean up the downloaded file (especially important for failed downloads, otherwise running
@@ -59,39 +64,34 @@ extension ToolchainSystem {
       }
     }
 
-    _ = try tsc_await { (completion: @escaping (Result<(), Error>) -> ()) in
-      client.execute(request: request, delegate: delegate).futureResult.whenComplete {
-        switch $0 {
-        case .success:
-          subject.send(completion: .finished)
-        case let .failure(error):
-          subject.send(completion: .failure(error))
-        }
-      }
+    do {
+      _ = try await client.execute(request: request, delegate: fileDownload.delegate).futureResult
+        .get()
 
-      subject
-        .removeDuplicates {
-          // only report values that differ in more than 1%
-          $1.step - $0.step < ($0.total / 100)
+      let animation = PercentProgressAnimation(
+        stream: stdoutStream,
+        header: "Downloading the archive"
+      )
+      var previouslyReceived = 0
+      for try await progress in fileDownload.progressStream {
+        defer { previouslyReceived = progress.receivedBytes }
+        guard progress.receivedBytes - previouslyReceived >= (progress.totalOrEstimatedBytes / 100)
+        else {
+          continue
         }
-        .handle(
-          with: PercentProgressAnimation(stream: stdoutStream, header: "Downloading the archive")
+
+        animation.update(
+          step: progress.receivedBytes,
+          total: progress.totalOrEstimatedBytes,
+          text: "saving to \(archivePath.pathString)"
         )
-        .sink(
-          receiveCompletion: {
-            switch $0 {
-            case .finished:
-              terminal.write("Download completed successfully\n", inColor: .green)
-              completion(.success(()))
-            case let .failure(error):
-              terminal.write("Download failed\n", inColor: .red)
-              completion(.failure(error))
-            }
-          },
-          receiveValue: { _ in }
-        )
-        .store(in: &subscriptions)
+      }
+    } catch {
+      terminal.write("Download failed with error \(error.localizedDescription) \n", inColor: .red)
+      throw error
     }
+
+    terminal.write("Download completed successfully\n", inColor: .green)
 
     let installationPath: AbsolutePath
 
@@ -117,31 +117,5 @@ extension ToolchainSystem {
     _ = try processDataOutput(arguments)
 
     return installationPath
-  }
-
-  private func downloadDelegate(
-    path: String,
-    _ terminal: InteractiveWriter
-  ) throws -> (FileDownloadDelegate, PassthroughSubject<Progress, Error>) {
-    let subject = PassthroughSubject<Progress, Error>()
-    return try (FileDownloadDelegate(
-      path: path,
-      reportHead: {
-        guard $0.status == .ok,
-              let totalBytes = $0.headers.first(name: "Content-Length").flatMap(Int.init)
-        else {
-          subject.send(completion: .failure(ToolchainError.invalidResponseCode($0.status.code)))
-          return
-        }
-        terminal.write("Archive size is \(totalBytes / 1_000_000) MB\n", inColor: .yellow)
-      },
-      reportProgress: {
-        subject.send(.init(
-          step: $0.receivedBytes,
-          total: $0.totalBytes ?? expectedArchiveSize,
-          text: "saving to \(path)"
-        ))
-      }
-    ), subject)
   }
 }

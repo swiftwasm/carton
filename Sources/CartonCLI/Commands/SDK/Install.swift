@@ -24,10 +24,10 @@ struct Install: ParsableCommand {
 
   @Argument() var version: String?
 
-  func run() throws {
+  func run() async throws {
     let terminal = InteractiveWriter.stdout
 
-    _ = try Toolchain(for: version, localFileSystem, terminal)
+    _ = try await Toolchain(for: version, localFileSystem, terminal)
     terminal.write("\nSDK successfully installed!\n", inColor: .green)
   }
 }

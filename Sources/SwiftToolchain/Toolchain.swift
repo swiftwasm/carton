@@ -105,9 +105,9 @@ public final class Toolchain {
     for versionSpec: String? = nil,
     _ fileSystem: FileSystem,
     _ terminal: InteractiveWriter
-  ) throws {
+  ) async throws {
     let toolchainSystem = ToolchainSystem(fileSystem: fileSystem)
-    let (swiftPath, version) = try toolchainSystem.inferSwiftPath(from: versionSpec, terminal)
+    let (swiftPath, version) = try await toolchainSystem.inferSwiftPath(from: versionSpec, terminal)
     self.swiftPath = swiftPath
     self.version = version
     self.fileSystem = fileSystem

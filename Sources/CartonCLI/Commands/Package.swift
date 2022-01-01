@@ -30,7 +30,7 @@ struct Package: AsyncParsableCommand {
   func run() async throws {
     let terminal = InteractiveWriter.stdout
 
-    let toolchain = try Toolchain(localFileSystem, terminal)
+    let toolchain = try await Toolchain(localFileSystem, terminal)
     try await toolchain.runPackage(arguments)
   }
 }

@@ -3,12 +3,6 @@
 
 import PackageDescription
 
-let openCombineProduct = Target.Dependency.product(
-  name: "OpenCombine",
-  package: "OpenCombine",
-  condition: .when(platforms: [.linux])
-)
-
 let package = Package(
   name: "carton",
   platforms: [.macOS(.v10_15)],
@@ -39,7 +33,6 @@ let package = Package(
       url: "https://github.com/apple/swift-tools-support-core.git",
       .branch("release/5.5")
     ),
-    .package(url: "https://github.com/OpenCombine/OpenCombine.git", from: "0.12.0"),
     .package(url: "https://github.com/vapor/vapor.git", from: "4.53.0"),
     .package(url: "https://github.com/apple/swift-crypto.git", from: "1.1.0"),
     .package(url: "https://github.com/JohnSundell/Splash.git", from: "0.16.0"),
@@ -69,7 +62,6 @@ let package = Package(
         .product(name: "Crypto", package: "swift-crypto"),
         .product(name: "Vapor", package: "vapor"),
         "CartonHelpers",
-        openCombineProduct,
         "SwiftToolchain",
       ]
     ),
@@ -80,7 +72,6 @@ let package = Package(
         .product(name: "NIOFoundationCompat", package: "swift-nio"),
         .product(name: "SwiftPMDataModel", package: "SwiftPM"),
         "CartonHelpers",
-        openCombineProduct,
         "WasmTransformer",
       ]
     ),
@@ -89,7 +80,6 @@ let package = Package(
       dependencies: [
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
-        openCombineProduct,
         "Splash",
         "WasmTransformer",
       ]

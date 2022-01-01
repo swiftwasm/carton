@@ -112,9 +112,8 @@ is that your `Package.swift` contains at least a single executable product, whic
 for WebAssembly and served when you start `carton dev` in the directory where `Package.swift` is located.
 
 `carton` is built with [Vapor](https://vapor.codes/), [SwiftNIO](https://github.com/apple/swift-nio),
-[swift-tools-support-core](https://github.com/apple/swift-tools-support-core), and
-[OpenCombine](https://github.com/OpenCombine/OpenCombine), and supports both macOS and Linux. (Many
-thanks to everyone supporting and maintaining those projects!)
+[swift-tools-support-core](https://github.com/apple/swift-tools-support-core), and supports both
+macOS and Linux. (Many thanks to everyone supporting and maintaining those projects!)
 
 ### Running `carton dev` with the `release` configuration
 

@@ -77,7 +77,7 @@ struct Test: AsyncParsableCommand {
     let terminal = InteractiveWriter.stdout
 
     try Self.entrypoint.check(on: localFileSystem, terminal)
-    let toolchain = try Toolchain(localFileSystem, terminal)
+    let toolchain = try await Toolchain(localFileSystem, terminal)
     let flavor = buildFlavor()
     let testBundlePath = try await toolchain.buildTestBundle(flavor: flavor)
 

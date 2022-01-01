@@ -55,7 +55,7 @@ struct Bundle: AsyncParsableCommand {
 
     try dependency.check(on: localFileSystem, terminal)
 
-    let toolchain = try Toolchain(localFileSystem, terminal)
+    let toolchain = try await Toolchain(localFileSystem, terminal)
 
     let flavor = buildFlavor()
     let build = try await toolchain.buildCurrentProject(
