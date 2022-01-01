@@ -13,5 +13,9 @@
 // limitations under the License.
 
 import CartonCLI
+import CartonHelpers
 
-Carton.main()
+@main
+struct Main: AsyncMain {
+  typealias Command = Carton
+}

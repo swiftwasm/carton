@@ -19,7 +19,7 @@ import SwiftToolchain
 import TSCBasic
 
 /// Proxy swift-package command to locally pinned toolchain version.
-struct Package: ParsableCommand {
+struct Package: AsyncParsableCommand {
   static let configuration = CommandConfiguration(abstract: """
   Perform operations on Swift packages.
   """)
@@ -27,10 +27,10 @@ struct Package: ParsableCommand {
   @Argument(wrappedValue: [], parsing: .remaining)
   var arguments: [String]
 
-  func run() throws {
+  func run() async throws {
     let terminal = InteractiveWriter.stdout
 
     let toolchain = try Toolchain(localFileSystem, terminal)
-    try toolchain.runPackage(arguments)
+    try await toolchain.runPackage(arguments)
   }
 }

@@ -207,7 +207,7 @@ public final class Toolchain {
   public func buildCurrentProject(
     product: String?,
     flavor: BuildFlavor
-  ) throws -> BuildDescription {
+  ) async throws -> BuildDescription {
     guard let product = try inferDevProduct(hint: product)
     else { throw ToolchainError.noExecutableProduct }
 
@@ -264,20 +264,19 @@ public final class Toolchain {
       builderArguments.append("--enable-test-discovery")
     }
 
-    // SwiftWasm 5.5 requires explicit linking arguments in certain configurations, 
+    // SwiftWasm 5.5 requires explicit linking arguments in certain configurations,
     // see https://github.com/swiftwasm/swift/issues/3891
     if version.starts(with: "wasm-5.5") {
       builderArguments.append(contentsOf: ["-Xlinker", "-licuuc", "-Xlinker", "-licui18n"])
     }
 
-    try Builder(
+    try await Builder(
       arguments: builderArguments,
       mainWasmPath: mainWasmPath,
       flavor,
       fileSystem,
       terminal
-    )
-    .runAndWaitUntilFinished()
+    ).run()
 
     guard fileSystem.exists(mainWasmPath) else {
       terminal.write(
@@ -293,7 +292,7 @@ public final class Toolchain {
   /// Returns an absolute path to the resulting test bundle
   public func buildTestBundle(
     flavor: BuildFlavor
-  ) throws -> AbsolutePath {
+  ) async throws -> AbsolutePath {
     let manifest = try self.manifest.get()
     let binPath = try inferBinPath(isRelease: flavor.isRelease)
     let testProductName = "\(manifest.name)PackageTests"
@@ -308,7 +307,7 @@ public final class Toolchain {
     var builderArguments = [
       swiftPath.pathString, "build", "-c", flavor.isRelease ? "release" : "debug",
       "--product", testProductName, "--triple", "wasm32-unknown-wasi",
-      "-Xswiftc", "-color-diagnostics"
+      "-Xswiftc", "-color-diagnostics",
     ]
 
     // Versions later than 5.3.x have test discovery enabled by default and the explicit flag
@@ -317,20 +316,19 @@ public final class Toolchain {
       builderArguments.append("--enable-test-discovery")
     }
 
-    // SwiftWasm 5.5 requires explicit linking arguments in certain configurations, 
+    // SwiftWasm 5.5 requires explicit linking arguments in certain configurations,
     // see https://github.com/swiftwasm/swift/issues/3891
     if version.starts(with: "wasm-5.5") {
       builderArguments.append(contentsOf: ["-Xlinker", "-licuuc", "-Xlinker", "-licui18n"])
     }
 
-    try Builder(
+    try await Builder(
       arguments: builderArguments,
       mainWasmPath: testBundlePath,
       flavor,
       fileSystem,
       terminal
-    )
-    .runAndWaitUntilFinished()
+    ).run()
 
     guard fileSystem.exists(testBundlePath) else {
       terminal.write(
@@ -343,7 +341,7 @@ public final class Toolchain {
     return testBundlePath
   }
 
-  public func packageInit(name: String, type: PackageType, inPlace: Bool) throws {
+  public func runPackageInit(name: String, type: PackageType, inPlace: Bool) async throws {
     var initArgs = [
       swiftPath.pathString, "package", "init",
       "--type", type.rawValue,
@@ -351,13 +349,11 @@ public final class Toolchain {
     if !inPlace {
       initArgs.append(contentsOf: ["--name", name])
     }
-    try ProcessRunner(initArgs, terminal)
-      .waitUntilFinished()
+    try await TSCBasic.Process.run(initArgs, terminal)
   }
 
-  public func runPackage(_ arguments: [String]) throws {
+  public func runPackage(_ arguments: [String]) async throws {
     let args = [swiftPath.pathString, "package"] + arguments
-    try ProcessRunner(args, terminal)
-      .waitUntilFinished()
+    try await TSCBasic.Process.run(args, terminal)
   }
 }

@@ -1,4 +1,4 @@
-// swift-tools-version:5.4
+// swift-tools-version:5.5
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -65,7 +65,6 @@ let package = Package(
     .target(
       name: "CartonKit",
       dependencies: [
-        .product(name: "ArgumentParser", package: "swift-argument-parser"),
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
         .product(name: "Crypto", package: "swift-crypto"),
         .product(name: "Vapor", package: "vapor"),
@@ -89,6 +88,7 @@ let package = Package(
       name: "CartonHelpers",
       dependencies: [
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
+        .product(name: "ArgumentParser", package: "swift-argument-parser"),
         openCombineProduct,
         "Splash",
         "WasmTransformer",

@@ -19,7 +19,7 @@ import Foundation
 import SwiftToolchain
 import TSCBasic
 
-struct Init: ParsableCommand {
+struct Init: AsyncParsableCommand {
   static let configuration = CommandConfiguration(
     abstract: "Create a Swift package for a new SwiftWasm project.",
     subcommands: [ListTemplates.self]
@@ -33,7 +33,7 @@ struct Init: ParsableCommand {
   @Option(name: .long,
           help: "The name of the project") var name: String?
 
-  func run() throws {
+  func run() async throws {
     let terminal = InteractiveWriter.stdout
 
     guard let name = name ?? localFileSystem.currentWorkingDirectory?.basename else {
@@ -58,7 +58,7 @@ struct Init: ParsableCommand {
       return
     }
     try localFileSystem.createDirectory(packagePath)
-    try template.template.create(
+    try await template.template.create(
       on: localFileSystem,
       project: .init(name: name, path: packagePath, inPlace: self.name == nil),
       terminal

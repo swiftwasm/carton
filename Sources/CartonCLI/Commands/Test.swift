@@ -13,11 +13,6 @@
 // limitations under the License.
 
 import ArgumentParser
-#if canImport(Combine)
-import Combine
-#else
-import OpenCombine
-#endif
 import CartonHelpers
 import CartonKit
 import SwiftToolchain
@@ -39,7 +34,7 @@ private enum Environment: String, CaseIterable, ExpressibleByArgument {
 
 extension SanitizeVariant: ExpressibleByArgument {}
 
-struct Test: ParsableCommand {
+struct Test: AsyncParsableCommand {
   static let entrypoint = Entrypoint(fileName: "test.js", sha256: testEntrypointSHA256)
 
   static let configuration = CommandConfiguration(abstract: "Run the tests in a WASI environment.")
@@ -78,13 +73,13 @@ struct Test: ParsableCommand {
     )
   }
 
-  func run() throws {
+  func run() async throws {
     let terminal = InteractiveWriter.stdout
 
     try Self.entrypoint.check(on: localFileSystem, terminal)
     let toolchain = try Toolchain(localFileSystem, terminal)
     let flavor = buildFlavor()
-    let testBundlePath = try toolchain.buildTestBundle(flavor: flavor)
+    let testBundlePath = try await toolchain.buildTestBundle(flavor: flavor)
 
     if environment == .wasmer {
       terminal.write("\nRunning the test bundle with wasmer:\n", inColor: .yellow)
@@ -95,11 +90,10 @@ struct Test: ParsableCommand {
         wasmerArguments.append("--")
         wasmerArguments.append(contentsOf: testCases)
       }
-      let runner = ProcessRunner(wasmerArguments, parser: TestsParser(), terminal)
 
-      try runner.waitUntilFinished()
+      try await Process.run(wasmerArguments, parser: TestsParser(), terminal)
     } else {
-      try Server(
+      try await Server(
         .init(
           builder: nil,
           mainWasmPath: testBundlePath,
@@ -111,9 +105,9 @@ struct Test: ParsableCommand {
           // swiftlint:disable:next force_try
           manifest: try! toolchain.manifest.get(),
           product: nil,
-          entrypoint: Self.entrypoint
-        ),
-        terminal
+          entrypoint: Self.entrypoint,
+          terminal: terminal
+        )
       ).run()
     }
   }

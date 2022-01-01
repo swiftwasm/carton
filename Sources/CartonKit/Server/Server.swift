@@ -13,14 +13,10 @@
 // limitations under the License.
 
 import CartonHelpers
-#if canImport(Combine)
-import Combine
-#else
-import OpenCombine
-#endif
 import PackageModel
 import SwiftToolchain
 import TSCBasic
+import TSCUtility
 import Vapor
 
 private enum Event {
@@ -67,11 +63,10 @@ extension WebSocket: Hashable {
   }
 }
 
-public final class Server {
+public actor Server {
   private let decoder = JSONDecoder()
   private var connections = Set<WebSocket>()
-  private var subscriptions = [AnyCancellable]()
-  private let watcher: Watcher?
+  private var watcher: FSWatch?
   private let app: Application
   private let localURL: String
   private let skipAutoOpen: Bool
@@ -87,6 +82,7 @@ public final class Server {
     let manifest: Manifest
     let product: ProductDescription?
     let entrypoint: Entrypoint
+    let terminal: InteractiveWriter
 
     public init(
       builder: Builder?,
@@ -98,7 +94,8 @@ public final class Server {
       customIndexContent: String?,
       manifest: Manifest,
       product: ProductDescription?,
-      entrypoint: Entrypoint
+      entrypoint: Entrypoint,
+      terminal: InteractiveWriter
     ) {
       self.builder = builder
       self.mainWasmPath = mainWasmPath
@@ -110,19 +107,13 @@ public final class Server {
       self.manifest = manifest
       self.product = product
       self.entrypoint = entrypoint
+      self.terminal = terminal
     }
   }
 
   public init(
-    _ configuration: Configuration,
-    _ terminal: InteractiveWriter
-  ) throws {
-    if let builder = configuration.builder {
-      watcher = try Watcher(builder.pathsToWatch)
-    } else {
-      watcher = nil
-    }
-
+    _ configuration: Configuration
+  ) async throws {
     var env = Environment(
       name: configuration.verbose ? "development" : "production",
       arguments: ["vapor"]
@@ -132,6 +123,8 @@ public final class Server {
 
     try LoggingSystem.bootstrap(from: &env)
     app = Application(env)
+    watcher = nil
+
     app.configure(
       .init(
         port: configuration.port,
@@ -142,39 +135,55 @@ public final class Server {
         product: configuration.product,
         entrypoint: configuration.entrypoint,
         onWebSocketOpen: { [weak self] ws, environment in
-          if let handler = self?.createWSHandler(
+          if let handler = await self?.createWSHandler(
             configuration,
             in: environment,
-            terminal: terminal
+            terminal: configuration.terminal
           ) {
             ws.onText(handler)
           }
-          self?.connections.insert(ws)
+
+          await self?.add(connection: ws)
         },
-        onWebSocketClose: { [weak self] in self?.connections.remove($0) }
+        onWebSocketClose: { [weak self] in await self?.remove(connection: $0) }
       )
     )
     // Listen to Vapor App lifecycle events
     app.lifecycle.use(self)
 
-    guard let builder = configuration.builder, let watcher = watcher else {
+    guard let builder = configuration.builder else {
       return
     }
 
-    watcher.publisher
-      .flatMap(maxPublishers: .max(1)) { changes -> AnyPublisher<String, Never> in
-        if !configuration.verbose {
-          terminal.clearWindow()
-        }
-        terminal.write("\nThese paths have changed, rebuilding...\n", inColor: .yellow)
-        for change in changes.map(\.pathString) {
-          terminal.write("- \(change)\n", inColor: .cyan)
-        }
+    watcher = FSWatch(paths: builder.pathsToWatch, latency: 0.1) { [weak self] paths in
+      guard let self = self else { return }
+      Task { try await self.onChange(paths, configuration) }
+    }
+    try watcher?.start()
+  }
 
-        return self.run(builder, terminal)
-      }
-      .sink(receiveValue: { _ in })
-      .store(in: &subscriptions)
+  private func onChange(_ paths: [AbsolutePath], _ configuration: Configuration) async throws {
+    if !configuration.verbose {
+      configuration.terminal.clearWindow()
+    }
+    configuration.terminal.write(
+      "\nThese paths have changed, rebuilding...\n",
+      inColor: .yellow
+    )
+    for change in paths.map(\.pathString) {
+      configuration.terminal.write("- \(change)\n", inColor: .cyan)
+    }
+
+    // `configuration.builder` is guaranteed to be non-nil here as its presence is checked in `init`
+    return try await run(configuration.builder!, configuration.terminal)
+  }
+
+  private func add(connection: WebSocket) {
+    connections.insert(connection)
+  }
+
+  private func remove(connection: WebSocket) {
+    connections.remove(connection)
   }
 
   /// Blocking function that starts the HTTP server.
@@ -189,18 +198,12 @@ public final class Server {
   private func run(
     _ builder: Builder,
     _ terminal: InteractiveWriter
-  ) -> AnyPublisher<String, Never> {
-    builder
-      .run()
-      .handleEvents(receiveCompletion: { [weak self] in
-        guard case .finished = $0, let self = self else { return }
+  ) async throws {
+    try await builder.run()
 
-        terminal.write("\nBuild completed successfully\n", inColor: .green, bold: false)
-        terminal.logLookup("The app is currently hosted at ", self.localURL)
-        self.connections.forEach { $0.send("reload") }
-      })
-      .catch { _ in Empty().eraseToAnyPublisher() }
-      .eraseToAnyPublisher()
+    terminal.write("\nBuild completed successfully\n", inColor: .green, bold: false)
+    terminal.logLookup("The app is currently hosted at ", localURL)
+    connections.forEach { $0.send("reload") }
   }
 }
 
@@ -248,7 +251,7 @@ extension Server {
 }
 
 extension Server: LifecycleHandler {
-  public func didBoot(_ application: Application) throws {
+  public nonisolated func didBoot(_ application: Application) throws {
     guard !skipAutoOpen else { return }
     openInSystemBrowser(url: localURL)
   }
@@ -256,7 +259,7 @@ extension Server: LifecycleHandler {
   /// Attempts to open the specified URL string in system browser on macOS and Linux.
   /// - Returns: true if launching command returns successfully.
   @discardableResult
-  private func openInSystemBrowser(url: String) -> Bool {
+  private nonisolated func openInSystemBrowser(url: String) -> Bool {
     #if os(macOS)
     let openCommand = "open"
     #elseif os(Linux)

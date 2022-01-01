@@ -13,11 +13,6 @@
 // limitations under the License.
 
 import CartonHelpers
-#if canImport(Combine)
-import Combine
-#else
-import OpenCombine
-#endif
 import Foundation
 import TSCBasic
 import WasmTransformer
@@ -25,13 +20,10 @@ import WasmTransformer
 public final class Builder {
   public let mainWasmPath: AbsolutePath
   public let pathsToWatch: [AbsolutePath]
-
-  private var currentProcess: ProcessRunner?
   private let arguments: [String]
   private let flavor: BuildFlavor
   private let terminal: InteractiveWriter
   private let fileSystem: FileSystem
-  private var subscription: AnyCancellable?
 
   public init(
     arguments: [String],
@@ -49,70 +41,57 @@ public final class Builder {
     self.fileSystem = fileSystem
   }
 
-  private func processPublisher(builderArguments: [String]) -> AnyPublisher<String, Error> {
+  private func buildWithoutSanitizing(builderArguments: [String]) async throws {
     let buildStarted = Date()
-    let process = ProcessRunner(
+    try await Process.run(
       builderArguments,
       loadingMessage: "Compiling...",
       parser: nil,
       terminal
     )
-    currentProcess = process
 
-    return process
-      .publisher
-      .handleEvents(receiveCompletion: { [weak self] in
-        guard case .finished = $0, let self = self else { return }
+    self.terminal.logLookup(
+      "`swift build` completed in ",
+      String(format: "%.2f seconds", abs(buildStarted.timeIntervalSinceNow))
+    )
 
-        self.terminal.logLookup(
-          "`swift build` completed in ",
-          String(format: "%.2f seconds", abs(buildStarted.timeIntervalSinceNow))
-        )
+    var transformers: [(inout InputByteStream, inout InMemoryOutputWriter) throws -> ()] = []
+    if self.flavor.environment != .other {
+      transformers.append(I64ImportTransformer().transform)
+    }
 
-        var transformers: [(inout InputByteStream, inout InMemoryOutputWriter) throws -> ()] = []
-        if self.flavor.environment != .other {
-          transformers.append(I64ImportTransformer().transform)
-        }
+    switch self.flavor.sanitize {
+    case .stackOverflow:
+      transformers.append(StackOverflowSanitizer().transform)
+    case .none:
+      break
+    }
 
-        switch self.flavor.sanitize {
-        case .stackOverflow:
-          transformers.append(StackOverflowSanitizer().transform)
-        case .none:
-          break
-        }
+    guard !transformers.isEmpty else { return }
 
-        guard !transformers.isEmpty else { return }
+    let binary = try self.fileSystem.readFileContents(self.mainWasmPath)
 
-        // FIXME: errors from these `try` expressions should be recoverable, not sure how to
-        // do that in `handleEvents`, and `flatMap` doesn't fit here as we need to track
-        // publisher completion.
-        // swiftlint:disable force_try
-        let binary = try! self.fileSystem.readFileContents(self.mainWasmPath)
+    let transformStarted = Date()
+    var inputBinary = binary.contents
+    for transformer in transformers {
+      var input = InputByteStream(bytes: inputBinary)
+      var writer = InMemoryOutputWriter(reservingCapacity: inputBinary.count)
+      try! transformer(&input, &writer)
+      inputBinary = writer.bytes()
+    }
 
-        let transformStarted = Date()
-        var inputBinary = binary.contents
-        for transformer in transformers {
-          var input = InputByteStream(bytes: inputBinary)
-          var writer = InMemoryOutputWriter(reservingCapacity: inputBinary.count)
-          try! transformer(&input, &writer)
-          inputBinary = writer.bytes()
-        }
+    self.terminal.logLookup(
+      "Binary transformation for Safari compatibility completed in ",
+      String(format: "%.2f seconds", abs(transformStarted.timeIntervalSinceNow))
+    )
 
-        self.terminal.logLookup(
-          "Binary transformation for Safari compatibility completed in ",
-          String(format: "%.2f seconds", abs(transformStarted.timeIntervalSinceNow))
-        )
-
-        try! self.fileSystem.writeFileContents(self.mainWasmPath, bytes: .init(inputBinary))
-        // swiftlint:enable force_try
-      })
-      .eraseToAnyPublisher()
+    try self.fileSystem.writeFileContents(self.mainWasmPath, bytes: .init(inputBinary))
   }
 
-  public func run() -> AnyPublisher<String, Error> {
+  public func run() async throws {
     switch flavor.sanitize {
     case .none:
-      return processPublisher(builderArguments: arguments)
+      return try await buildWithoutSanitizing(builderArguments: arguments)
     case .stackOverflow:
       let sanitizerFile =
         fileSystem.homeDirectory.appending(components: ".carton", "static", "so_sanitizer.wasm")
@@ -123,17 +102,7 @@ public final class Builder {
         // stack-overflow-sanitizer depends on "--stack-first"
         "-Xlinker", "--stack-first",
       ])
-      return processPublisher(builderArguments: modifiedArguments)
-    }
-  }
-
-  public func runAndWaitUntilFinished() throws {
-    try tsc_await { completion in
-      subscription = run()
-        .sink(
-          receiveCompletion: { completion($0.result) },
-          receiveValue: { _ in }
-        )
+      return try await buildWithoutSanitizing(builderArguments: modifiedArguments)
     }
   }
 }

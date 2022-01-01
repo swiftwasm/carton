@@ -34,7 +34,7 @@ public protocol Template {
     on fileSystem: FileSystem,
     project: Project,
     _ terminal: InteractiveWriter
-  ) throws
+  ) async throws
 }
 
 enum TemplateError: Error {
@@ -78,9 +78,9 @@ extension Template {
     fileSystem: FileSystem,
     project: Project,
     _ terminal: InteractiveWriter
-  ) throws {
-    try Toolchain(fileSystem, terminal)
-      .packageInit(name: project.name, type: type, inPlace: project.inPlace)
+  ) async throws {
+    try await Toolchain(fileSystem, terminal)
+      .runPackageInit(name: project.name, type: type, inPlace: project.inPlace)
   }
 
   static func createManifest(
@@ -135,9 +135,9 @@ extension Templates {
       on fileSystem: FileSystem,
       project: Project,
       _ terminal: InteractiveWriter
-    ) throws {
+    ) async throws {
       try fileSystem.changeCurrentWorkingDirectory(to: project.path)
-      try createPackage(type: .executable, fileSystem: fileSystem, project: project, terminal)
+      try await createPackage(type: .executable, fileSystem: fileSystem, project: project, terminal)
       try createManifest(
         fileSystem: fileSystem,
         project: project,
@@ -165,9 +165,9 @@ extension Templates {
       on fileSystem: FileSystem,
       project: Project,
       _ terminal: InteractiveWriter
-    ) throws {
+    ) async throws {
       try fileSystem.changeCurrentWorkingDirectory(to: project.path)
-      try createPackage(type: .executable,
+      try await createPackage(type: .executable,
                         fileSystem: fileSystem,
                         project: project,
                         terminal)

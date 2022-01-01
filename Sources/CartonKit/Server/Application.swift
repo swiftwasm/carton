@@ -27,8 +27,8 @@ extension Application {
     let manifest: Manifest
     let product: ProductDescription?
     let entrypoint: Entrypoint
-    let onWebSocketOpen: (WebSocket, DestinationEnvironment) -> ()
-    let onWebSocketClose: (WebSocket) -> ()
+    let onWebSocketOpen: (WebSocket, DestinationEnvironment) async -> ()
+    let onWebSocketClose: (WebSocket) async -> ()
   }
 
   func configure(_ configuration: Configuration) {
@@ -53,8 +53,8 @@ extension Application {
       let environment = request.headers["User-Agent"].compactMap(DestinationEnvironment.init).first
         ?? .other
 
-      configuration.onWebSocketOpen(ws, environment)
-      ws.onClose.whenComplete { _ in configuration.onWebSocketClose(ws) }
+        Task { await configuration.onWebSocketOpen(ws, environment) }
+        ws.onClose.whenComplete { _ in Task { await configuration.onWebSocketClose(ws) } }
     }
 
     get("main.wasm") {

@@ -26,7 +26,7 @@ private let dependency = Entrypoint(
   sha256: bundleEntrypointSHA256
 )
 
-struct Bundle: ParsableCommand {
+struct Bundle: AsyncParsableCommand {
   @Option(help: "Specify name of an executable product to produce the bundle for.")
   var product: String?
 
@@ -50,7 +50,7 @@ struct Bundle: ParsableCommand {
     )
   }
 
-  func run() throws {
+  func run() async throws {
     let terminal = InteractiveWriter.stdout
 
     try dependency.check(on: localFileSystem, terminal)
@@ -58,7 +58,7 @@ struct Bundle: ParsableCommand {
     let toolchain = try Toolchain(localFileSystem, terminal)
 
     let flavor = buildFlavor()
-    let build = try toolchain.buildCurrentProject(
+    let build = try await toolchain.buildCurrentProject(
       product: product,
       flavor: flavor
     )
@@ -80,10 +80,10 @@ struct Bundle: ParsableCommand {
     try localFileSystem.removeFileTree(bundleDirectory)
     try localFileSystem.createDirectory(bundleDirectory)
     let optimizedPath = AbsolutePath(bundleDirectory, "main.wasm")
-    try ProcessRunner(
+    try await Process.run(
       ["wasm-opt", "-Os", build.mainWasmPath.pathString, "-o", optimizedPath.pathString],
       terminal
-    ).waitUntilFinished()
+    )
     try terminal.logLookup(
       "After stripping debug info the main binary size is ",
       localFileSystem.humanReadableFileSize(optimizedPath),
