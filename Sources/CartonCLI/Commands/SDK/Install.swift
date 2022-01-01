@@ -17,7 +17,7 @@ import CartonHelpers
 import SwiftToolchain
 import TSCBasic
 
-struct Install: ParsableCommand {
+struct Install: AsyncParsableCommand {
   static let configuration = CommandConfiguration(
     abstract: "Install new Swift toolchain/SDK."
   )
