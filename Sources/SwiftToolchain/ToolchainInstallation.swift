@@ -79,7 +79,7 @@ extension ToolchainSystem {
         )
       }
     } catch {
-      terminal.write("Download failed with error \(error.localizedDescription) \n", inColor: .red)
+      terminal.write("Download failed with error \(error)\n", inColor: .red)
       throw error
     }
 

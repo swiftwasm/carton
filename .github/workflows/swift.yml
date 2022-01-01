@@ -12,9 +12,6 @@ jobs:
       matrix:
         include:
           - os: macos-11
-            swift_version: 5.4
-            xcode: /Applications/Xcode_12.5.1.app/Contents/Developer
-          - os: macos-11
             swift_version: 5.5
             xcode: /Applications/Xcode_13.1.app/Contents/Developer
           - os: ubuntu-18.04
