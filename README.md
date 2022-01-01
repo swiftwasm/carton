@@ -24,7 +24,7 @@ development workflow such as toolchain and SDK installations.
 
 ### Requirements
 
-- macOS 11 and Xcode 13.2 or later. macOS 10.15 may work, but is untested.
+- macOS 11 and Xcode 13.2.1 or later. macOS 10.15 may work, but is untested.
 - [Swift 5.5 or later](https://swift.org/download/) and Ubuntu 18.04 or 20.04 for Linux users.
 
 ### Installation
