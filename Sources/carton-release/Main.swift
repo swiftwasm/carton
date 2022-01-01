@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import ArgumentParser
+import CartonHelpers
 
 struct CartonRelease: ParsableCommand {
   static let configuration = CommandConfiguration(
@@ -21,4 +22,7 @@ struct CartonRelease: ParsableCommand {
   )
 }
 
-CartonRelease.main()
+@main
+struct Main: AsyncMain {
+  typealias Command = CartonRelease
+}
