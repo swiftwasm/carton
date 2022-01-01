@@ -42,7 +42,9 @@ jobs:
           curl https://get.wasmer.io -sSfL | sh
 
       - name: Build the project
-        run: swift build
+        run: |
+          swift -v
+          swift build -Xfrontend -validate-tbd-against-ir=none
 
       - name: Build and install JavaScript and sanitizer resources
         run: |
