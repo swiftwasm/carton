@@ -98,7 +98,7 @@ struct Test: AsyncParsableCommand {
           builder: nil,
           mainWasmPath: testBundlePath,
           verbose: true,
-          skipAutoOpen: false,
+          shouldSkipAutoOpen: false,
           port: port,
           host: host,
           customIndexContent: nil,

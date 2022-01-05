@@ -52,7 +52,7 @@ extension Event: Decodable {
   }
 }
 
-/// This `Hashable` conformance is required to handle simulatenous connections with `Set<WebSocket>`
+/// This `Hashable` conformance is required to handle simultaneous connections with `Set<WebSocket>`
 extension WebSocket: Hashable {
   public static func == (lhs: WebSocket, rhs: WebSocket) -> Bool {
     lhs === rhs
@@ -64,18 +64,35 @@ extension WebSocket: Hashable {
 }
 
 public actor Server {
+  /// Used for decoding `Event` values sent from the WebSocket client.
   private let decoder = JSONDecoder()
+
+  /// A set of connected WebSocket clients currently connected to this server.
   private var connections = Set<WebSocket>()
+
+  /// Filesystem watcher monitoring relevant source files for changes.
   private var watcher: FSWatch?
+
+  /// An instance of Vapor server application.
   private let app: Application
+
+  /// Local URL of this server, `https://128.0.0.1:8080/` by default.
   private let localURL: String
-  private let skipAutoOpen: Bool
+
+  /// Whether a browser tab should automatically open as soon as the server is ready.
+  private let shouldSkipAutoOpen: Bool
+
+  /// Whether a build that could be triggered by this server is currently running.
+  private var isBuildCurrentlyRunning = false
+
+  /// Whether a subsequent build is currently scheduled on top of a currently running build.
+  private var isSubsequentBuildScheduled = false
 
   public struct Configuration {
     let builder: Builder?
     let mainWasmPath: AbsolutePath
     let verbose: Bool
-    let skipAutoOpen: Bool
+    let shouldSkipAutoOpen: Bool
     let port: Int
     let host: String
     let customIndexContent: String?
@@ -88,7 +105,7 @@ public actor Server {
       builder: Builder?,
       mainWasmPath: AbsolutePath,
       verbose: Bool,
-      skipAutoOpen: Bool,
+      shouldSkipAutoOpen: Bool,
       port: Int,
       host: String,
       customIndexContent: String?,
@@ -100,7 +117,7 @@ public actor Server {
       self.builder = builder
       self.mainWasmPath = mainWasmPath
       self.verbose = verbose
-      self.skipAutoOpen = skipAutoOpen
+      self.shouldSkipAutoOpen = shouldSkipAutoOpen
       self.port = port
       self.host = host
       self.customIndexContent = customIndexContent
@@ -119,7 +136,7 @@ public actor Server {
       arguments: ["vapor"]
     )
     localURL = "http://\(configuration.host):\(configuration.port)/"
-    skipAutoOpen = configuration.skipAutoOpen
+    shouldSkipAutoOpen = configuration.shouldSkipAutoOpen
 
     try LoggingSystem.bootstrap(from: &env)
     app = Application(env)
@@ -155,14 +172,21 @@ public actor Server {
       return
     }
 
-    watcher = FSWatch(paths: builder.pathsToWatch, latency: 0.1) { [weak self] paths in
-      guard let self = self else { return }
-      Task { try await self.onChange(paths, configuration) }
+    watcher = FSWatch(paths: builder.pathsToWatch, latency: 0.1) { [weak self] changes in
+      guard let self = self, !changes.isEmpty else { return }
+      Task { try await self.onChange(changes, configuration) }
     }
     try watcher?.start()
   }
 
-  private func onChange(_ paths: [AbsolutePath], _ configuration: Configuration) async throws {
+  private func onChange(_ changes: [AbsolutePath], _ configuration: Configuration) async throws {
+    guard !isBuildCurrentlyRunning else {
+      if !isSubsequentBuildScheduled {
+        isSubsequentBuildScheduled = true
+      }
+      return
+    }
+
     if !configuration.verbose {
       configuration.terminal.clearWindow()
     }
@@ -170,13 +194,27 @@ public actor Server {
       "\nThese paths have changed, rebuilding...\n",
       inColor: .yellow
     )
-    for change in paths.map(\.pathString) {
+    for change in changes.map(\.pathString) {
       configuration.terminal.write("- \(change)\n", inColor: .cyan)
     }
 
+    isBuildCurrentlyRunning = true
     // `configuration.builder` is guaranteed to be non-nil here as its presence is checked in `init`
-    return try await run(configuration.builder!, configuration.terminal)
+    try await run(configuration.builder!, configuration.terminal)
+
+    if isSubsequentBuildScheduled {
+      configuration.terminal.write(
+        "\nMore paths have changed during the build, rebuilding again...\n",
+        inColor: .yellow
+      )
+      try await run(configuration.builder!, configuration.terminal)
+    }
+
+    isSubsequentBuildScheduled = false
+    isBuildCurrentlyRunning = false
   }
+
+  private func add(pendingChanges: [AbsolutePath]) {}
 
   private func add(connection: WebSocket) {
     connections.insert(connection)
@@ -252,7 +290,7 @@ extension Server {
 
 extension Server: LifecycleHandler {
   public nonisolated func didBoot(_ application: Application) throws {
-    guard !skipAutoOpen else { return }
+    guard !shouldSkipAutoOpen else { return }
     openInSystemBrowser(url: localURL)
   }
 

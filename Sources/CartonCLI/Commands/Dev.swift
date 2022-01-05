@@ -120,7 +120,7 @@ struct Dev: AsyncParsableCommand {
         ),
         mainWasmPath: build.mainWasmPath,
         verbose: verbose,
-        skipAutoOpen: skipAutoOpen,
+        shouldSkipAutoOpen: skipAutoOpen,
         port: port,
         host: host,
         customIndexContent: HTML.readCustomIndexPage(at: customIndexPage, on: localFileSystem),
