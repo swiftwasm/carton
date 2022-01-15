@@ -26,7 +26,6 @@ RUN cd carton && \
   ./install_ubuntu_deps.sh && \
   swift build -c release && \
   mv .build/release/carton /usr/bin && \
-  mv .build/**/libSwiftPMDataModel.so /lib/*-linux-gnu/ && \
   cd .. && \
   rm -rf carton /tmp/wasmer*
 
