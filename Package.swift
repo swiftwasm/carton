@@ -27,17 +27,17 @@ let package = Package(
     ),
     .package(
       url: "https://github.com/apple/swift-argument-parser.git",
-      from: "1.0.2"
+      from: "0.4.3"
     ),
     .package(url: "https://github.com/apple/swift-nio.git", from: "2.34.0"),
     .package(
       name: "SwiftPM",
       url: "https://github.com/apple/swift-package-manager.git",
-      .branch("release/5.6")
+      .branch("release/5.5")
     ),
     .package(
       url: "https://github.com/apple/swift-tools-support-core.git",
-      .branch("release/5.6")
+      .branch("release/5.5")
     ),
     .package(url: "https://github.com/OpenCombine/OpenCombine.git", from: "0.12.0"),
     .package(url: "https://github.com/vapor/vapor.git", from: "4.53.0"),
