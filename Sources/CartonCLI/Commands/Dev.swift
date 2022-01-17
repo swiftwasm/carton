@@ -14,17 +14,12 @@
 
 import ArgumentParser
 import CartonHelpers
-import Foundation
-#if canImport(Combine)
-import Combine
-#else
-import OpenCombine
-#endif
 import CartonKit
+import Foundation
 import SwiftToolchain
 import TSCBasic
 
-struct Dev: ParsableCommand {
+struct Dev: AsyncParsableCommand {
   static let entrypoint = Entrypoint(fileName: "dev.js", sha256: devEntrypointSHA256)
 
   @Option(help: "Specify name of an executable product in development.")
@@ -71,12 +66,12 @@ struct Dev: ParsableCommand {
     )
   }
 
-  func run() throws {
+  func run() async throws {
     let terminal = InteractiveWriter.stdout
 
     try Self.entrypoint.check(on: localFileSystem, terminal)
 
-    let toolchain = try Toolchain(localFileSystem, terminal)
+    let toolchain = try await Toolchain(localFileSystem, terminal)
 
     if !verbose {
       terminal.clearWindow()
@@ -97,7 +92,7 @@ struct Dev: ParsableCommand {
     }
 
     let flavor = buildFlavor()
-    let build = try toolchain.buildCurrentProject(
+    let build = try await toolchain.buildCurrentProject(
       product: product,
       flavor: flavor
     )
@@ -113,7 +108,7 @@ struct Dev: ParsableCommand {
 
     let sources = try paths.flatMap { try localFileSystem.traverseRecursively($0) }
 
-    try Server(
+    try await Server(
       .init(
         builder: Builder(
           arguments: build.arguments,
@@ -125,16 +120,16 @@ struct Dev: ParsableCommand {
         ),
         mainWasmPath: build.mainWasmPath,
         verbose: verbose,
-        skipAutoOpen: skipAutoOpen,
+        shouldSkipAutoOpen: skipAutoOpen,
         port: port,
         host: host,
         customIndexContent: HTML.readCustomIndexPage(at: customIndexPage, on: localFileSystem),
         // swiftlint:disable:next force_try
         manifest: try! toolchain.manifest.get(),
         product: build.product,
-        entrypoint: Self.entrypoint
-      ),
-      terminal
+        entrypoint: Self.entrypoint,
+        terminal: terminal
+      )
     ).run()
   }
 }

@@ -17,15 +17,14 @@ import CartonHelpers
 import TSCBasic
 import WasmTransformer
 
-struct HashArchive: ParsableCommand {
-  /** Converts a hexadecimal hash string to Swift code that represents a static
+struct HashArchive: AsyncParsableCommand {
+  /** Converts a hexadecimal hash string to Swift code that represents an archive of static assets.
    */
   private func arrayString(from hash: String) -> String {
     precondition(hash.count == 64)
 
     let commaSeparated = stride(from: 0, to: hash.count, by: 2)
-      .map { hash.dropLast(hash.count - $0 - 2).suffix(2) }
-      .map { "0x\($0)" }
+      .map { "0x\(hash.dropLast(hash.count - $0 - 2).suffix(2))" }
       .joined(separator: ", ")
 
     precondition(commaSeparated.count == 190)
@@ -36,7 +35,7 @@ struct HashArchive: ParsableCommand {
     """
   }
 
-  func run() throws {
+  func run() async throws {
     let terminal = InteractiveWriter.stdout
     let cwd = localFileSystem.currentWorkingDirectory!
     let staticPath = AbsolutePath(cwd, "static")
@@ -46,8 +45,8 @@ struct HashArchive: ParsableCommand {
     )
 
     try localFileSystem.createDirectory(dotFilesStaticPath, recursive: true)
-    let hashes = try ["dev", "bundle", "test"].map { entrypoint -> (String, String) in
-      try ProcessRunner(["npm", "run", entrypoint], terminal).waitUntilFinished()
+    let hashes = try await ["dev", "bundle", "test"].asyncMap { entrypoint -> (String, String) in
+      try await Process.run(["npm", "run", entrypoint], terminal)
       let entrypointPath = AbsolutePath(staticPath, "\(entrypoint).js")
       let dotFilesEntrypointPath = dotFilesStaticPath.appending(component: "\(entrypoint).js")
       try localFileSystem.removeFileTree(dotFilesEntrypointPath)
@@ -68,7 +67,7 @@ struct HashArchive: ParsableCommand {
       .dropFirst()
       .map(\.pathString)
 
-    try ProcessRunner(["zip", "-j", "static.zip"] + archiveSources, terminal).waitUntilFinished()
+    try await Process.run(["zip", "-j", "static.zip"] + archiveSources, terminal)
 
     let archiveHash = try SHA256().hash(
       localFileSystem.readFileContents(AbsolutePath(

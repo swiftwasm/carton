@@ -12,13 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import ArgumentParser
+import CartonCLI
+import CartonHelpers
 
-struct CartonRelease: ParsableCommand {
-  static let configuration = CommandConfiguration(
-    abstract: "Carton release automation utility",
-    subcommands: [Formula.self, HashArchive.self]
-  )
+@main
+struct Main: AsyncMain {
+  typealias Command = Carton
 }
-
-CartonRelease.main()

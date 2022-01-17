@@ -210,7 +210,7 @@ public class ToolchainSystem {
   func inferSwiftPath(
     from versionSpec: String? = nil,
     _ terminal: InteractiveWriter
-  ) throws -> (AbsolutePath, String) {
+  ) async throws -> (AbsolutePath, String) {
     let specURL = versionSpec.flatMap { (string: String) -> Foundation.URL? in
       guard
         let url = Foundation.URL(string: string),
@@ -251,7 +251,7 @@ public class ToolchainSystem {
       inColor: .yellow
     )
     terminal.logLookup("Swift toolchain/SDK download URL: ", downloadURL)
-    let installationPath = try installSDK(
+    let installationPath = try await installSDK(
       version: swiftVersion,
       from: downloadURL,
       to: cartonToolchainResolver.cartonSDKPath,

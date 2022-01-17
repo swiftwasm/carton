@@ -12,27 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#if canImport(Combine)
-import Combine
-#else
-import OpenCombine
-#endif
-import TSCBasic
-import TSCUtility
+import ArgumentParser
+import CartonHelpers
 
-final class Watcher {
-  private let subject = PassthroughSubject<[AbsolutePath], Never>()
-  private var fsWatch: FSWatch!
-  let publisher: AnyPublisher<[AbsolutePath], Never>
+struct CartonRelease: ParsableCommand {
+  static let configuration = CommandConfiguration(
+    abstract: "Carton release automation utility",
+    subcommands: [Formula.self, HashArchive.self]
+  )
+}
 
-  init(_ paths: [AbsolutePath]) throws {
-    publisher = subject.eraseToAnyPublisher()
-
-    guard !paths.isEmpty else { return }
-
-    fsWatch = FSWatch(paths: paths, latency: 0.1) { [weak self] in
-      self?.subject.send($0)
-    }
-    try fsWatch.start()
-  }
+@main
+struct Main: AsyncMain {
+  typealias Command = CartonRelease
 }

@@ -1,13 +1,7 @@
-// swift-tools-version:5.4
+// swift-tools-version:5.5
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
-
-let openCombineProduct = Target.Dependency.product(
-  name: "OpenCombine",
-  package: "OpenCombine",
-  condition: .when(platforms: [.linux])
-)
 
 let package = Package(
   name: "carton",
@@ -39,7 +33,6 @@ let package = Package(
       url: "https://github.com/apple/swift-tools-support-core.git",
       .branch("release/5.5")
     ),
-    .package(url: "https://github.com/OpenCombine/OpenCombine.git", from: "0.12.0"),
     .package(url: "https://github.com/vapor/vapor.git", from: "4.53.0"),
     .package(url: "https://github.com/apple/swift-crypto.git", from: "1.1.0"),
     .package(url: "https://github.com/JohnSundell/Splash.git", from: "0.16.0"),
@@ -65,12 +58,10 @@ let package = Package(
     .target(
       name: "CartonKit",
       dependencies: [
-        .product(name: "ArgumentParser", package: "swift-argument-parser"),
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
         .product(name: "Crypto", package: "swift-crypto"),
         .product(name: "Vapor", package: "vapor"),
         "CartonHelpers",
-        openCombineProduct,
         "SwiftToolchain",
       ]
     ),
@@ -81,7 +72,6 @@ let package = Package(
         .product(name: "NIOFoundationCompat", package: "swift-nio"),
         .product(name: "SwiftPMDataModel-auto", package: "SwiftPM"),
         "CartonHelpers",
-        openCombineProduct,
         "WasmTransformer",
       ]
     ),
@@ -89,7 +79,7 @@ let package = Package(
       name: "CartonHelpers",
       dependencies: [
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
-        openCombineProduct,
+        .product(name: "ArgumentParser", package: "swift-argument-parser"),
         "Splash",
         "WasmTransformer",
       ]
