@@ -3,9 +3,9 @@
 set -ex
 
 if [ -x "$(command -v sudo)" ]; then
-  sudo apt-get install zlib1g-dev
+  sudo apt-get install zlib1g-dev libsqlite3-dev
 else
-  apt-get install zlib1g-dev
+  apt-get install zlib1g-dev libsqlite3-dev
 fi
 
 BINARYEN_VERSION=105
