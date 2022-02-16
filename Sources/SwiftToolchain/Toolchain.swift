@@ -19,7 +19,7 @@ import TSCBasic
 import TSCUtility
 import WasmTransformer
 
-public let compatibleJSKitVersion = Version(0, 11, 1)
+public let compatibleJSKitVersion = Version(0, 12, 0)
 
 enum ToolchainError: Error, CustomStringConvertible {
   case directoryDoesNotExist(AbsolutePath)
