@@ -1,3 +1,23 @@
+# 0.12.2 (16 February 2022)
+
+This release features a massive refactor by [@MaxDesiatov](https://github.com/MaxDesiatov) to use Swift 5.5's `async/await` and actors, reducing its size, improving readability and removing Combine/OpenCombine dependency, as well as CI and Linux installation improvements.
+JavaScriptKit and Tokamak versions in templates were bumped to 0.12.0 and 0.9.1 respectively.
+
+**Merged pull requests:**
+
+- Update dependencies ([#293](https://github.com/swiftwasm/carton/pull/293)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update dependencies ([#289](https://github.com/swiftwasm/carton/pull/289)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Add libsqlite3-dev dependency ([#288](https://github.com/swiftwasm/carton/pull/288)) via [@SwiftCoderJoe](https://github.com/SwiftCoderJoe)
+- Upgrade binaryen version to 105 ([#286](https://github.com/swiftwasm/carton/pull/286)) via [@fjtrujy](https://github.com/fjtrujy)
+- Use `async/await` and actors instead of Combine ([#283](https://github.com/swiftwasm/carton/pull/283)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update dependencies ([#284](https://github.com/swiftwasm/carton/pull/284)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Statically link with `SwiftPMDataModel` library ([#275](https://github.com/swiftwasm/carton/pull/275)) via [@yonihemi](https://github.com/yonihemi)
+- Build `main` Docker images on every push to `main` branch ([#272](https://github.com/swiftwasm/carton/pull/272)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update dependencies ([#282](https://github.com/swiftwasm/carton/pull/282)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update dependencies ([#279](https://github.com/swiftwasm/carton/pull/279)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update dependencies ([#273](https://github.com/swiftwasm/carton/pull/273)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Fix Wasmer installation issues in `Dockerfile` ([#276](https://github.com/swiftwasm/carton/pull/276)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+
 # 0.12.1 (1 December 2021)
 
 This is a bugfix release that fixes linking issues with ICU that some users could've experienced
