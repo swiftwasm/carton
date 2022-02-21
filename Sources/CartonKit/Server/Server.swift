@@ -178,7 +178,7 @@ public actor Server {
         Task { try await self.onChange(changes, configuration) }
       }
       try watcher?.start()
-	}
+  }
   }
 
   private func onChange(_ changes: [AbsolutePath], _ configuration: Configuration) async throws {
