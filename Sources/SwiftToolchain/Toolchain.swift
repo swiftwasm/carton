@@ -183,9 +183,9 @@ public final class Toolchain {
 
       guard let path = target.path else {
         switch target.type {
-        case .regular:
+        case .regular, .executable:
           return RelativePath("Sources").appending(component: target.name).pathString
-        case .test, .system, .executable, .binary, .plugin:
+        case .test, .system, .binary, .plugin:
           return nil
         }
       }

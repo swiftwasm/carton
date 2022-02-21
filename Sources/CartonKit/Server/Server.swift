@@ -172,11 +172,13 @@ public actor Server {
       return
     }
 
-    watcher = FSWatch(paths: builder.pathsToWatch, latency: 0.1) { [weak self] changes in
-      guard let self = self, !changes.isEmpty else { return }
-      Task { try await self.onChange(changes, configuration) }
+    if !builder.pathsToWatch.isEmpty {
+      watcher = FSWatch(paths: builder.pathsToWatch, latency: 0.1) { [weak self] changes in
+        guard let self = self, !changes.isEmpty else { return }
+        Task { try await self.onChange(changes, configuration) }
+      }
+      try watcher?.start()
     }
-    try watcher?.start()
   }
 
   private func onChange(_ changes: [AbsolutePath], _ configuration: Configuration) async throws {
