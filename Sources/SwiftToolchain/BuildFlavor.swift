@@ -20,10 +20,17 @@ public struct BuildFlavor {
   public var isRelease: Bool
   public var environment: DestinationEnvironment
   public var sanitize: SanitizeVariant?
+  public var swiftCompilerFlags: [String]
 
-  public init(isRelease: Bool, environment: DestinationEnvironment, sanitize: SanitizeVariant?) {
+  public init(
+    isRelease: Bool,
+    environment: DestinationEnvironment,
+    sanitize: SanitizeVariant?,
+    swiftCompilerFlags: [String]
+  ) {
     self.isRelease = isRelease
     self.environment = environment
     self.sanitize = sanitize
+    self.swiftCompilerFlags = swiftCompilerFlags
   }
 }

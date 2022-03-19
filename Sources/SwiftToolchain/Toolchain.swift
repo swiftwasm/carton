@@ -265,6 +265,10 @@ public final class Toolchain {
       builderArguments.append(contentsOf: ["-Xlinker", "-licuuc", "-Xlinker", "-licui18n"])
     }
 
+    builderArguments.append(contentsOf: flavor.swiftCompilerFlags.flatMap {
+      ["-Xswiftc", $0]
+    })
+
     try await Builder(
       arguments: builderArguments,
       mainWasmPath: mainWasmPath,
@@ -316,6 +320,10 @@ public final class Toolchain {
     if version.starts(with: "wasm-5.5") {
       builderArguments.append(contentsOf: ["-Xlinker", "-licuuc", "-Xlinker", "-licui18n"])
     }
+
+    builderArguments.append(contentsOf: flavor.swiftCompilerFlags.flatMap {
+      ["-Xswiftc", $0]
+    })
 
     try await Builder(
       arguments: builderArguments,

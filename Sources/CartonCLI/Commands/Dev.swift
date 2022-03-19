@@ -54,6 +54,9 @@ struct Dev: AsyncParsableCommand {
   @Flag(name: .long, help: "Skip automatically opening app in system browser.")
   var skipAutoOpen = false
 
+  @OptionGroup()
+  var buildOptions: BuildOptions
+
   static let configuration = CommandConfiguration(
     abstract: "Watch the current directory, host the app, rebuild on change."
   )
@@ -62,7 +65,8 @@ struct Dev: AsyncParsableCommand {
     let defaultSanitize: SanitizeVariant? = release ? nil : .stackOverflow
     return BuildFlavor(
       isRelease: release, environment: .browser,
-      sanitize: sanitize ?? defaultSanitize
+      sanitize: sanitize ?? defaultSanitize,
+      swiftCompilerFlags: buildOptions.swiftCompilerFlags
     )
   }
 

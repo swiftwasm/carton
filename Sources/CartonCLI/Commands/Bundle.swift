@@ -39,6 +39,9 @@ struct Bundle: AsyncParsableCommand {
   @Flag(help: "When specified, build in the debug mode.")
   var debug = false
 
+  @OptionGroup()
+  var buildOptions: BuildOptions
+
   static let configuration = CommandConfiguration(
     abstract: "Produces an optimized app bundle for distribution."
   )
@@ -46,7 +49,7 @@ struct Bundle: AsyncParsableCommand {
   func buildFlavor() -> BuildFlavor {
     BuildFlavor(
       isRelease: !debug, environment: .browser,
-      sanitize: nil
+      sanitize: nil, swiftCompilerFlags: buildOptions.swiftCompilerFlags
     )
   }
 
