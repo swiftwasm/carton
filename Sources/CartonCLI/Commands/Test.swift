@@ -66,10 +66,13 @@ struct Test: AsyncParsableCommand {
   )
   var host = "127.0.0.1"
 
+  @OptionGroup()
+  var buildOptions: BuildOptions
+
   func buildFlavor() -> BuildFlavor {
     BuildFlavor(
       isRelease: release, environment: environment.destination,
-      sanitize: sanitize
+      sanitize: sanitize, swiftCompilerFlags: buildOptions.swiftCompilerFlags
     )
   }
 
