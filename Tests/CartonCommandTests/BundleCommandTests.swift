@@ -77,4 +77,22 @@ final class BundleCommandTests: XCTestCase {
 
     try packageDirectory.appending(component: ".build").delete()
   }
+
+  func testWithDebugInfo() throws {
+    try withTemporaryDirectory { tmpDirPath in
+      try ProcessEnv.chdir(tmpDirPath)
+      try Process.checkNonZeroExit(arguments: [cartonPath, "init", "--template", "basic"])
+      try Process.checkNonZeroExit(arguments: [cartonPath, "bundle", "--debug-info"])
+
+      let bundleDirectory = tmpDirPath.appending(component: "Bundle")
+      guard let wasmBinary = (bundleDirectory.ls().filter { $0.contains("wasm") }).first else {
+        XCTFail("No wasm binary found")
+        return
+      }
+      let headers = try Process.checkNonZeroExit(arguments: [
+        "wasm-objdump", "--headers", bundleDirectory.appending(component: wasmBinary).pathString
+      ])
+      XCTAssert(headers.contains("\"name\""), "name section not found: \(headers)")
+    }
+  }
 }
