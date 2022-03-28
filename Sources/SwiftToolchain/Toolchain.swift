@@ -126,7 +126,8 @@ public final class Toolchain {
     self.fileSystem = fileSystem
     self.terminal = terminal
     if let workingDirectory = fileSystem.currentWorkingDirectory {
-      manifest = await Result { try await Manifest.from(path: workingDirectory, terminal: terminal)
+      let swiftc = swiftPath.parentDirectory.appending(component: "swiftc")
+      manifest = await Result { try await Manifest.from(path: workingDirectory, swiftc: swiftc, fileSystem: fileSystem, terminal: terminal)
       }
     } else {
       manifest = .failure(ToolchainError.noWorkingDirectory)
