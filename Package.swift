@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
   name: "carton",
-  platforms: [.macOS(.v10_15)],
+  platforms: [.macOS("10.15.4")],
   products: [
     .library(name: "SwiftToolchain", targets: ["SwiftToolchain"]),
     .library(name: "CartonHelpers", targets: ["CartonHelpers"]),
@@ -21,17 +21,17 @@ let package = Package(
     ),
     .package(
       url: "https://github.com/apple/swift-argument-parser.git",
-      from: "0.4.3"
+      .upToNextMinor(from: "1.0.3")
     ),
     .package(url: "https://github.com/apple/swift-nio.git", from: "2.34.0"),
     .package(
       name: "SwiftPM",
       url: "https://github.com/apple/swift-package-manager.git",
-      .branch("release/5.5")
+      .branch("release/5.6")
     ),
     .package(
       url: "https://github.com/apple/swift-tools-support-core.git",
-      .branch("release/5.5")
+      .branch("release/5.6")
     ),
     .package(url: "https://github.com/vapor/vapor.git", from: "4.53.0"),
     .package(url: "https://github.com/apple/swift-crypto.git", from: "1.1.0"),

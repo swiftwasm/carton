@@ -32,6 +32,7 @@ enum ToolchainError: Error, CustomStringConvertible {
   case invalidResponse(url: String, status: UInt)
   case unsupportedOperatingSystem
   case noInstallationDirectory(path: String)
+  case noWorkingDirectory
 
   var description: String {
     switch self {
@@ -60,28 +61,45 @@ enum ToolchainError: Error, CustomStringConvertible {
       return """
       Failed to infer toolchain installation directory. Please make sure that \(path) exists.
       """
+    case .noWorkingDirectory:
+      return "Working directory cannot be inferred from file system"
     }
   }
 }
 
-extension PackageDependencyDescription.Requirement {
+extension PackageDependency {
   var isJavaScriptKitCompatible: Bool {
+    var exactVersion: Version?
+    var versionRange: Range<Version>?
     switch self {
-    case let .exact(version):
-      return version == compatibleJSKitVersion
-    case let .range(range):
-      return range.upperBound >= compatibleJSKitVersion
-    default:
-      return false
+    case let .sourceControl(sourceControl):
+      switch sourceControl.requirement {
+      case let .exact(version): exactVersion = version
+      case let .range(range): versionRange = range
+      default: break
+      }
+    case let .registry(registry):
+      switch registry.requirement {
+      case let .exact(version): exactVersion = version
+      case let .range(range): versionRange = range
+      }
+    default: break
     }
+    if let exactVersion = exactVersion {
+      return exactVersion == compatibleJSKitVersion
+    }
+    if let versionRange = versionRange {
+      return versionRange.upperBound >= compatibleJSKitVersion
+    }
+    return false
   }
 
-  var versionDescription: String {
+  var requirementDescription: String {
     switch self {
-    case let .exact(version):
-      return version.description
-    case let .range(range):
-      return range.lowerBound.description
+    case let .sourceControl(sourceControl):
+      return sourceControl.requirement.description
+    case let .registry(registry):
+      return registry.requirement.description
     default:
       return "(Unknown)"
     }
@@ -107,7 +125,13 @@ public final class Toolchain {
     self.version = version
     self.fileSystem = fileSystem
     self.terminal = terminal
-    manifest = Result { try Manifest.from(swiftPath: swiftPath, terminal: terminal) }
+    if let workingDirectory = fileSystem.currentWorkingDirectory {
+      let swiftc = swiftPath.parentDirectory.appending(component: "swiftc")
+      manifest = await Result { try await Manifest.from(path: workingDirectory, swiftc: swiftc, fileSystem: fileSystem, terminal: terminal)
+      }
+    } else {
+      manifest = .failure(ToolchainError.noWorkingDirectory)
+    }
   }
 
   private func inferBinPath(isRelease: Bool) throws -> AbsolutePath {
@@ -199,6 +223,43 @@ public final class Toolchain {
     }
   }
 
+  private func emitJSKitWarningIfNeeded() throws {
+    let manifest = try self.manifest.get()
+    guard let jsKit = manifest.dependencies.first(where: {
+      $0.nameForTargetDependencyResolutionOnly == "JavaScriptKit"
+    }) else {
+      return
+    }
+
+    switch jsKit {
+    case .fileSystem:
+      terminal.write(
+        """
+
+        The local version of JavaScriptKit found in your dependency tree is not known to be compatible \
+        with carton \(cartonVersion). Please specify a JavaScriptKit dependency of version \
+        \(compatibleJSKitVersion) in your `Package.swift`.\n
+
+        """,
+        inColor: .red
+      )
+
+    default:
+      guard !jsKit.isJavaScriptKitCompatible else { return }
+      terminal.write(
+        """
+
+        JavaScriptKit requirement \(jsKit
+          .requirementDescription), which is present in your dependency tree is not \
+        known to be compatible with carton \(cartonVersion). Please specify a JavaScriptKit \
+        dependency of version \(compatibleJSKitVersion) in your `Package.swift`.\n
+
+        """,
+        inColor: .red
+      )
+    }
+  }
+
   public func buildCurrentProject(
     product: String?,
     flavor: BuildFlavor
@@ -206,41 +267,7 @@ public final class Toolchain {
     guard let product = try inferDevProduct(hint: product)
     else { throw ToolchainError.noExecutableProduct }
 
-    let manifest = try self.manifest.get()
-    let jsKit = manifest.dependencies.first {
-      $0.nameForTargetDependencyResolutionOnly == "JavaScriptKit"
-    }
-
-    switch jsKit {
-    case let .scm(jsKit) where !jsKit.requirement.isJavaScriptKitCompatible:
-      let versionDescription = jsKit.requirement.versionDescription
-
-      terminal.write(
-        """
-
-        JavaScriptKit \(versionDescription), which is present in your dependency tree is not \
-        known to be compatible with carton \(cartonVersion). Please specify a JavaScriptKit \
-        dependency on version \(compatibleJSKitVersion) in your `Package.swift`.\n
-
-        """,
-        inColor: .red
-      )
-
-    case .local:
-      terminal.write(
-        """
-
-        The version of JavaScriptKit found in your dependency tree is not known to be compatible \
-        with carton \(cartonVersion). Please specify a JavaScriptKit dependency on version \
-        \(compatibleJSKitVersion) in your `Package.swift`.\n
-
-        """,
-        inColor: .red
-      )
-
-    case nil, .scm:
-      break
-    }
+    try emitJSKitWarningIfNeeded()
 
     let binPath = try inferBinPath(isRelease: flavor.isRelease)
     let mainWasmPath = binPath.appending(component: "\(product.name).wasm")
@@ -294,7 +321,7 @@ public final class Toolchain {
   ) async throws -> AbsolutePath {
     let manifest = try self.manifest.get()
     let binPath = try inferBinPath(isRelease: flavor.isRelease)
-    let testProductName = "\(manifest.name)PackageTests"
+    let testProductName = "\(manifest.displayName)PackageTests"
     let testBundlePath = binPath.appending(component: "\(testProductName).wasm")
     terminal.logLookup("- test bundle to run: ", testBundlePath.pathString)
 
@@ -358,5 +385,16 @@ public final class Toolchain {
   public func runPackage(_ arguments: [String]) async throws {
     let args = [swiftPath.pathString, "package"] + arguments
     try await TSCBasic.Process.run(args, terminal)
+  }
+}
+
+extension Result where Failure == Error {
+  init(catching body: () async throws -> Success) async {
+    do {
+      let value = try await body()
+      self = .success(value)
+    } catch {
+      self = .failure(error)
+    }
   }
 }

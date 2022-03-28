@@ -268,13 +268,13 @@ extension Server {
           terminal.write("\nAn error occurred, here's a stack trace for it:\n", inColor: .red)
           stackTrace.forEach { item in
             terminal.write("  \(item.symbol)", inColor: .cyan)
-            terminal.write(" at \(item.location ?? "<unknown>")\n", inColor: .grey)
+            terminal.write(" at \(item.location ?? "<unknown>")\n", inColor: .gray)
           }
         } else {
           terminal.write("\nAn error occurred, here's the raw stack trace for it:\n", inColor: .red)
           terminal.write("  Please create an issue or PR to the Carton repository\n" +
             "  with your browser name and this raw stack trace so\n" +
-            "  we can add support for it: https://github.com/swiftwasm/carton\n", inColor: .grey)
+            "  we can add support for it: https://github.com/swiftwasm/carton\n", inColor: .gray)
           terminal.write(rawStackTrace + "\n")
         }
 

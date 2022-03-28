@@ -12,29 +12,44 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import Basics
 import CartonHelpers
-import Foundation
 import PackageModel
+import PackageLoading
 import TSCBasic
+import Workspace
 
 extension Manifest {
-  static func from(swiftPath: AbsolutePath, terminal: InteractiveWriter) throws -> Manifest {
+  static func from(path: AbsolutePath, swiftc: AbsolutePath, fileSystem: FileSystem, terminal: InteractiveWriter) async throws -> Manifest {
     terminal.write("\nParsing package manifest: ", inColor: .yellow)
-    terminal.write("\(swiftPath) package dump-package\n")
-    let output = try Data(processDataOutput([swiftPath.pathString, "package", "dump-package"]))
-    let decoder = JSONDecoder()
-    let unencodedValues = DumpedManifest.Unencoded(
-      path: swiftPath,
-      url: swiftPath.asURL.absoluteString,
-      version: nil
+    let toolchain = ToolchainConfiguration(swiftCompilerPath: swiftc)
+    let loader = ManifestLoader(toolchain: toolchain)
+    let observability = ObservabilitySystem { _, diagnostic in
+      terminal.write("\n\(diagnostic)")
+    }
+    let workspace = try Workspace(fileSystem: fileSystem, forRootPackage: path, customManifestLoader: loader)
+    let manifest = try await workspace.loadRootManifest(
+      at: path,
+      observabilityScope: observability.topScope
     )
-    decoder.userInfo[DumpedManifest.unencodedKey] = unencodedValues
-    let dumpedManifest = try decoder.decode(DumpedManifest.self, from: output)
-    return dumpedManifest.manifest
+    return manifest
   }
 
   public func resourcesPath(for target: TargetDescription) -> String {
-    "\(name)_\(target.name).resources"
+    "\(displayName)_\(target.name).resources"
+  }
+}
+
+extension Workspace {
+  func loadRootManifest(
+    at path: AbsolutePath,
+    observabilityScope: ObservabilityScope
+  ) async throws -> Manifest {
+    try await withCheckedThrowingContinuation { continuation in
+      loadRootManifest(at: path, observabilityScope: observabilityScope) { result in
+        continuation.resume(with: result)
+      }
+    }
   }
 }
 
@@ -44,81 +59,4 @@ public enum PackageType: String {
   case executable
   case systemModule = "system-module"
   case manifest
-}
-
-// MARK: Custom Decodable Wrappers
-
-/// A wrapper around `Manifest` needed for decoding from `dump-package` output,
-/// since when encoding several (required for initialization) keys are skipped.
-/// When decoding this wrapper, callers must provide an `unencodedKey` in the
-/// decoder's `userInfo`.
-struct DumpedManifest: Decodable {
-  var manifest: Manifest
-
-  static let unencodedKey = CodingUserInfoKey(rawValue: "unencoded")!
-
-  /// The skipped keys during `dump-package` encoding
-  struct Unencoded {
-    let path: AbsolutePath
-    let url: String
-    let version: Version?
-  }
-
-  private enum CodingKeys: CodingKey {
-    case name, toolsVersion,
-         pkgConfig, providers, cLanguageStandard, cxxLanguageStandard, swiftLanguageVersions,
-         dependencies, products, targets, platforms, packageKind, revision,
-         defaultLocalization
-  }
-
-  init(from decoder: Decoder) throws {
-    guard let unencoded = decoder.userInfo[DumpedManifest.unencodedKey] as? Unencoded else {
-      let context = DecodingError.Context(
-        codingPath: [],
-        debugDescription: "Unencoded values are missing from Decoder's userInfo"
-      )
-      throw DecodingError.dataCorrupted(context)
-    }
-
-    let container = try decoder.container(keyedBy: CodingKeys.self)
-    let name = try container.decode(String.self, forKey: .name)
-    let toolsVersion = try container.decode(ToolsVersion.self, forKey: .toolsVersion)
-    let pkgConfig = try container.decode(String?.self, forKey: .pkgConfig)
-    let providers = try container.decode(
-      [SystemPackageProviderDescription]?.self,
-      forKey: .providers
-    )
-    let cLanguageStandard = try container.decode(String?.self, forKey: .cLanguageStandard)
-    let cxxLanguageStandard = try container.decode(String?.self, forKey: .cxxLanguageStandard)
-    let swiftLanguageVersions = try container.decode(
-      [SwiftLanguageVersion]?.self,
-      forKey: .swiftLanguageVersions
-    )
-    let dependencies = try container.decode(
-      [PackageDependencyDescription].self,
-      forKey: .dependencies
-    )
-    let products = try container.decode([ProductDescription].self, forKey: .products)
-    let targets = try container.decode([TargetDescription].self, forKey: .targets)
-    let platforms = try container.decode([PlatformDescription].self, forKey: .platforms)
-    let packageKind = try container.decode(PackageReference.Kind.self, forKey: .packageKind)
-
-    manifest = Manifest(
-      name: name,
-      path: unencoded.path,
-      packageKind: packageKind,
-      packageLocation: unencoded.path.parentDirectory.pathString,
-      platforms: platforms,
-      version: unencoded.version,
-      toolsVersion: toolsVersion,
-      pkgConfig: pkgConfig,
-      providers: providers,
-      cLanguageStandard: cLanguageStandard,
-      cxxLanguageStandard: cxxLanguageStandard,
-      swiftLanguageVersions: swiftLanguageVersions,
-      dependencies: dependencies,
-      products: products,
-      targets: targets
-    )
-  }
 }

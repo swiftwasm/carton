@@ -157,7 +157,7 @@ public struct DiagnosticsParser: ProcessOutputParser {
     for (file, messages) in diagnostics.sorted(by: { $0.key < $1.key }) {
       guard messages.count > 0 else { continue }
       terminal.write("\(" \(file) ", color: "[1m", "[7m")") // bold, reversed
-      terminal.write(" \(messages.first!.file)\(messages.first!.line)\n\n", inColor: .grey)
+      terminal.write(" \(messages.first!.file)\(messages.first!.line)\n\n", inColor: .gray)
       // Group messages that occur on sequential lines to provie a more readable output
       var groupedMessages = [[CustomDiagnostic]]()
       for message in messages {
