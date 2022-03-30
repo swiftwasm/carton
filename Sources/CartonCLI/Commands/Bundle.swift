@@ -39,6 +39,9 @@ struct Bundle: AsyncParsableCommand {
   @Flag(help: "When specified, build in the debug mode.")
   var debug = false
 
+  @Flag(help: "Emit names and DWARF sections in the .wasm file.")
+  var debugInfo: Bool = false
+
   @OptionGroup()
   var buildOptions: BuildOptions
 
@@ -83,10 +86,11 @@ struct Bundle: AsyncParsableCommand {
     try localFileSystem.removeFileTree(bundleDirectory)
     try localFileSystem.createDirectory(bundleDirectory)
     let optimizedPath = AbsolutePath(bundleDirectory, "main.wasm")
-    try await Process.run(
-      ["wasm-opt", "-Os", build.mainWasmPath.pathString, "-o", optimizedPath.pathString],
-      terminal
-    )
+    var wasmOptArgs = ["wasm-opt", "-Os", build.mainWasmPath.pathString, "-o", optimizedPath.pathString]
+    if debugInfo {
+      wasmOptArgs.append("--debuginfo")
+    }
+    try await Process.run(wasmOptArgs, terminal)
     try terminal.logLookup(
       "After stripping debug info the main binary size is ",
       localFileSystem.humanReadableFileSize(optimizedPath),
