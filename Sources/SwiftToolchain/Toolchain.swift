@@ -19,7 +19,7 @@ import TSCBasic
 import TSCUtility
 import WasmTransformer
 
-public let compatibleJSKitVersion = Version(0, 12, 0)
+public let compatibleJSKitVersion = Version(0, 13, 0)
 
 enum ToolchainError: Error, CustomStringConvertible {
   case directoryDoesNotExist(AbsolutePath)
@@ -236,9 +236,9 @@ public final class Toolchain {
       terminal.write(
         """
 
-        The local version of JavaScriptKit found in your dependency tree is not known to be compatible \
-        with carton \(cartonVersion). Please specify a JavaScriptKit dependency of version \
-        \(compatibleJSKitVersion) in your `Package.swift`.\n
+        The local version of JavaScriptKit found in your dependency tree is not known to be \
+        compatible with carton \(cartonVersion). Please specify a JavaScriptKit dependency of \
+        version \(compatibleJSKitVersion) in your `Package.swift`.\n
 
         """,
         inColor: .red
