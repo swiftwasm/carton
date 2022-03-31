@@ -60,7 +60,7 @@ final class DevCommandTests: XCTestCase {
   }
 
   func testWithArguments() throws {
-    let url = "http://0.0.0.0:8081"
+    let url = "http://127.0.0.1:8081"
 
     // the directory was built using `carton init --template tokamak`
     let package = "Milk"
@@ -73,7 +73,7 @@ final class DevCommandTests: XCTestCase {
     do { try packageDirectory.appending(component: ".build").delete() } catch {}
 
     guard let process = executeCommand(
-      command: "carton dev --verbose --port 8081 --host 0.0.0.0",
+      command: "carton dev --verbose --port 8081",
       shouldPrintOutput: true,
       cwd: packageDirectory.url
     ) else {

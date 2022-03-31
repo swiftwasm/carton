@@ -195,7 +195,7 @@ public extension XCTest {
   }
 
   var cartonPath: String {
-    return debugURL.appendingPathComponent("carton").path
+    debugURL.appendingPathComponent("carton").path
   }
 
   /// Execute shell command and return the process the command is running in
