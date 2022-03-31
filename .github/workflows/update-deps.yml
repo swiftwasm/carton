@@ -13,7 +13,7 @@ jobs:
         with:
           token: ${{ secrets.PAT }}
           commit-message: Update dependencies
-          title: Update dependencies
+          title: Update SwiftPM dependencies
           labels: dependencies
           body: |
             - Dependency updates
