@@ -17,8 +17,6 @@ jobs:
           - os: macos-11
             swift_version: 5.5
             xcode: /Applications/Xcode_13.2.1.app/Contents/Developer
-          - os: ubuntu-18.04
-            swift_version: 5.5
           - os: ubuntu-20.04
             swift_version: 5.5
     name: Build on ${{ matrix.os }} with Swift ${{ matrix.swift_version }}
