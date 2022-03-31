@@ -11,11 +11,12 @@ jobs:
     strategy:
       matrix:
         include:
+          - os: macos-12
+            swift_version: 5.6
+            xcode: /Applications/Xcode_13.3.app/Contents/Developer
           - os: macos-11
             swift_version: 5.5
             xcode: /Applications/Xcode_13.2.1.app/Contents/Developer
-          - os: ubuntu-18.04
-            swift_version: 5.5
           - os: ubuntu-20.04
             swift_version: 5.5
     name: Build on ${{ matrix.os }} with Swift ${{ matrix.swift_version }}
