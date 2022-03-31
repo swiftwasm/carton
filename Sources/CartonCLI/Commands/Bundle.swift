@@ -74,13 +74,14 @@ struct Bundle: AsyncParsableCommand {
       newline: true
     )
 
-    try strip(build.mainWasmPath)
-
-    try terminal.logLookup(
-      "After stripping debug info the main binary size is ",
-      localFileSystem.humanReadableFileSize(build.mainWasmPath),
-      newline: true
-    )
+    if !debugInfo {
+      try strip(build.mainWasmPath)
+      try terminal.logLookup(
+        "After stripping debug info the main binary size is ",
+        localFileSystem.humanReadableFileSize(build.mainWasmPath),
+        newline: true
+      )
+    }
 
     let bundleDirectory = AbsolutePath(localFileSystem.currentWorkingDirectory!, "Bundle")
     try localFileSystem.removeFileTree(bundleDirectory)
