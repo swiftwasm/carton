@@ -194,6 +194,10 @@ public extension XCTest {
       : bundleURL
   }
 
+  var cartonPath: String {
+    debugURL.appendingPathComponent("carton").path
+  }
+
   /// Execute shell command and return the process the command is running in
   ///
   /// - parameter command: The command to execute.

@@ -60,8 +60,8 @@
         "repositoryURL": "https://github.com/apple/swift-argument-parser.git",
         "state": {
           "branch": null,
-          "revision": "83b23d940471b313427da226196661856f6ba3e0",
-          "version": "0.4.4"
+          "revision": "e394bf350e38cb100b6bc4172834770ede1b7232",
+          "version": "1.0.3"
         }
       },
       {
@@ -78,16 +78,16 @@
         "repositoryURL": "https://github.com/apple/swift-crypto.git",
         "state": {
           "branch": null,
-          "revision": "ddb07e896a2a8af79512543b1c7eb9797f8898a5",
-          "version": "1.1.7"
+          "revision": "3bea268b223651c4ab7b7b9ad62ef9b2d4143eb6",
+          "version": "1.1.6"
         }
       },
       {
         "package": "swift-driver",
         "repositoryURL": "https://github.com/apple/swift-driver.git",
         "state": {
-          "branch": "release/5.5",
-          "revision": "86c54dacd270e0c43374c0cb9b2ceb2924c9ea72",
+          "branch": "release/5.6",
+          "revision": "9982f32f96a2e0e597d1b4a0af4a7e997dc471be",
           "version": null
         }
       },
@@ -95,8 +95,8 @@
         "package": "llbuild",
         "repositoryURL": "https://github.com/apple/swift-llbuild.git",
         "state": {
-          "branch": "release/5.5",
-          "revision": "83c4bcb8dfca48cc065325287b55d08ff7b26428",
+          "branch": "release/5.6",
+          "revision": "acd686530e56122d916acd49a166beb9198e9b87",
           "version": null
         }
       },
@@ -167,8 +167,8 @@
         "package": "SwiftPM",
         "repositoryURL": "https://github.com/apple/swift-package-manager.git",
         "state": {
-          "branch": "release/5.5",
-          "revision": "a29154a4137747bdbfe83ca26db4b24f8c4fcd31",
+          "branch": "release/5.6",
+          "revision": "d53983abc7d1628a47ee26b24cbf35b06ac50f6e",
           "version": null
         }
       },
@@ -176,8 +176,8 @@
         "package": "swift-tools-support-core",
         "repositoryURL": "https://github.com/apple/swift-tools-support-core.git",
         "state": {
-          "branch": "release/5.5",
-          "revision": "3ea7855ffc9f54e784e46988961037f93ea88645",
+          "branch": "release/5.6",
+          "revision": "107e570e3565920174d5a25bc3a0340b32d16042",
           "version": null
         }
       },

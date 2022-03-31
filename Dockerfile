@@ -10,8 +10,9 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
   libncurses5 \
   libsqlite3-0 \
   libsqlite3-dev \
+  libxkbcommon0 \
   curl unzip \
-  && export WASMER_DIR=/usr/local && curl https://get.wasmer.io -sSfL | sh && \
+  && export WASMER_DIR=/usr/local && curl https://get.wasmer.io -sSfL | sh -s "2.2.1" && \
   rm -r /var/lib/apt/lists/*
 
 ENV CARTON_ROOT=/root/.carton

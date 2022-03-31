@@ -57,4 +57,42 @@ final class BundleCommandTests: XCTestCase {
     try bundleDirectory.delete()
     try packageDirectory.appending(component: ".build").delete()
   }
+
+  func testWithXswiftc() throws {
+    let package = "Milk"
+    let packageDirectory = testFixturesDirectory.appending(component: package)
+
+    let bundle = "Bundle"
+    let bundleDirectory = packageDirectory.appending(component: bundle)
+
+    // it's ok if there is nothing to delete
+    do { try bundleDirectory.delete() } catch {}
+
+    AssertExecuteCommand(
+      command: "carton bundle -Xswiftc --fake-swiftc-options",
+      cwd: packageDirectory.url,
+      expected: "error: unknown argument: '--fake-swiftc-options'",
+      expectedContains: true
+    )
+
+    try packageDirectory.appending(component: ".build").delete()
+  }
+
+  func testWithDebugInfo() throws {
+    try withTemporaryDirectory { tmpDirPath in
+      try ProcessEnv.chdir(tmpDirPath)
+      try Process.checkNonZeroExit(arguments: [cartonPath, "init", "--template", "basic"])
+      try Process.checkNonZeroExit(arguments: [cartonPath, "bundle", "--debug-info"])
+
+      let bundleDirectory = tmpDirPath.appending(component: "Bundle")
+      guard let wasmBinary = (bundleDirectory.ls().filter { $0.contains("wasm") }).first else {
+        XCTFail("No wasm binary found")
+        return
+      }
+      let headers = try Process.checkNonZeroExit(arguments: [
+        "wasm-objdump", "--headers", bundleDirectory.appending(component: wasmBinary).pathString
+      ])
+      XCTAssert(headers.contains("\"name\""), "name section not found: \(headers)")
+    }
+  }
 }
