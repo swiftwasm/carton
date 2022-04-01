@@ -1,3 +1,35 @@
+# 0.13.0 (31 March 2022)
+
+This is a small feature release with a few bugfixes. Namely, new `-Xswiftc` option was added for forwarding flags to
+underlying `swiftc` invocations. Also, new `--debug-info` flag allows keeping debug information even for release builds.
+Additionally, we've fixed a crash with `executableTarget` declarations in `Package.swift` manifests, and switched to
+SwiftPM 5.6 API in preparation for the imminent SwiftWasm 5.6 release.
+
+This version of `carton` now ships with JavaScriptKit 0.13.0 runtime.
+
+**WARNING**: this release of `carton` is not compatible with latest Tokamak or SwiftWasm 5.6 snapshots or releases yet. You should stay with `carton` 0.12.2 for now if you're building apps and libraries with Tokamak. A future release of `carton` will resolve this incompatibility.
+
+Thanks to [@kateinoigakukun](https://github.com/kateinoigakukun) and [@yonihemi](https://github.com/yonihemi) for
+contributions, and to [@pedrovgs](https://github.com/pedrovgs) for additional testing and bug reports.
+
+**Closed issues:**
+
+- Detecting completion of Wasm module instantiation ([#290](https://github.com/swiftwasm/carton/issues/290))
+- Add support for Swift 5.6 package description format ([#285](https://github.com/swiftwasm/carton/issues/285))
+- Add support for `-Xswiftc` arguments ([#277](https://github.com/swiftwasm/carton/issues/277))
+
+**Merged pull requests:**
+
+- Bump JavaScriptKit dependency to 0.13.0 ([#306](https://github.com/swiftwasm/carton/pull/306)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Don't strip custom sections when using `--debug-info` ([#304](https://github.com/swiftwasm/carton/pull/304)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+- Update dependencies ([#298](https://github.com/swiftwasm/carton/pull/298)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Add macOS 12 and Xcode 13.3 to CI matrix ([#303](https://github.com/swiftwasm/carton/pull/303)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Add `--debug-info` flag to carton bundle ([#301](https://github.com/swiftwasm/carton/pull/301)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+- Use libSwiftPM 5.6 to parse manifests ([#302](https://github.com/swiftwasm/carton/pull/302)) via [@yonihemi](https://github.com/yonihemi)
+- Add `-Xswiftc` option for each build commands ([#300](https://github.com/swiftwasm/carton/pull/300)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+- Update dependencies ([#297](https://github.com/swiftwasm/carton/pull/297)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Fix crash for packages with `executableTarget` ([#296](https://github.com/swiftwasm/carton/pull/296)) via [@yonihemi](https://github.com/yonihemi)
+
 # 0.12.2 (16 February 2022)
 
 This release features a massive refactor by [@MaxDesiatov](https://github.com/MaxDesiatov) to use Swift 5.5's `async/await` and actors, reducing its size, improving readability and removing Combine/OpenCombine dependency, as well as CI and Linux installation improvements.

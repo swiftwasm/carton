@@ -12,4 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-public let cartonVersion = "0.12.2"
+public let cartonVersion = "0.13.0"
