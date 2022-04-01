@@ -227,9 +227,26 @@ public actor Server {
   }
 
   /// Blocking function that starts the HTTP server.
-  public func run() throws {
-    defer { app.shutdown() }
-    try app.run()
+  public nonisolated func run() async throws {
+    // Explicitly hop to another thread to avoid blocking the thread that is running the actor executor
+    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+      Thread {
+        Task {
+          do {
+            defer { self.app.shutdown() }
+            try self.app.run()
+            try await self.closeSockets()
+            continuation.resume()
+          } catch {
+            continuation.resume(with: .failure(error))
+          }
+        }
+      }
+      .start()
+    }
+  }
+
+  func closeSockets() throws {
     for conn in connections {
       try conn.close().wait()
     }
