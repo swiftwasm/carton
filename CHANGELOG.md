@@ -5,6 +5,8 @@ underlying `swiftc` invocations. Also, new `--debug-info` flag allows keeping de
 Additionally, we've fixed a crash with `executableTarget` declarations in `Package.swift` manifests, and switched to
 SwiftPM 5.6 API in preparation for the imminent SwiftWasm 5.6 release.
 
+This version of `carton` now ships with JavaScriptKit 0.13.0 runtime.
+
 Thanks to [@kateinoigakukun](https://github.com/kateinoigakukun) and [@yonihemi](https://github.com/yonihemi) for
 contributions, and to [@pedrovgs](https://github.com/pedrovgs) for additional testing and bug reports.
 
@@ -16,6 +18,7 @@ contributions, and to [@pedrovgs](https://github.com/pedrovgs) for additional te
 
 **Merged pull requests:**
 
+- Bump JavaScriptKit dependency to 0.13.0 ([#306](https://github.com/swiftwasm/carton/pull/306)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
 - Don't strip custom sections when using `--debug-info` ([#304](https://github.com/swiftwasm/carton/pull/304)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
 - Update dependencies ([#298](https://github.com/swiftwasm/carton/pull/298)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
 - Add macOS 12 and Xcode 13.3 to CI matrix ([#303](https://github.com/swiftwasm/carton/pull/303)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
