@@ -7,6 +7,8 @@ SwiftPM 5.6 API in preparation for the imminent SwiftWasm 5.6 release.
 
 This version of `carton` now ships with JavaScriptKit 0.13.0 runtime.
 
+**WARNING**: this release of `carton` is not compatible with latest Tokamak or SwiftWasm 5.6 snapshots or releases yet. You should stay with `carton` 0.12.2 for now if you're building apps and libraries with Tokamak. A future release of `carton` will resolve this incompatibility.
+
 Thanks to [@kateinoigakukun](https://github.com/kateinoigakukun) and [@yonihemi](https://github.com/yonihemi) for
 contributions, and to [@pedrovgs](https://github.com/pedrovgs) for additional testing and bug reports.
 
