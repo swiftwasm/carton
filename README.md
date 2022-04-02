@@ -87,7 +87,7 @@ or any other server with support for static files to deploy your application. Al
 files except `index.html` are named by their content hashes to enable [cache
 busting](https://www.keycdn.com/support/what-is-cache-busting). As with `carton dev`, a custom
 `index.html` page can be provided through the `--custom-index-page` option. You can also pass
-`--debug-info` flag to preserve names and DWARF sections in the resulting `.wasm` file, as these
+`--debug-info` flag to preserve `names` and DWARF sections in the resulting `.wasm` file, as these
 are stripped in the `release` configuration by default.
 
 The `carton package` command proxies its subcommands to `swift package` invocations on the
