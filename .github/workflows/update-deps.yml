@@ -12,7 +12,7 @@ jobs:
         uses: peter-evans/create-pull-request@v3
         with:
           token: ${{ secrets.PAT }}
-          commit-message: Update dependencies
+          commit-message: Update SwiftPM dependencies
           title: Update SwiftPM dependencies
           labels: dependencies
           body: |
