@@ -87,6 +87,11 @@ const startWasiTask = async () => {
   // Start the WebAssembly WASI instance
   try {
     wasi.start(instance);
+    // Initialize and start Reactor
+    if (instance.exports._initialize) {
+      instance.exports._initialize();
+      instance.exports.main();
+    }
   } catch (error) {
     if (!(error instanceof WASIExitError) || error.code != 0) {
       throw error; // not a successful test run, rethrow

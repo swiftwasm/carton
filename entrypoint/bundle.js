@@ -61,6 +61,11 @@ const startWasiTask = async () => {
   swift.setInstance(instance);
   // Start the WebAssembly WASI instance
   wasi.start(instance);
+  // Initialize and start Reactor
+  if (instance.exports._initialize) {
+    instance.exports._initialize();
+    instance.exports.main();
+  }
 };
 
 function handleError(e) {
