@@ -38,7 +38,7 @@ let package = Package(
     .package(url: "https://github.com/JohnSundell/Splash.git", from: "0.16.0"),
     .package(
       url: "https://github.com/swiftwasm/WasmTransformer",
-      .upToNextMinor(from: "0.0.3")
+      .upToNextMinor(from: "0.0.4")
     ),
   ],
   targets: [
