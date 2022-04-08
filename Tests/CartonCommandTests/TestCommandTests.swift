@@ -49,6 +49,8 @@ final class TestCommandTests: XCTestCase {
   //   do { try buildDirectory.delete() } catch {}
   // }
 
+// This test is prone to hanging on Linux.
+#if os(macOS)
   func testEnvironmentDefaultBrowser() throws {
     // given I've created a directory
     let package = "TestApp"
@@ -81,6 +83,7 @@ final class TestCommandTests: XCTestCase {
     do { try packageDirectory.appending(component: ".build").delete() } catch {}
   }
 }
+#endif
 
 enum ControlCode {
   static let ESC = "\u{001B}"
