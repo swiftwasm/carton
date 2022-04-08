@@ -59,6 +59,7 @@ final class DevCommandTests: XCTestCase {
     do { try packageDirectory.appending(component: ".build").delete() } catch {}
   }
 
+#if os(macOS)
   func testWithArguments() throws {
     let url = "http://127.0.0.1:8081"
 
@@ -87,6 +88,7 @@ final class DevCommandTests: XCTestCase {
     // clean up
     do { try packageDirectory.appending(component: ".build").delete() } catch {}
   }
+#endif
 
   func checkForExpectedContent(at url: String) {
     // client time out for connecting and responding
