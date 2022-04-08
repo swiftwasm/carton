@@ -38,7 +38,7 @@ final class TestCommandTests: XCTestCase {
     XCTAssertTrue(packageDirectory.exists, "The TestApp directory does not exist")
 
     AssertExecuteCommand(
-      command: "carton test",
+      command: "carton test --environment defaultBrowser",
       cwd: packageDirectory.url,
       debug: true
     )
