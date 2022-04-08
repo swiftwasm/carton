@@ -82,8 +82,8 @@ final class TestCommandTests: XCTestCase {
     // finally, clean up
     do { try packageDirectory.appending(component: ".build").delete() } catch {}
   }
-}
 #endif
+}
 
 enum ControlCode {
   static let ESC = "\u{001B}"
