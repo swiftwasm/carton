@@ -277,24 +277,10 @@ public final class Toolchain {
 
     var builderArguments = [
       swiftPath.pathString, "build", "-c", flavor.isRelease ? "release" : "debug",
-      "--product", product.name, "--triple", "wasm32-unknown-wasi",
+      "--product", product.name,
     ]
 
-    // Versions later than 5.3.x have test discovery enabled by default and the explicit flag
-    // deprecated.
-    if ["wasm-5.3.0-RELEASE", "wasm-5.3.1-RELEASE"].contains(version) {
-      builderArguments.append("--enable-test-discovery")
-    }
-
-    // SwiftWasm 5.5 requires explicit linking arguments in certain configurations,
-    // see https://github.com/swiftwasm/swift/issues/3891
-    if version.starts(with: "wasm-5.5") {
-      builderArguments.append(contentsOf: ["-Xlinker", "-licuuc", "-Xlinker", "-licui18n"])
-    }
-
-    builderArguments.append(contentsOf: flavor.swiftCompilerFlags.flatMap {
-      ["-Xswiftc", $0]
-    })
+    builderArguments.append(contentsOf: basicBuildArguments(flavor: flavor))
 
     try await Builder(
       arguments: builderArguments,
@@ -332,25 +318,10 @@ public final class Toolchain {
 
     var builderArguments = [
       swiftPath.pathString, "build", "-c", flavor.isRelease ? "release" : "debug",
-      "--product", testProductName, "--triple", "wasm32-unknown-wasi",
+      "--product", testProductName,
       "-Xswiftc", "-color-diagnostics",
     ]
-
-    // Versions later than 5.3.x have test discovery enabled by default and the explicit flag
-    // deprecated.
-    if ["wasm-5.3.0-RELEASE", "wasm-5.3.1-RELEASE"].contains(version) {
-      builderArguments.append("--enable-test-discovery")
-    }
-
-    // SwiftWasm 5.5 requires explicit linking arguments in certain configurations,
-    // see https://github.com/swiftwasm/swift/issues/3891
-    if version.starts(with: "wasm-5.5") {
-      builderArguments.append(contentsOf: ["-Xlinker", "-licuuc", "-Xlinker", "-licui18n"])
-    }
-
-    builderArguments.append(contentsOf: flavor.swiftCompilerFlags.flatMap {
-      ["-Xswiftc", $0]
-    })
+    builderArguments.append(contentsOf: basicBuildArguments(flavor: flavor))
 
     try await Builder(
       arguments: builderArguments,
@@ -369,6 +340,36 @@ public final class Toolchain {
     }
 
     return testBundlePath
+  }
+
+  private func basicBuildArguments(flavor: BuildFlavor) -> [String] {
+    var builderArguments = ["--triple", "wasm32-unknown-wasi"]
+
+    // Versions later than 5.3.x have test discovery enabled by default and the explicit flag
+    // deprecated.
+    if ["wasm-5.3.0-RELEASE", "wasm-5.3.1-RELEASE"].contains(version) {
+      builderArguments.append("--enable-test-discovery")
+    }
+
+    // SwiftWasm 5.5 requires explicit linking arguments in certain configurations,
+    // see https://github.com/swiftwasm/swift/issues/3891
+    if version.starts(with: "wasm-5.5") {
+      builderArguments.append(contentsOf: ["-Xlinker", "-licuuc", "-Xlinker", "-licui18n"])
+    }
+
+    // SwiftWasm 5.6 requires reactor model from updated wasi-libc
+    // see https://github.com/WebAssembly/WASI/issues/13
+    if version.starts(with: "wasm-5.6") {
+      builderArguments.append(contentsOf: [
+        "-Xswiftc", "-Xclang-linker", "-Xswiftc", "-mexec-model=reactor",
+        "-Xlinker", "--export=main",
+      ])
+    }
+
+    builderArguments.append(contentsOf: flavor.swiftCompilerFlags.flatMap {
+      ["-Xswiftc", $0]
+    })
+    return builderArguments
   }
 
   public func runPackageInit(name: String, type: PackageType, inPlace: Bool) async throws {

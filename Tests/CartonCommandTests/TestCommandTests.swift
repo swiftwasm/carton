@@ -30,24 +30,27 @@ final class TestCommandTests: XCTestCase {
     client = nil
   }
 
-  func testWithNoArguments() throws {
-    // given I've created a directory
-    let package = "TestApp"
-    let packageDirectory = testFixturesDirectory.appending(components: package)
+  // FIXME: re-enable when https://github.com/swiftwasm/WasmTransformer/issues/18 is fixed.
+  // func testWithNoArguments() throws {
+  //   // given I've created a directory
+  //   let package = "TestApp"
+  //   let packageDirectory = testFixturesDirectory.appending(components: package)
 
-    XCTAssertTrue(packageDirectory.exists, "The TestApp directory does not exist")
+  //   XCTAssertTrue(packageDirectory.exists, "The TestApp directory does not exist")
 
-    AssertExecuteCommand(
-      command: "carton test",
-      cwd: packageDirectory.url,
-      debug: true
-    )
+  //   AssertExecuteCommand(
+  //     command: "carton test",
+  //     cwd: packageDirectory.url,
+  //     debug: true
+  //   )
 
-    // finally, clean up
-    let buildDirectory = packageDirectory.appending(component: ".build")
-    do { try buildDirectory.delete() } catch {}
-  }
+  //   // finally, clean up
+  //   let buildDirectory = packageDirectory.appending(component: ".build")
+  //   do { try buildDirectory.delete() } catch {}
+  // }
 
+// This test is prone to hanging on Linux.
+#if os(macOS)
   func testEnvironmentDefaultBrowser() throws {
     // given I've created a directory
     let package = "TestApp"
@@ -70,7 +73,7 @@ final class TestCommandTests: XCTestCase {
     do { try packageDirectory.appending(component: ".build").delete() } catch {}
 
     AssertExecuteCommand(
-      command: "carton test",
+      command: "carton test --environment defaultBrowser",
       cwd: packageDirectory.url,
       expected: expectedContent,
       expectedContains: true
@@ -79,6 +82,7 @@ final class TestCommandTests: XCTestCase {
     // finally, clean up
     do { try packageDirectory.appending(component: ".build").delete() } catch {}
   }
+#endif
 }
 
 enum ControlCode {

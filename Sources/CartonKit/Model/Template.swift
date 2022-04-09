@@ -93,13 +93,13 @@ extension Template {
   ) throws {
     try fileSystem.writeFileContents(project.path.appending(component: "Package.swift")) {
       var content = """
-      // swift-tools-version:5.3
+      // swift-tools-version:5.6
       import PackageDescription
       let package = Package(
           name: "\(project.name)",\n
       """
       if !platforms.isEmpty {
-        content += "    platforms: [\(platforms.joined(separator: ",\n"))],\n"
+        content += "    platforms: [\(platforms.joined(separator: ", "))],\n"
       }
       content += """
           products: [
@@ -174,12 +174,12 @@ extension Templates {
       try createManifest(
         fileSystem: fileSystem,
         project: project,
-        platforms: [".macOS(.v11)"],
+        platforms: [".macOS(.v11)", ".iOS(.v13)"],
         dependencies: [
           .init(
             name: "Tokamak",
             url: "https://github.com/TokamakUI/Tokamak",
-            version: .from("0.9.1")
+            version: .from("0.10.0")
           ),
         ],
         targetDepencencies: [

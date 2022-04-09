@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/swiftwasm/JavaScriptKit.git",
         "state": {
           "branch": null,
-          "revision": "309e63c03d8116210ad0437f5d1f09a26d4de48b",
-          "version": "0.11.1"
+          "revision": "9a3b7d5f316e6d1709bd25e3e0392efca357f525",
+          "version": "0.14.0"
         }
       },
       {
@@ -51,8 +51,8 @@
         "repositoryURL": "https://github.com/TokamakUI/Tokamak",
         "state": {
           "branch": null,
-          "revision": "32616fe9d4d8dcdd6a48519e2ce8d7b0ba744434",
-          "version": "0.9.0"
+          "revision": "6905fdff1910df163f9f58c7a51e97b66fe59f40",
+          "version": "0.10.0"
         }
       }
     ]
