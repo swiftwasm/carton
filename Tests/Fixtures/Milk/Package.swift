@@ -7,7 +7,7 @@ let package = Package(
     .executable(name: "Milk", targets: ["Milk"]),
   ],
   dependencies: [
-    .package(name: "Tokamak", url: "https://github.com/TokamakUI/Tokamak", .branch("maxd/swiftwasm-5.6")),
+    .package(name: "Tokamak", url: "https://github.com/TokamakUI/Tokamak", from: "0.10.0"),
   ],
   targets: [
     .target(

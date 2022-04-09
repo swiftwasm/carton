@@ -50,9 +50,9 @@
         "package": "Tokamak",
         "repositoryURL": "https://github.com/TokamakUI/Tokamak",
         "state": {
-          "branch": "maxd/swiftwasm-5.6",
-          "revision": "01d4ed168242ee09646a4d8fb4d5e7d48e984c8c",
-          "version": null
+          "branch": null,
+          "revision": "6905fdff1910df163f9f58c7a51e97b66fe59f40",
+          "version": "0.10.0"
         }
       }
     ]
