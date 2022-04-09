@@ -106,3 +106,6 @@ Tests/**/Bundle
 
 # Homebrew
 *.bottle.tar.gz
+
+# VS Code
+.vscode/launch.json
