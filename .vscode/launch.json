@@ -1,0 +1,40 @@
+{
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug carton",
+      "program": "${workspaceFolder:carton}/.build/debug/carton",
+      "args": [],
+      "cwd": "${workspaceFolder:carton}",
+      "preLaunchTask": "swift: Build Debug carton"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Release carton",
+      "program": "${workspaceFolder:carton}/.build/release/carton",
+      "args": [],
+      "cwd": "${workspaceFolder:carton}",
+      "preLaunchTask": "swift: Build Release carton"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug carton-release",
+      "program": "${workspaceFolder:carton}/.build/debug/carton-release",
+      "args": [],
+      "cwd": "${workspaceFolder:carton}",
+      "preLaunchTask": "swift: Build Debug carton-release"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Release carton-release",
+      "program": "${workspaceFolder:carton}/.build/release/carton-release",
+      "args": [],
+      "cwd": "${workspaceFolder:carton}",
+      "preLaunchTask": "swift: Build Release carton-release"
+    }
+  ]
+}
