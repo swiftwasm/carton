@@ -1,4 +1,4 @@
-FROM ghcr.io/swiftwasm/swift:5.5-focal
+FROM ghcr.io/swiftwasm/swift:5.6-focal
 
 LABEL maintainer="SwiftWasm Maintainers <hello@swiftwasm.org>"
 LABEL Description="Carton is a watcher, bundler, and test runner for your SwiftWasm apps"
