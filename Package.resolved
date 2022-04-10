@@ -168,7 +168,7 @@
         "repositoryURL": "https://github.com/apple/swift-package-manager.git",
         "state": {
           "branch": "release/5.6",
-          "revision": "d53983abc7d1628a47ee26b24cbf35b06ac50f6e",
+          "revision": "376bed01fba16ea4cd9821793b0f153eb2d29f2f",
           "version": null
         }
       },
@@ -177,7 +177,7 @@
         "repositoryURL": "https://github.com/apple/swift-tools-support-core.git",
         "state": {
           "branch": "release/5.6",
-          "revision": "107e570e3565920174d5a25bc3a0340b32d16042",
+          "revision": "f6c8048a76e280d0f14cc378b8b5c3cfb77c61fb",
           "version": null
         }
       },
@@ -186,8 +186,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "5861bf9e2cff2c4cb0dcfb0c15ecfaa8bc5630e0",
-          "version": "4.55.3"
+          "revision": "a2c1e5d9903103e6f0c458e84e6bd11effd0e4a1",
+          "version": "4.55.4"
         }
       },
       {
