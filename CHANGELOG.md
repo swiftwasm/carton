@@ -1,7 +1,9 @@
 # 0.14.0 (9 April 2022)
 
-This release uses SwiftWasm 5.6.0 as the default toolchain. Additionally, issues with rebuilding projects when watching
-for file changes with `carton dev` has been fixed. Many thanks to [@kateinoigakukun](https://github.com/kateinoigakukun)
+This release uses SwiftWasm 5.6.0 as the default toolchain. Additionally, issue with rebuilding projects when watching
+for file changes with `carton dev` has been fixed. Also refer to [release details for `carton` 0.13.0](https://github.com/swiftwasm/carton/releases/tag/0.13.0) for more information on new recently introduced flags.
+
+Many thanks to [@kateinoigakukun](https://github.com/kateinoigakukun)
 for contributions!
 
 **Closed issues:**
