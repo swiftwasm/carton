@@ -1,3 +1,20 @@
+# 0.14.0 (9 April 2022)
+
+This release uses SwiftWasm 5.6.0 as the default toolchain. Additionally, issues with rebuilding projects when watching
+for file changes with `carton dev` has been fixed. Many thanks to [@kateinoigakukun](https://github.com/kateinoigakukun)
+for contributions!
+
+**Closed issues:**
+
+- Watcher doesn't see my changes ([#295](https://github.com/swiftwasm/carton/issues/295))
+
+**Merged pull requests:**
+
+- Several fixes for 5.6 toolchain ([#310](https://github.com/swiftwasm/carton/pull/310)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+- Update SwiftPM dependencies ([#309](https://github.com/swiftwasm/carton/pull/309)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Describe `--debug-info` and `-Xswiftc` in `README.md` ([#308](https://github.com/swiftwasm/carton/pull/308)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Fix watcher blocked by Vapor `run()` ([#307](https://github.com/swiftwasm/carton/pull/307)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+
 # 0.13.0 (31 March 2022)
 
 This is a small feature release with a few bugfixes. Namely, new `-Xswiftc` option was added for forwarding flags to
