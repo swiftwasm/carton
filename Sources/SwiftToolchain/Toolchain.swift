@@ -357,9 +357,9 @@ public final class Toolchain {
       builderArguments.append(contentsOf: ["-Xlinker", "-licuuc", "-Xlinker", "-licui18n"])
     }
 
-    // SwiftWasm 5.6 requires reactor model from updated wasi-libc
+    // SwiftWasm 5.6 requires reactor model from updated wasi-libc when not building as a command
     // see https://github.com/WebAssembly/WASI/issues/13
-    if version.starts(with: "wasm-5.6") {
+    if version.starts(with: "wasm-5.6") && flavor.environment != .other {
       builderArguments.append(contentsOf: [
         "-Xswiftc", "-Xclang-linker", "-Xswiftc", "-mexec-model=reactor",
         "-Xlinker", "--export=main",
