@@ -30,24 +30,23 @@ final class TestCommandTests: XCTestCase {
     client = nil
   }
 
-  // FIXME: re-enable when https://github.com/swiftwasm/WasmTransformer/issues/18 is fixed.
-  // func testWithNoArguments() throws {
-  //   // given I've created a directory
-  //   let package = "TestApp"
-  //   let packageDirectory = testFixturesDirectory.appending(components: package)
+  func testWithNoArguments() throws {
+    // given I've created a directory
+    let package = "TestApp"
+    let packageDirectory = testFixturesDirectory.appending(components: package)
 
-  //   XCTAssertTrue(packageDirectory.exists, "The TestApp directory does not exist")
+    XCTAssertTrue(packageDirectory.exists, "The TestApp directory does not exist")
 
-  //   AssertExecuteCommand(
-  //     command: "carton test",
-  //     cwd: packageDirectory.url,
-  //     debug: true
-  //   )
+    AssertExecuteCommand(
+      command: "carton test",
+      cwd: packageDirectory.url,
+      debug: true
+    )
 
-  //   // finally, clean up
-  //   let buildDirectory = packageDirectory.appending(component: ".build")
-  //   do { try buildDirectory.delete() } catch {}
-  // }
+    // finally, clean up
+    let buildDirectory = packageDirectory.appending(component: ".build")
+    do { try buildDirectory.delete() } catch {}
+  }
 
 // This test is prone to hanging on Linux.
 #if os(macOS)
