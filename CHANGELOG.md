@@ -1,3 +1,17 @@
+# 0.14.1 (11 April 2022)
+
+This is a bugfix release that resolves an issue with `carton test` introduced in 0.14.0. Many thanks to
+[@SDGGiesbrecht](https://github.com/SDGGiesbrecht) for reporting, and to [@kateinoigakukun](https://github.com/kateinoigakukun)
+for fixing it!
+
+**Closed issues:**
+
+- “carton test” fails to run as of 0.14.0 ([#313](https://github.com/swiftwasm/carton/issues/313))
+
+**Merged pull requests:**
+
+- Fix "No export `_start` found in the module" error in `carton test` ([#314](https://github.com/swiftwasm/carton/pull/314)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+
 # 0.14.0 (9 April 2022)
 
 This release uses SwiftWasm 5.6.0 as the default toolchain. Additionally, issue with rebuilding projects when watching
