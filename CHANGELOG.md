@@ -1,3 +1,19 @@
+# 0.14.2 (30 April 2022)
+
+This is a bugfix release resolving an issue with JavaScript entrypoint code.
+
+Many thanks to [@fjtrujy](https://github.com/fjtrujy) for the contribution!
+
+**Closed issues:**
+
+* Apply `clock_res_get` patch in all entrypoints ([#321](https://github.com/swiftwasm/carton/issues/321))
+
+**Merged pull requests:** 
+
+- Update SwiftPM dependencies ([#319](https://github.com/swiftwasm/carton/pull/319)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update SwiftPM dependencies ([#320](https://github.com/swiftwasm/carton/pull/320)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Override `clock_res_get` function from `wasmer/wasi-js` to fix memory issue ([#323](https://github.com/swiftwasm/carton/pull/323)) via [@fjtrujy](https://github.com/fjtrujy)
+
 # 0.14.1 (11 April 2022)
 
 This is a bugfix release that resolves an issue with `carton test` introduced in 0.14.0. Many thanks to
