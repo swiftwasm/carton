@@ -22,7 +22,7 @@ import TSCUtility
  instead of the forthcoming release, because the corresponding new release tag doesn't exist yet.
  */
 private let staticArchiveURL =
-  "https://github.com/swiftwasm/carton/releases/download/0.13.0/static.zip"
+  "https://github.com/swiftwasm/carton/releases/download/0.14.1/static.zip"
 
 private let verifyHash = Equality<ByteString, String> {
   """
