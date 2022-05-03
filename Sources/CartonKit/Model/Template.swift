@@ -109,7 +109,7 @@ extension Template {
               \(dependencies.map(\.description).joined(separator: ",\n"))
           ],
           targets: [
-              .target(
+              .executableTarget(
                   name: "\(project.name)",
                   dependencies: [
                       \(targetDepencencies.map(\.description).joined(separator: ",\n"))
