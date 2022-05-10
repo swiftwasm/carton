@@ -24,6 +24,11 @@ RUN mkdir -p $CARTON_ROOT/sdk && \
 
 COPY . carton/
 
+ENV NODE_VERSION=18.1.0 
+
+RUN curl -fsSLO --compressed "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" && \
+    tar -xJf "node-v$NODE_VERSION-linux-x64.tar.xz" -C /usr/local --strip-components=1 --no-same-owner
+
 RUN cd carton && \
   ./install_ubuntu_deps.sh && \
   swift build -c release && \
