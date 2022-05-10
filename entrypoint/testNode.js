@@ -12,29 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { WasmRunner } from './common'
+import fs from "fs/promises";
+import { WasmRunner } from "./common";
 
-const wasmRunner = WasmRunner()
+const args = [...process.argv];
+args.shift();
+args.shift();
+const [wasmFile, ...testArgs] = args;
+
+if (!wasmFile) {
+  throw Error("No WASM test file specified, can not run tests");
+}
+
+const wasmRunner = WasmRunner({ args: testArgs });
 
 const startWasiTask = async () => {
-  // Fetch our Wasm File
-  const response = await fetch("REPLACE_THIS_WITH_THE_MAIN_WEBASSEMBLY_MODULE");
-  const responseArrayBuffer = await response.arrayBuffer();
+  const wasmBytes = await fs.readFile(wasmFile);
 
-  // Instantiate the WebAssembly file
-  const wasmBytes = new Uint8Array(responseArrayBuffer).buffer;
-  await wasmRunner.run(wasmBytes)
+  await wasmRunner.run(wasmBytes, {
+    __stack_sanitizer: {
+      report_stack_overflow: () => {
+        throw new Error("Detected stack-buffer-overflow.");
+      },
+    },
+  });
 };
 
-function handleError(e) {
-  console.error(e);
-  if (e instanceof WebAssembly.RuntimeError) {
-    console.log(e.stack);
-  }
-}
-
-try {
-  startWasiTask().catch(handleError);
-} catch (e) {
-  handleError(e);
-}
+startWasiTask().catch((e) => {
+  throw e;
+});

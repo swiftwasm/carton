@@ -45,7 +45,7 @@ struct HashArchive: AsyncParsableCommand {
     )
 
     try localFileSystem.createDirectory(dotFilesStaticPath, recursive: true)
-    let hashes = try await ["dev", "bundle", "test"].asyncMap { entrypoint -> (String, String) in
+    let hashes = try await ["dev", "bundle", "test", "testNode"].asyncMap { entrypoint -> (String, String) in
       try await Process.run(["npm", "run", entrypoint], terminal)
       let entrypointPath = AbsolutePath(staticPath, "\(entrypoint).js")
       let dotFilesEntrypointPath = dotFilesStaticPath.appending(component: "\(entrypoint).js")
