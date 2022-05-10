@@ -16,11 +16,16 @@
 //
 
 import AsyncHTTPClient
-@testable import CartonCLI
 import TSCBasic
 import XCTest
 
+@testable import CartonCLI
+
 extension TestCommandTests: Testable {}
+
+private enum Constants {
+  static let anyPackageName = "TestApp"
+}
 
 final class TestCommandTests: XCTestCase {
   private var client: HTTPClient?
@@ -31,57 +36,81 @@ final class TestCommandTests: XCTestCase {
   }
 
   func testWithNoArguments() throws {
-    // given I've created a directory
-    let package = "TestApp"
-    let packageDirectory = testFixturesDirectory.appending(components: package)
-
-    XCTAssertTrue(packageDirectory.exists, "The TestApp directory does not exist")
+    let packageDirectory = givenAPackageTestDirectory(Constants.anyPackageName)
 
     AssertExecuteCommand(
       command: "carton test",
       cwd: packageDirectory.url,
       debug: true
     )
-
-    // finally, clean up
-    let buildDirectory = packageDirectory.appending(component: ".build")
-    do { try buildDirectory.delete() } catch {}
   }
 
-// This test is prone to hanging on Linux.
-#if os(macOS)
-  func testEnvironmentDefaultBrowser() throws {
-    // given I've created a directory
-    let package = "TestApp"
-    let packageDirectory = testFixturesDirectory.appending(components: package)
+  func testEnvironmentNode() throws {
+    let packageDirectory = givenAPackageTestDirectory(Constants.anyPackageName)
 
-    let expectedTestSuiteCount = 1
-    let expectedTestsCount = 1
+    AssertExecuteCommand(
+      command: "carton test --environment node",
+      cwd: packageDirectory.url,
+      debug: true
+    )
+  }
 
-    let expectedContent =
-      """
-      Test Suites: \(ControlCode.CSI)32m\(expectedTestSuiteCount) passed\(ControlCode
+  // This test is prone to hanging on Linux.
+  #if os(macOS)
+    func testEnvironmentDefaultBrowser() throws {
+      let packageDirectory = givenAPackageTestDirectory()
+
+      let expectedTestSuiteCount = 1
+      let expectedTestsCount = 1
+
+      let expectedContent =
+        """
+        Test Suites: \(ControlCode.CSI)32m\(expectedTestSuiteCount) passed\(ControlCode
         .CSI)0m, \(expectedTestSuiteCount) total
-      Tests:       \(ControlCode.CSI)32m\(expectedTestsCount) passed\(ControlCode
+        Tests:       \(ControlCode.CSI)32m\(expectedTestsCount) passed\(ControlCode
         .CSI)0m, \(expectedTestsCount) total
-      """
+        """
+
+      AssertExecuteCommand(
+        command: "carton test --environment defaultBrowser",
+        cwd: packageDirectory.url,
+        expected: expectedContent,
+        expectedContains: true
+      )
+    }
+  #endif
+
+  private func givenAPackageTestDirectory(_ name: String = Constants.anyPackageName)
+    -> TestDirectory
+  {
+    let packageDirectory = TestDirectory(testFixturesDirectory, name)
 
     XCTAssertTrue(packageDirectory.exists, "The TestApp directory does not exist")
 
-    // start clean
-    do { try packageDirectory.appending(component: ".build").delete() } catch {}
-
-    AssertExecuteCommand(
-      command: "carton test --environment defaultBrowser",
-      cwd: packageDirectory.url,
-      expected: expectedContent,
-      expectedContains: true
-    )
-
-    // finally, clean up
-    do { try packageDirectory.appending(component: ".build").delete() } catch {}
+    return packageDirectory
   }
-#endif
+
+}
+
+private class TestDirectory {
+  private var directory: AbsolutePath
+
+  var url: URL { directory.url }
+  var exists: Bool { directory.exists }
+
+  init(_ testDirectory: AbsolutePath, _ dirName: String) {
+    self.directory = testDirectory.appending(components: dirName)
+    cleanBuildDir()
+  }
+
+  deinit {
+    cleanBuildDir()
+  }
+
+  private func cleanBuildDir() {
+    // Clean up once this object is not needed anymore
+    try? directory.appending(component: ".build").delete()
+  }
 }
 
 enum ControlCode {
