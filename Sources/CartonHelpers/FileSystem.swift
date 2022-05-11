@@ -49,4 +49,10 @@ public extension FileSystem {
     // FIXME: should use `UnitInformationStorage`, but it's unavailable in open-source Foundation
     return try String(format: "%.2f MB", Double(getFileInfo(path).size) / 1024 / 1024)
   }
+
+  func resourcesDirectoryNames(relativeTo buildDirectory: AbsolutePath) throws -> [String] {
+    try getDirectoryContents(buildDirectory).filter {
+      $0.hasSuffix(".resources") && isDirectory(buildDirectory.appending(component: $0))
+    }
+  }
 }

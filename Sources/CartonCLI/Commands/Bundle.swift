@@ -155,10 +155,10 @@ struct Bundle: AsyncParsableCommand {
     )
 
     let manifest = try toolchain.manifest.get()
-    for target in manifest.targets where target.type == .regular && !target.resources.isEmpty {
-      let targetPath = manifest.resourcesPath(for: target)
-      let resourcesPath = buildDirectory.appending(component: targetPath)
-      let targetDirectory = bundleDirectory.appending(component: targetPath)
+
+    for directoryName in try localFileSystem.resourcesDirectoryNames(relativeTo: buildDirectory) {
+      let resourcesPath = buildDirectory.appending(component: directoryName)
+      let targetDirectory = bundleDirectory.appending(component: directoryName)
 
       guard localFileSystem.exists(resourcesPath) else { continue }
       terminal.logLookup("Copying resources to ", targetDirectory)
@@ -168,7 +168,6 @@ struct Bundle: AsyncParsableCommand {
     /* While a product may be composed of multiple targets, not sure this is widely used in
      practice. Just assuming here that the first target of this product is an executable target,
      at least until SwiftPM allows specifying executable targets explicitly, as proposed in
-     swiftlint:disable:next line_length
      https://forums.swift.org/t/pitch-ability-to-declare-executable-targets-in-swiftpm-manifests-to-support-main/41968
      */
     let inferredMainTarget = manifest.targets.first {

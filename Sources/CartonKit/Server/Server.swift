@@ -142,7 +142,7 @@ public actor Server {
     app = Application(env)
     watcher = nil
 
-    app.configure(
+    try app.configure(
       .init(
         port: configuration.port,
         host: configuration.host,

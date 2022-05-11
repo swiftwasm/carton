@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import CartonHelpers
 import Foundation
 import PackageModel
 import SwiftToolchain
@@ -31,7 +32,7 @@ extension Application {
     let onWebSocketClose: (WebSocket) async -> ()
   }
 
-  func configure(_ configuration: Configuration) {
+  func configure(_ configuration: Configuration) throws {
     http.server.configuration.port = configuration.port
     http.server.configuration.hostname = configuration.host
 
@@ -53,8 +54,8 @@ extension Application {
       let environment = request.headers["User-Agent"].compactMap(DestinationEnvironment.init).first
         ?? .other
 
-        Task { await configuration.onWebSocketOpen(ws, environment) }
-        ws.onClose.whenComplete { _ in Task { await configuration.onWebSocketClose(ws) } }
+      Task { await configuration.onWebSocketOpen(ws, environment) }
+      ws.onClose.whenComplete { _ in Task { await configuration.onWebSocketClose(ws) } }
     }
 
     get("main.wasm") {
@@ -63,14 +64,13 @@ extension Application {
         .makeSucceededFuture($0.fileio.streamFile(at: configuration.mainWasmPath.pathString))
     }
 
+    // Serve resources for all targets at their respective paths.
     let buildDirectory = configuration.mainWasmPath.parentDirectory
-    for target in configuration.manifest.targets
-      where target.type == .regular && !target.resources.isEmpty
-    {
-      let resourcesPath = configuration.manifest.resourcesPath(for: target)
-      get(.constant(resourcesPath), "**") {
+
+    for directoryName in try localFileSystem.resourcesDirectoryNames(relativeTo: buildDirectory) {
+      get(.constant(directoryName), "**") {
         $0.eventLoop.makeSucceededFuture($0.fileio.streamFile(at: AbsolutePath(
-          buildDirectory.appending(component: resourcesPath),
+          buildDirectory.appending(component: directoryName),
           $0.parameters.getCatchall().joined(separator: "/")
         ).pathString))
       }
@@ -80,6 +80,7 @@ extension Application {
       configuration.product?.targets.contains($0.name) == true
     }
 
+    // Serve resources for the main target at the root path.
     guard let mainTarget = inferredMainTarget else { return }
 
     let resourcesPath = configuration.manifest.resourcesPath(for: mainTarget)
