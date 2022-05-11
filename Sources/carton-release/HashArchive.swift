@@ -74,6 +74,7 @@ struct HashArchive: AsyncParsableCommand {
       RelativePath("static.zip")
     ))
 
+    // Base64 is not an efficient way, but too long byte array literal breaks type-checker
     let hashesFileContent = """
     import TSCBasic
 
