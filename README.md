@@ -68,7 +68,10 @@ page you'd like to use when serving, pass a path to it with a `--custom-index-pa
 
 The `carton test` command runs your test suite in [`wasmer`](https://wasmer.io/), [`node`](https://nodejs.org/en/)
 or using your default browser. You can switch between these with the `--environment` option, passing
-either: `wasmer`, `node` or `defaultBrowser`.
+either: `wasmer`, `node` or `defaultBrowser`. Code that depends on
+[JavaScriptKit](https://github.com/swiftwasm/JavaScriptKit) should pass either `--environment node` or
+`--environment defaultBrowser` options, depending on whether it needs Web APIs to work. Otherwise
+the test run will not succeed, since JavaScript environment is not available with `--environment wasmer`.
 
 The `carton sdk` command and its subcommands allow you to manage installed SwiftWasm toolchains, but
 is rarely needed, as `carton dev` installs the recommended version of SwiftWasm automatically.
