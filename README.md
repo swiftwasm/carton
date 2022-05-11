@@ -66,9 +66,9 @@ open. You can also pass a `--verbose` flag to keep the build process output avai
 stale output is cleaned up from your terminal screen by default. If you have a custom `index.html`
 page you'd like to use when serving, pass a path to it with a `--custom-index-page` option.
 
-The `carton test` command runs your test suite in the [`wasmer`](https://wasmer.io/) environment,
-or in the browser environment. You can switch between these with the `--environment` option, passing
-either `wasmer` or `defaultBrowser` values to it respectively.
+The `carton test` command runs your test suite in [`wasmer`](https://wasmer.io/), [`node`](https://nodejs.org/en/)
+or using your default browser. You can switch between these with the `--environment` option, passing
+either: `wasmer`, `node` or `defaultBrowser`.
 
 The `carton sdk` command and its subcommands allow you to manage installed SwiftWasm toolchains, but
 is rarely needed, as `carton dev` installs the recommended version of SwiftWasm automatically.

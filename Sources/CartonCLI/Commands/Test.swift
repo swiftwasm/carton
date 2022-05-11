@@ -19,7 +19,10 @@ import SwiftToolchain
 import TSCBasic
 
 private enum Environment: String, CaseIterable, ExpressibleByArgument {
+  static var allCasesNames: [String] { Environment.allCases.map { $0.rawValue } }
+
   case wasmer
+  case node
   case defaultBrowser
 
   var destination: DestinationEnvironment {
@@ -28,14 +31,16 @@ private enum Environment: String, CaseIterable, ExpressibleByArgument {
       return .browser
     case .wasmer:
       return .other
+    case .node:
+      return .browser
     }
   }
+
 }
 
 extension SanitizeVariant: ExpressibleByArgument {}
 
 struct Test: AsyncParsableCommand {
-  static let entrypoint = Entrypoint(fileName: "test.js", sha256: testEntrypointSHA256)
 
   static let configuration = CommandConfiguration(abstract: "Run the tests in a WASI environment.")
 
@@ -48,7 +53,10 @@ struct Test: AsyncParsableCommand {
   @Argument(help: "The list of test cases to run in the test suite.")
   var testCases = [String]()
 
-  @Option(help: "Environment used to run the tests, either a browser, or command-line Wasm host.")
+  @Option(
+    help:
+      "Environment used to run the tests. Available values: \(Environment.allCasesNames.joined(separator: ", "))"
+  )
   private var environment = Environment.wasmer
 
   @Option(help: "Turn on runtime checks for various behavior.")
@@ -69,48 +77,43 @@ struct Test: AsyncParsableCommand {
   @OptionGroup()
   var buildOptions: BuildOptions
 
-  func buildFlavor() -> BuildFlavor {
+  private var buildFlavor: BuildFlavor {
     BuildFlavor(
-      isRelease: release, environment: environment.destination,
-      sanitize: sanitize, swiftCompilerFlags: buildOptions.swiftCompilerFlags
+      isRelease: release,
+      environment: environment.destination,
+      sanitize: sanitize,
+      swiftCompilerFlags: buildOptions.swiftCompilerFlags
     )
   }
 
   func run() async throws {
     let terminal = InteractiveWriter.stdout
-
-    try Self.entrypoint.check(on: localFileSystem, terminal)
     let toolchain = try await Toolchain(localFileSystem, terminal)
-    let flavor = buildFlavor()
-    let testBundlePath = try await toolchain.buildTestBundle(flavor: flavor)
+    let bundlePath = try await toolchain.buildTestBundle(flavor: buildFlavor)
 
-    if environment == .wasmer {
-      terminal.write("\nRunning the test bundle with wasmer:\n", inColor: .yellow)
-      var wasmerArguments = ["wasmer", testBundlePath.pathString]
-      if list {
-        wasmerArguments.append(contentsOf: ["--", "-l"])
-      } else if !testCases.isEmpty {
-        wasmerArguments.append("--")
-        wasmerArguments.append(contentsOf: testCases)
-      }
-
-      try await Process.run(wasmerArguments, parser: TestsParser(), terminal)
-    } else {
-      try await Server(
-        .init(
-          builder: nil,
-          mainWasmPath: testBundlePath,
-          verbose: true,
-          shouldSkipAutoOpen: false,
-          port: port,
-          host: host,
-          customIndexContent: nil,
-          // swiftlint:disable:next force_try
-          manifest: try! toolchain.manifest.get(),
-          product: nil,
-          entrypoint: Self.entrypoint,
-          terminal: terminal
-        )
+    switch environment {
+    case .wasmer:
+      try await WasmerTestRunner(
+        testFilePath: bundlePath,
+        listTestCases: list,
+        testCases: testCases,
+        terminal: terminal
+      ).run()
+    case .defaultBrowser:
+      try await BrowserTestRunner(
+        testFilePath: bundlePath,
+        host: host,
+        port: port,
+        // swiftlint:disable:next force_try
+        manifest: try! toolchain.manifest.get(),
+        terminal: terminal
+      ).run()
+    case .node:
+      try await NodeTestRunner(
+        testFilePath: bundlePath,
+        listTestCases: list,
+        testCases: testCases,
+        terminal: terminal
       ).run()
     }
   }
