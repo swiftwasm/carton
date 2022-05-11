@@ -127,7 +127,8 @@ public final class Toolchain {
     self.terminal = terminal
     if let workingDirectory = fileSystem.currentWorkingDirectory {
       let swiftc = swiftPath.parentDirectory.appending(component: "swiftc")
-      manifest = await Result { try await Manifest.from(path: workingDirectory, swiftc: swiftc, fileSystem: fileSystem, terminal: terminal)
+      manifest = await Result {
+        try await Manifest.from(path: workingDirectory, swiftc: swiftc, fileSystem: fileSystem, terminal: terminal)
       }
     } else {
       manifest = .failure(ToolchainError.noWorkingDirectory)
@@ -223,51 +224,12 @@ public final class Toolchain {
     }
   }
 
-  private func emitJSKitWarningIfNeeded() throws {
-    let manifest = try self.manifest.get()
-    guard let jsKit = manifest.dependencies.first(where: {
-      $0.nameForTargetDependencyResolutionOnly == "JavaScriptKit"
-    }) else {
-      return
-    }
-
-    switch jsKit {
-    case .fileSystem:
-      terminal.write(
-        """
-
-        The local version of JavaScriptKit found in your dependency tree is not known to be \
-        compatible with carton \(cartonVersion). Please specify a JavaScriptKit dependency of \
-        version \(compatibleJSKitVersion) in your `Package.swift`.\n
-
-        """,
-        inColor: .red
-      )
-
-    default:
-      guard !jsKit.isJavaScriptKitCompatible else { return }
-      terminal.write(
-        """
-
-        JavaScriptKit requirement \(jsKit
-          .requirementDescription), which is present in your dependency tree is not \
-        known to be compatible with carton \(cartonVersion). Please specify a JavaScriptKit \
-        dependency of version \(compatibleJSKitVersion) in your `Package.swift`.\n
-
-        """,
-        inColor: .red
-      )
-    }
-  }
-
   public func buildCurrentProject(
     product: String?,
     flavor: BuildFlavor
   ) async throws -> BuildDescription {
     guard let product = try inferDevProduct(hint: product)
     else { throw ToolchainError.noExecutableProduct }
-
-    try emitJSKitWarningIfNeeded()
 
     let binPath = try inferBinPath(isRelease: flavor.isRelease)
     let mainWasmPath = binPath.appending(component: "\(product.name).wasm")

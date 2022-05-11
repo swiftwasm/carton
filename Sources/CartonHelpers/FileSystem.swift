@@ -50,9 +50,18 @@ public extension FileSystem {
     return try String(format: "%.2f MB", Double(getFileInfo(path).size) / 1024 / 1024)
   }
 
-  func resourcesDirectoryNames(relativeTo buildDirectory: AbsolutePath) throws -> [String] {
-    try getDirectoryContents(buildDirectory).filter {
+  func resourcesDirectoryNames(
+    relativeTo buildDirectory: AbsolutePath,
+    _ terminal: InteractiveWriter? = nil
+  ) throws -> [String] {
+    let result = try getDirectoryContents(buildDirectory).filter {
       $0.hasSuffix(".resources") && isDirectory(buildDirectory.appending(component: $0))
     }
+
+    if let terminal = terminal {
+      terminal.write("\nFound \(result.count) directories with resources in the build path.\n", inColor: .yellow)
+    }
+
+    return result
   }
 }

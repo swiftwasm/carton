@@ -17,6 +17,9 @@ import CartonHelpers
 import TSCBasic
 import WasmTransformer
 
+/// Entrypoints used for Node.js runners.
+private let nodeJSEntrypoints = ["testNode", "testNodeNoJSKit"]
+
 struct HashArchive: AsyncParsableCommand {
   /** Converts a hexadecimal hash string to Swift code that represents an archive of static assets.
    */
@@ -45,17 +48,18 @@ struct HashArchive: AsyncParsableCommand {
     )
 
     try localFileSystem.createDirectory(dotFilesStaticPath, recursive: true)
-    let hashes = try await ["dev", "bundle", "test", "testNode"]
+    let hashes = try await(["dev", "bundle", "test"] + nodeJSEntrypoints)
       .asyncMap { entrypoint -> (String, String) in
         let filename = "\(entrypoint).js"
         var arguments = [
-          "npx", "esbuild", "--bundle", "--format=esm", "--outdir=static",
+          "npx", "esbuild", "--bundle", "--format=cjs",
           "--external:./JavaScriptKit_JavaScriptKit.resources/Runtime/index.js",
-          "entrypoint/\(filename)",
         ]
-        if entrypoint == "testNode" {
+
+        if nodeJSEntrypoints.contains(entrypoint) {
           arguments.append("--platform=node")
         }
+        arguments.append(contentsOf: ["entrypoint/\(filename)", "--outfile=static/\(filename)"])
 
         try await Process.run(arguments, terminal)
         let entrypointPath = AbsolutePath(staticPath, filename)
@@ -94,10 +98,8 @@ struct HashArchive: AsyncParsableCommand {
       public let \($0)EntrypointSHA256 = ByteString([
       \(arrayString(from: $1))
       ])
-
-
       """
-    }.joined())
+    }.joined(separator: "\n\n"))
 
     public let staticArchiveContents = "\(staticArchiveContents.withData { $0.base64EncodedString() })"
     """

@@ -1,4 +1,4 @@
-// Copyright 2020 Carton contributors
+// Copyright 2022 Carton contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import fs from "fs/promises";
-import { WasmRunner } from "./common";
+import { WasmRunner } from "./common.js";
 
 const args = [...process.argv];
 args.shift();

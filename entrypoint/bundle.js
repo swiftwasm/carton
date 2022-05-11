@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { WasmRunner } from "./common";
+import { WasmRunner } from "./common.js";
 
 const wasmRunner = WasmRunner();
 

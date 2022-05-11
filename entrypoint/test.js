@@ -14,7 +14,7 @@
 
 import ReconnectingWebSocket from "reconnecting-websocket";
 import { WASIExitError } from "@wasmer/wasi";
-import { WasmRunner } from "./common";
+import { WasmRunner } from "./common.js";
 
 const socket = new ReconnectingWebSocket(`ws://${location.host}/watcher`);
 socket.addEventListener("message", (message) => {
