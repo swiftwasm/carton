@@ -69,13 +69,12 @@ struct HashArchive: AsyncParsableCommand {
 
     try await Process.run(["zip", "-j", "static.zip"] + archiveSources, terminal)
 
-    let archiveHash = try SHA256().hash(
-      localFileSystem.readFileContents(AbsolutePath(
-        localFileSystem.currentWorkingDirectory!,
-        RelativePath("static.zip")
-      ))
-    ).hexadecimalRepresentation.uppercased()
+    let staticArchiveContents = try localFileSystem.readFileContents(AbsolutePath(
+      localFileSystem.currentWorkingDirectory!,
+      RelativePath("static.zip")
+    ))
 
+    // Base64 is not an efficient way, but too long byte array literal breaks type-checker
     let hashesFileContent = """
     import TSCBasic
 
@@ -87,10 +86,9 @@ struct HashArchive: AsyncParsableCommand {
 
 
       """
-    }.joined())public let staticArchiveHash = ByteString([
-    \(arrayString(from: archiveHash)),
-    ])
+    }.joined())
 
+    public let staticArchiveContents = "\(staticArchiveContents.withData { $0.base64EncodedString() })"
     """
 
     try localFileSystem.writeFileContents(

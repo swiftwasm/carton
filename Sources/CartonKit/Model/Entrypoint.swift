@@ -18,23 +18,7 @@ import Foundation
 import TSCBasic
 import TSCUtility
 
-/** The `static.zip` archive is always uploaded to release assets of a previous release
- instead of the forthcoming release, because the corresponding new release tag doesn't exist yet.
- */
-private let staticArchiveURL =
-  "https://github.com/swiftwasm/carton/releases/download/0.14.1/static.zip"
-
-private let verifyHash = Equality<ByteString, String> {
-  """
-  Expected SHA256 of \($2), which is
-  \($0.hexadecimalRepresentation)
-  to equal
-  \($1.hexadecimalRepresentation)
-  """
-}
-
 public enum EntrypointError: Error {
-  case downloadFailed(url: String)
 }
 
 public struct Entrypoint {
@@ -67,27 +51,9 @@ public struct Entrypoint {
       try fileSystem.removeFileTree(staticDir)
       try fileSystem.removeFileTree(archiveFile)
 
-      let client = HTTPClient(eventLoopGroupProvider: .createNew)
-      let request = try HTTPClient.Request.get(url: staticArchiveURL)
-      let response: HTTPClient.Response = try tsc_await {
-        client.execute(request: request).whenComplete($0)
-      }
-      try client.syncShutdown()
-
-      guard
-        var body = response.body,
-        let bytes = body.readBytes(length: body.readableBytes)
-      else { throw EntrypointError.downloadFailed(url: staticArchiveURL) }
-
-      terminal.logLookup("Polyfills archive successfully downloaded from ", staticArchiveURL)
-
-      let downloadedArchive = ByteString(bytes)
-
-      let downloadedHash = SHA256().hash(downloadedArchive)
-      try verifyHash(downloadedHash, staticArchiveHash, context: staticArchiveURL)
-
+      let staticArchiveBytes = Data(base64Encoded: staticArchiveContents)!
       try fileSystem.createDirectory(cartonDir, recursive: true)
-      try fileSystem.writeFileContents(archiveFile, bytes: downloadedArchive)
+      try fileSystem.writeFileContents(archiveFile, bytes: ByteString(staticArchiveBytes))
       terminal.logLookup("Unpacking the archive: ", archiveFile)
 
       try fileSystem.createDirectory(staticDir)
@@ -95,10 +61,5 @@ public struct Entrypoint {
         ZipArchiver().extract(from: archiveFile, to: staticDir, completion: $0)
       }
     }
-
-    let unpackedEntrypointHash = try SHA256().hash(fileSystem.readFileContents(filePath))
-    // Nothing we can do after the hash doesn't match after unpacking
-    try verifyHash(unpackedEntrypointHash, sha256, context: filePath.pathString)
-    terminal.logLookup("Entrypoint integrity verified: ", filePath)
   }
 }
