@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import ReconnectingWebSocket from "reconnecting-websocket";
-import { WasmRunner } from "./common"
+import { WasmRunner } from "./common";
 
 const socket = new ReconnectingWebSocket(`ws://${location.host}/watcher`);
 
@@ -26,7 +26,7 @@ socket.addEventListener("message", (message) => {
 const wasmRunner = WasmRunner({
   onStderr() {
     const prevLimit = Error.stackTraceLimit;
-    Error.stackTraceLimit = 1000
+    Error.stackTraceLimit = 1000;
     socket.send(
       JSON.stringify({
         kind: "stackTrace",
@@ -34,8 +34,8 @@ const wasmRunner = WasmRunner({
       })
     );
     Error.stackTraceLimit = prevLimit;
-  }
-})
+  },
+});
 
 const startWasiTask = async () => {
   // Fetch our Wasm File
@@ -47,10 +47,10 @@ const startWasiTask = async () => {
   await wasmRunner.run(wasmBytes, {
     __stack_sanitizer: {
       report_stack_overflow: () => {
-        throw new Error("Detected stack-buffer-overflow.")
-      }
-    }
-  })
+        throw new Error("Detected stack-buffer-overflow.");
+      },
+    },
+  });
 };
 
 function handleError(e) {

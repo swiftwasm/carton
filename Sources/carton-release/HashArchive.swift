@@ -45,16 +45,27 @@ struct HashArchive: AsyncParsableCommand {
     )
 
     try localFileSystem.createDirectory(dotFilesStaticPath, recursive: true)
-    let hashes = try await ["dev", "bundle", "test", "testNode"].asyncMap { entrypoint -> (String, String) in
-      try await Process.run(["npm", "run", entrypoint], terminal)
-      let entrypointPath = AbsolutePath(staticPath, "\(entrypoint).js")
-      let dotFilesEntrypointPath = dotFilesStaticPath.appending(component: "\(entrypoint).js")
-      try localFileSystem.removeFileTree(dotFilesEntrypointPath)
-      try localFileSystem.copy(from: entrypointPath, to: dotFilesEntrypointPath)
+    let hashes = try await ["dev", "bundle", "test", "testNode"]
+      .asyncMap { entrypoint -> (String, String) in
+        let filename = "\(entrypoint).js"
+        var arguments = [
+          "npx", "esbuild", "--bundle", "--format=esm", "--outdir=static",
+          "--external:./JavaScriptKit_JavaScriptKit.resources/Runtime/index.js",
+          "entrypoint/\(filename)",
+        ]
+        if entrypoint == "testNode" {
+          arguments.append("--platform=node")
+        }
 
-      return (entrypoint, try SHA256().hash(localFileSystem.readFileContents(entrypointPath))
-        .hexadecimalRepresentation.uppercased())
-    }
+        try await Process.run(arguments, terminal)
+        let entrypointPath = AbsolutePath(staticPath, filename)
+        let dotFilesEntrypointPath = dotFilesStaticPath.appending(component: filename)
+        try localFileSystem.removeFileTree(dotFilesEntrypointPath)
+        try localFileSystem.copy(from: entrypointPath, to: dotFilesEntrypointPath)
+
+        return (entrypoint, try SHA256().hash(localFileSystem.readFileContents(entrypointPath))
+          .hexadecimalRepresentation.uppercased())
+      }
 
     try localFileSystem.writeFileContents(
       staticPath.appending(component: "so_sanitizer.wasm"),

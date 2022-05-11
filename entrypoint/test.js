@@ -38,7 +38,6 @@ const wasmRunner = WasmRunner({
   },
 });
 
-
 const startWasiTask = async () => {
   // Fetch our Wasm File
   const response = await fetch("/main.wasm");

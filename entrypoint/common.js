@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { SwiftRuntime } from "javascript-kit-swift";
+import { SwiftRuntime } from "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.js";
 import { WASI } from "@wasmer/wasi";
 import { WasmFs } from "@wasmer/wasmfs";
 
