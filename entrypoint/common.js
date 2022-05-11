@@ -65,7 +65,9 @@ export const WasmRunner = (rawOptions) => {
       // Node support
       const instance = "instance" in module ? module.instance : module;
 
-      swift.setInstance(instance)
+      if (instance.exports.swjs_library_version) {
+        swift.setInstance(instance);
+      }
 
       // Start the WebAssembly WASI instance
       wasi.start(instance);
