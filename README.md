@@ -53,7 +53,7 @@ not supported.
 `carton` embeds runtime parts of [the JavaScriptKit library](https://github.com/swiftwasm/JavaScriptKit), 
 which allows Swift and JavaScript code to interoperate in Node.js and browser environments. Because
 of how JavaScriptKit runtime is currently embedded, older versions of JavaScriptKit may be incompatible
-with new versions of `carton` and vice versa. [In the future](https://github.com/swiftwasm/carton/issues/155)
+with new versions of `carton` and vice versa. [In the future](https://github.com/swiftwasm/carton/issues/155),
 this incompatibility between different versions of `carton` and JavaScriptKit will be resolved. Similarly,
 older versions of SwiftWasm may be incompatible with newer `carton`. You can follow the compatibility matrix
 if you need to use older verions:
