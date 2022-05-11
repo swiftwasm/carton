@@ -19,7 +19,6 @@ import TSCBasic
 import TSCUtility
 
 public enum EntrypointError: Error {
-  case invalidBase64FileContents
 }
 
 public struct Entrypoint {
@@ -52,9 +51,7 @@ public struct Entrypoint {
       try fileSystem.removeFileTree(staticDir)
       try fileSystem.removeFileTree(archiveFile)
 
-      guard let staticArchiveBytes = Data(base64Encoded: staticArchiveContents) else {
-        throw EntrypointError.invalidBase64FileContents
-      }
+      let staticArchiveBytes = Data(base64Encoded: staticArchiveContents)!
       try fileSystem.createDirectory(cartonDir, recursive: true)
       try fileSystem.writeFileContents(archiveFile, bytes: ByteString(staticArchiveBytes))
       terminal.logLookup("Unpacking the archive: ", archiveFile)
