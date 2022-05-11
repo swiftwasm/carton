@@ -48,6 +48,24 @@ that completes successfully, run `swift build -c release`, the `carton` binary w
 the `.build/release` directory after that. Unfortunately, other Linux distributions are currently
 not supported.
 
+### Version compatibility
+
+`carton` embeds runtime parts of [the JavaScriptKit library](https://github.com/swiftwasm/JavaScriptKit), 
+which allows Swift and JavaScript code to interoperate in Node.js and browser environments. Because
+of how JavaScriptKit runtime is currently embedded, older versions of JavaScriptKit may be incompatible
+with new versions of `carton` and vice versa. [In the future](https://github.com/swiftwasm/carton/issues/155),
+this incompatibility between different versions of `carton` and JavaScriptKit will be resolved. Similarly,
+older versions of SwiftWasm may be incompatible with newer `carton`. You can follow the compatibility matrix
+if you need to use older verions:
+
+| `carton` version | SwiftWasm version | JavaScriptKit version | Tokamak version |
+| ---------------- | ----------------- | --------------------- | --------------- |
+| 0.14 | 5.6 | 0.14 | 0.10 |
+| 0.13 | 5.5 | 0.13 | 0.9.1 |
+| 0.12.2 | 5.5 | 0.12 | 0.9.1 |
+| 0.12.0 | 5.5 | 0.11 | 0.9.0 |
+| 0.11.0 | 5.4 | 0.10.1 | 0.8.0 |
+
 ### Usage
 
 The `carton init` command initializes a new SwiftWasm project for you (similarly to
