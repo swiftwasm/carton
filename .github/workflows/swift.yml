@@ -20,6 +20,7 @@ jobs:
           - os: ubuntu-20.04
             swift_version: 5.5
     name: Build on ${{ matrix.os }} with Swift ${{ matrix.swift_version }}
+    timeout-minutes: 40
     runs-on: ${{ matrix.os }}
 
     steps:
