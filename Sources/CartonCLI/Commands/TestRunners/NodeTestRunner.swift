@@ -42,7 +42,7 @@ struct NodeTestRunner: TestRunner {
       try localFileSystem.removeFileTree(staticDirectory.appending(component: existingSymlink))
     }
 
-    let resourceDirectories = try localFileSystem.resourcesDirectoryNames(relativeTo: buildDirectory, terminal)
+    let resourceDirectories = try localFileSystem.resourcesDirectoryNames(relativeTo: buildDirectory)
 
     // Create new symlink for each resource directory.
     for resourcesDirectoryName in resourceDirectories {

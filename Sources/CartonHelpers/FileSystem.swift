@@ -19,12 +19,6 @@ public extension String {
   var isAbsolutePath: Bool { first == "/" }
 }
 
-public extension Array where Element == String {
-  var hasJSKitResources: Bool {
-    contains("JavaScriptKit_JavaScriptKit.resources")
-  }
-}
-
 public extension FileSystem {
   func traverseRecursively(_ traversalRoot: AbsolutePath) throws -> [AbsolutePath] {
     guard exists(traversalRoot, followSymlink: true) else {
@@ -56,18 +50,9 @@ public extension FileSystem {
     return try String(format: "%.2f MB", Double(getFileInfo(path).size) / 1024 / 1024)
   }
 
-  func resourcesDirectoryNames(
-    relativeTo buildDirectory: AbsolutePath,
-    _ terminal: InteractiveWriter? = nil
-  ) throws -> [String] {
-    let result = try getDirectoryContents(buildDirectory).filter {
+  func resourcesDirectoryNames(relativeTo buildDirectory: AbsolutePath) throws -> [String] {
+    try getDirectoryContents(buildDirectory).filter {
       $0.hasSuffix(".resources") && isDirectory(buildDirectory.appending(component: $0))
     }
-
-    if let terminal = terminal {
-      terminal.write("\nFound \(result.count) directories with resources in the build path.\n", inColor: .yellow)
-    }
-
-    return result
   }
 }
