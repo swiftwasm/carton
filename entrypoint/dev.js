@@ -54,7 +54,7 @@ const startWasiTask = async () => {
         Error.stackTraceLimit = prevLimit;
       },
     },
-    SwiftRuntime
+    runtimeConstructor
   );
 
   // Instantiate the WebAssembly file

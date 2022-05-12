@@ -29,7 +29,7 @@ const startWasiTask = async () => {
     // JavaScriptKit module not available, running without JavaScriptKit runtime.
   }
 
-  const wasmRunner = WasmRunner(false, SwiftRuntime);
+  const wasmRunner = WasmRunner(false, runtimeConstructor);
 
   // Instantiate the WebAssembly file
   const wasmBytes = new Uint8Array(responseArrayBuffer).buffer;
