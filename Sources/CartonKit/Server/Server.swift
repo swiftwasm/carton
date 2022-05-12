@@ -229,7 +229,7 @@ public actor Server {
   /// Blocking function that starts the HTTP server.
   public nonisolated func run() async throws {
     // Explicitly hop to another thread to avoid blocking the thread that is running the actor executor
-    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<(), Error>) in
       Thread {
         Task {
           do {

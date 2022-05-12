@@ -68,20 +68,11 @@ extension Application {
 
     func requestHandler(_ directoryName: String) -> ((Request) -> Response) {
       { (request: Request) -> Response in
-        // Add special handling for `.mjs` files until https://github.com/vapor/vapor/pull/2823 is merged.
-        let mediaType: HTTPMediaType?
-        if request.parameters.getCatchall().last?.hasSuffix(".mjs") == true {
-          mediaType = .init(type: "application", subType: "javascript")
-        } else {
-          mediaType = nil
-        }
-
-        return request.fileio.streamFile(
+        request.fileio.streamFile(
           at: AbsolutePath(
             buildDirectory.appending(component: directoryName),
             request.parameters.getCatchall().joined(separator: "/")
-          ).pathString,
-          mediaType: mediaType
+          ).pathString
         )
       }
     }

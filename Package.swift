@@ -33,7 +33,7 @@ let package = Package(
       url: "https://github.com/apple/swift-tools-support-core.git",
       .branch("release/5.6")
     ),
-    .package(url: "https://github.com/vapor/vapor.git", from: "4.53.0"),
+    .package(url: "https://github.com/vapor/vapor.git", from: "4.57.1"),
     .package(url: "https://github.com/apple/swift-crypto.git", from: "1.1.0"),
     .package(url: "https://github.com/JohnSundell/Splash.git", from: "0.16.0"),
     .package(
