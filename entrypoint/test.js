@@ -14,6 +14,7 @@
 
 import ReconnectingWebSocket from "reconnecting-websocket";
 import { WASIExitError } from "@wasmer/wasi";
+import { SwiftRuntime } from "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs";
 import { WasmRunner } from "./common.js";
 
 const socket = new ReconnectingWebSocket(`ws://${location.host}/watcher`);
@@ -24,19 +25,22 @@ socket.addEventListener("message", (message) => {
 });
 
 let testRunOutput = "";
-const wasmRunner = WasmRunner({
-  onStdout: (text) => {
-    testRunOutput += text + "\n";
+const wasmRunner = WasmRunner(
+  {
+    onStdout: (text) => {
+      testRunOutput += text + "\n";
+    },
+    onStderr: () => {
+      socket.send(
+        JSON.stringify({
+          kind: "stackTrace",
+          stackTrace: new Error().stack,
+        })
+      );
+    },
   },
-  onStderr: () => {
-    socket.send(
-      JSON.stringify({
-        kind: "stackTrace",
-        stackTrace: new Error().stack,
-      })
-    );
-  },
-});
+  SwiftRuntime
+);
 
 const startWasiTask = async () => {
   // Fetch our Wasm File

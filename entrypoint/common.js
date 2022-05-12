@@ -12,14 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { SwiftRuntime } from "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.js";
 import { WASI } from "@wasmer/wasi";
 import { WasmFs } from "@wasmer/wasmfs";
 
-export const WasmRunner = (rawOptions) => {
+export const WasmRunner = (rawOptions, SwiftRuntime) => {
   const options = defaultRunnerOptions(rawOptions);
 
-  const swift = new SwiftRuntime();
+  let swift;
+  if (SwiftRuntime) {
+    swift = new SwiftRuntime();
+  }
 
   const wasmFs = createWasmFS(
     (stdout) => {
@@ -44,8 +46,11 @@ export const WasmRunner = (rawOptions) => {
   const createWasmImportObject = (extraWasmImports) => {
     const importObject = {
       wasi_snapshot_preview1: wrapWASI(wasi),
-      javascript_kit: swift.wasmImports,
     };
+
+    if (swift) {
+      importObject.javascript_kit = swift.wasmImports;
+    }
 
     if (extraWasmImports) {
       // Shallow clone
@@ -65,7 +70,7 @@ export const WasmRunner = (rawOptions) => {
       // Node support
       const instance = "instance" in module ? module.instance : module;
 
-      if (instance.exports.swjs_library_version) {
+      if (swift && instance.exports.swjs_library_version) {
         swift.setInstance(instance);
       }
 

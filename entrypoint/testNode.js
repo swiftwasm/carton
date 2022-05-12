@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import fs from "fs/promises";
+import { SwiftRuntime } from "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.js";
 import { WasmRunner } from "./common.js";
 
 const args = [...process.argv];
@@ -24,7 +25,7 @@ if (!wasmFile) {
   throw Error("No WASM test file specified, can not run tests");
 }
 
-const wasmRunner = WasmRunner({ args: testArgs });
+const wasmRunner = WasmRunner({ args: testArgs }, SwiftRuntime);
 
 const startWasiTask = async () => {
   const wasmBytes = await fs.readFile(wasmFile);

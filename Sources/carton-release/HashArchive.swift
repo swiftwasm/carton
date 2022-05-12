@@ -48,16 +48,23 @@ struct HashArchive: AsyncParsableCommand {
     )
 
     try localFileSystem.createDirectory(dotFilesStaticPath, recursive: true)
-    let hashes = try await(["dev", "bundle", "test"] + nodeJSEntrypoints)
+    let hashes = try await (["dev", "bundle", "test"] + nodeJSEntrypoints)
       .asyncMap { entrypoint -> (String, String) in
         let filename = "\(entrypoint).js"
         var arguments = [
-          "npx", "esbuild", "--bundle", "--format=cjs",
-          "--external:./JavaScriptKit_JavaScriptKit.resources/Runtime/index.js",
+          "npx", "esbuild", "--bundle",
         ]
 
         if nodeJSEntrypoints.contains(entrypoint) {
-          arguments.append("--platform=node")
+          arguments.append(contentsOf: [
+            "--format=cjs", "--platform=node",
+            "--external:./JavaScriptKit_JavaScriptKit.resources/Runtime/index.js",
+          ])
+        } else {
+          arguments.append(contentsOf: [
+            "--format=esm",
+            "--external:./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs",
+          ])
         }
         arguments.append(contentsOf: ["entrypoint/\(filename)", "--outfile=static/\(filename)"])
 

@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { SwiftRuntime } from "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs";
 import { WasmRunner } from "./common.js";
 
-const wasmRunner = WasmRunner();
+const wasmRunner = WasmRunner(false, SwiftRuntime);
 
 const startWasiTask = async () => {
   // Fetch our Wasm File

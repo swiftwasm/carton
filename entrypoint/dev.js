@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import ReconnectingWebSocket from "reconnecting-websocket";
+import { SwiftRuntime } from "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs";
 import { WasmRunner } from "./common.js";
 
 const socket = new ReconnectingWebSocket(`ws://${location.host}/watcher`);
@@ -23,19 +24,22 @@ socket.addEventListener("message", (message) => {
   }
 });
 
-const wasmRunner = WasmRunner({
-  onStderr() {
-    const prevLimit = Error.stackTraceLimit;
-    Error.stackTraceLimit = 1000;
-    socket.send(
-      JSON.stringify({
-        kind: "stackTrace",
-        stackTrace: new Error().stack,
-      })
-    );
-    Error.stackTraceLimit = prevLimit;
+const wasmRunner = WasmRunner(
+  {
+    onStderr() {
+      const prevLimit = Error.stackTraceLimit;
+      Error.stackTraceLimit = 1000;
+      socket.send(
+        JSON.stringify({
+          kind: "stackTrace",
+          stackTrace: new Error().stack,
+        })
+      );
+      Error.stackTraceLimit = prevLimit;
+    },
   },
-});
+  SwiftRuntime
+);
 
 const startWasiTask = async () => {
   // Fetch our Wasm File
