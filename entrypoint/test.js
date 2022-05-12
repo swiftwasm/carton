@@ -14,7 +14,6 @@
 
 import ReconnectingWebSocket from "reconnecting-websocket";
 import { WASIExitError } from "@wasmer/wasi";
-import { SwiftRuntime } from "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs";
 import { WasmRunner } from "./common.js";
 
 const socket = new ReconnectingWebSocket(`ws://${location.host}/watcher`);
@@ -24,28 +23,40 @@ socket.addEventListener("message", (message) => {
   }
 });
 
-let testRunOutput = "";
-const wasmRunner = WasmRunner(
-  {
-    onStdout: (text) => {
-      testRunOutput += text + "\n";
-    },
-    onStderr: () => {
-      socket.send(
-        JSON.stringify({
-          kind: "stackTrace",
-          stackTrace: new Error().stack,
-        })
-      );
-    },
-  },
-  SwiftRuntime
-);
-
 const startWasiTask = async () => {
   // Fetch our Wasm File
   const response = await fetch("/main.wasm");
   const responseArrayBuffer = await response.arrayBuffer();
+
+  let runtimeConstructor;
+  try {
+    const { SwiftRuntime } = await import(
+      "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs"
+    );
+    runtimeConstructor = SwiftRuntime;
+  } catch {
+    console.log(
+      "JavaScriptKit module not available, running without JavaScriptKit runtime."
+    );
+  }
+
+  let testRunOutput = "";
+  const wasmRunner = WasmRunner(
+    {
+      onStdout: (text) => {
+        testRunOutput += text + "\n";
+      },
+      onStderr: () => {
+        socket.send(
+          JSON.stringify({
+            kind: "stackTrace",
+            stackTrace: new Error().stack,
+          })
+        );
+      },
+    },
+    runtimeConstructor
+  );
 
   // Instantiate the WebAssembly file
   const wasmBytes = new Uint8Array(responseArrayBuffer).buffer;

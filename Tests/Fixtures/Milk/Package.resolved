@@ -5,8 +5,8 @@
         "package": "JavaScriptKit",
         "repositoryURL": "https://github.com/swiftwasm/JavaScriptKit.git",
         "state": {
-          "branch": "maxd/runtime-resources",
-          "revision": "23d9529e0b84e87de498bf90050e2c9a466ee72b",
+          "branch": "main",
+          "revision": "e022311ed98324ac176e9ffba45d7aab97f29a57",
           "version": null
         }
       },
@@ -24,7 +24,7 @@
         "repositoryURL": "https://github.com/swiftwasm/OpenCombineJS.git",
         "state": {
           "branch": "maxd/update-jskit",
-          "revision": "27267b867f1e4d5ddc6b6ff4a6381e1f81298210",
+          "revision": "41aed796a116d49016dfba5e782412d7394e79dc",
           "version": null
         }
       },
@@ -51,7 +51,7 @@
         "repositoryURL": "https://github.com/TokamakUI/Tokamak",
         "state": {
           "branch": "maxd/update-jskit",
-          "revision": "f9ae128ccbda3fd4af6a5d122ccdea1fc262b42b",
+          "revision": "8e0973e2f4e88c4e621f7dc99a287e568684fc2a",
           "version": null
         }
       }

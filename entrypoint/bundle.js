@@ -12,15 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { SwiftRuntime } from "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs";
 import { WasmRunner } from "./common.js";
-
-const wasmRunner = WasmRunner(false, SwiftRuntime);
 
 const startWasiTask = async () => {
   // Fetch our Wasm File
   const response = await fetch("REPLACE_THIS_WITH_THE_MAIN_WEBASSEMBLY_MODULE");
   const responseArrayBuffer = await response.arrayBuffer();
+
+  let runtimeConstructor;
+  try {
+    const { SwiftRuntime } = await import(
+      "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs"
+    );
+    runtimeConstructor = SwiftRuntime;
+  } catch {
+    // JavaScriptKit module not available, running without JavaScriptKit runtime.
+  }
+
+  const wasmRunner = WasmRunner(false, SwiftRuntime);
 
   // Instantiate the WebAssembly file
   const wasmBytes = new Uint8Array(responseArrayBuffer).buffer;

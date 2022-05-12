@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import fs from "fs/promises";
-import { SwiftRuntime } from "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.js";
 import { WasmRunner } from "./common.js";
 
 const args = [...process.argv];
@@ -25,10 +24,20 @@ if (!wasmFile) {
   throw Error("No WASM test file specified, can not run tests");
 }
 
-const wasmRunner = WasmRunner({ args: testArgs }, SwiftRuntime);
-
 const startWasiTask = async () => {
   const wasmBytes = await fs.readFile(wasmFile);
+
+  let runtimeConstructor;
+  try {
+    const { SwiftRuntime } = await import(
+      "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs"
+    );
+    runtimeConstructor = SwiftRuntime;
+  } catch {
+    // No JavaScriptKit module found, run the Wasm module without JSKit
+  }
+
+  const wasmRunner = WasmRunner({ args: testArgs }, runtimeConstructor);
 
   await wasmRunner.run(wasmBytes, {
     __stack_sanitizer: {

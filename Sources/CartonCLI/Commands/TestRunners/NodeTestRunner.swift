@@ -19,7 +19,6 @@ import TSCBasic
 
 private enum Constants {
   static let entrypoint = Entrypoint(fileName: "testNode.js", sha256: testNodeEntrypointSHA256)
-  static let entrypointNoJSKit = Entrypoint(fileName: "testNodeNoJSKit.js", sha256: testNodeEntrypointSHA256)
 }
 
 /// Test runner for Node.js.
@@ -54,17 +53,7 @@ struct NodeTestRunner: TestRunner {
       )
     }
 
-    // Assume JSKit is not available if no resource directories were found. If JSKit were linked, there should
-    // be at least a single resource directory with its runtime files.
-    let resolvedEntrypointPath: String
-    if resourceDirectories.isEmpty || !resourceDirectories.contains("JavaScriptKit_JavaScriptKit.resources") {
-      let (_, _, noJSKitPath) = Constants.entrypointNoJSKit.paths(on: localFileSystem)
-      resolvedEntrypointPath = noJSKitPath.pathString
-    } else {
-      resolvedEntrypointPath = entrypointPath.pathString
-    }
-
-    var nodeArguments = ["node", resolvedEntrypointPath, testFilePath.pathString]
+    var nodeArguments = ["node", entrypointPath.pathString, testFilePath.pathString]
     if listTestCases {
       nodeArguments.append(contentsOf: ["--", "-l"])
     } else if !testCases.isEmpty {

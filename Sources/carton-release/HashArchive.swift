@@ -17,9 +17,6 @@ import CartonHelpers
 import TSCBasic
 import WasmTransformer
 
-/// Entrypoints used for Node.js runners.
-private let nodeJSEntrypoints = ["testNode", "testNodeNoJSKit"]
-
 struct HashArchive: AsyncParsableCommand {
   /** Converts a hexadecimal hash string to Swift code that represents an archive of static assets.
    */
@@ -48,14 +45,14 @@ struct HashArchive: AsyncParsableCommand {
     )
 
     try localFileSystem.createDirectory(dotFilesStaticPath, recursive: true)
-    let hashes = try await (["dev", "bundle", "test"] + nodeJSEntrypoints)
+    let hashes = try await (["dev", "bundle", "test", "testNode"])
       .asyncMap { entrypoint -> (String, String) in
         let filename = "\(entrypoint).js"
         var arguments = [
-          "npx", "esbuild", "--bundle",
+          "npx", "esbuild", "--bundle", "entrypoint/\(filename)", "--outfile=static/\(filename)",
         ]
 
-        if nodeJSEntrypoints.contains(entrypoint) {
+        if entrypoint == "testNode" {
           arguments.append(contentsOf: [
             "--format=cjs", "--platform=node",
             "--external:./JavaScriptKit_JavaScriptKit.resources/Runtime/index.js",
@@ -66,7 +63,6 @@ struct HashArchive: AsyncParsableCommand {
             "--external:./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs",
           ])
         }
-        arguments.append(contentsOf: ["entrypoint/\(filename)", "--outfile=static/\(filename)"])
 
         try await Process.run(arguments, terminal)
         let entrypointPath = AbsolutePath(staticPath, filename)

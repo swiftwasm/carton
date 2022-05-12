@@ -19,6 +19,12 @@ public extension String {
   var isAbsolutePath: Bool { first == "/" }
 }
 
+public extension Array where Element == String {
+  var hasJSKitResources: Bool {
+    contains("JavaScriptKit_JavaScriptKit.resources")
+  }
+}
+
 public extension FileSystem {
   func traverseRecursively(_ traversalRoot: AbsolutePath) throws -> [AbsolutePath] {
     guard exists(traversalRoot, followSymlink: true) else {

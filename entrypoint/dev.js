@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import ReconnectingWebSocket from "reconnecting-websocket";
-import { SwiftRuntime } from "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs";
 import { WasmRunner } from "./common.js";
 
 const socket = new ReconnectingWebSocket(`ws://${location.host}/watcher`);
@@ -24,27 +23,39 @@ socket.addEventListener("message", (message) => {
   }
 });
 
-const wasmRunner = WasmRunner(
-  {
-    onStderr() {
-      const prevLimit = Error.stackTraceLimit;
-      Error.stackTraceLimit = 1000;
-      socket.send(
-        JSON.stringify({
-          kind: "stackTrace",
-          stackTrace: new Error().stack,
-        })
-      );
-      Error.stackTraceLimit = prevLimit;
-    },
-  },
-  SwiftRuntime
-);
-
 const startWasiTask = async () => {
   // Fetch our Wasm File
   const response = await fetch("/main.wasm");
   const responseArrayBuffer = await response.arrayBuffer();
+
+  let runtimeConstructor;
+  try {
+    const { SwiftRuntime } = await import(
+      "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs"
+    );
+    runtimeConstructor = SwiftRuntime;
+  } catch {
+    console.log(
+      "JavaScriptKit module not available, running without JavaScriptKit runtime."
+    );
+  }
+
+  const wasmRunner = WasmRunner(
+    {
+      onStderr() {
+        const prevLimit = Error.stackTraceLimit;
+        Error.stackTraceLimit = 1000;
+        socket.send(
+          JSON.stringify({
+            kind: "stackTrace",
+            stackTrace: new Error().stack,
+          })
+        );
+        Error.stackTraceLimit = prevLimit;
+      },
+    },
+    SwiftRuntime
+  );
 
   // Instantiate the WebAssembly file
   const wasmBytes = new Uint8Array(responseArrayBuffer).buffer;
