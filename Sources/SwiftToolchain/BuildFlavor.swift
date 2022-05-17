@@ -16,15 +16,27 @@ public enum SanitizeVariant: String, CaseIterable {
   case stackOverflow
 }
 
+/// The target environment to build for.
+/// `Environment` doesn't specify the concrete environment, but the type of environments enough for build planning.
+public enum Environment: String, CaseIterable {
+  public static var allCasesNames: [String] { Environment.allCases.map { $0.rawValue } }
+
+  // TODO: Rename to `commandLine` to avoid confusion
+  case wasmer
+  case node
+  case defaultBrowser
+
+}
+
 public struct BuildFlavor {
   public var isRelease: Bool
-  public var environment: DestinationEnvironment
+  public var environment: Environment
   public var sanitize: SanitizeVariant?
   public var swiftCompilerFlags: [String]
 
   public init(
     isRelease: Bool,
-    environment: DestinationEnvironment,
+    environment: Environment,
     sanitize: SanitizeVariant?,
     swiftCompilerFlags: [String]
   ) {

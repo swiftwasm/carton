@@ -56,7 +56,7 @@ public final class Builder {
     )
 
     var transformers: [(inout InputByteStream, inout InMemoryOutputWriter) throws -> ()] = []
-    if self.flavor.environment != .other {
+    if self.flavor.environment != .wasmer {
       transformers.append(I64ImportTransformer().transform)
     }
 

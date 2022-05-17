@@ -64,7 +64,7 @@ struct Dev: AsyncParsableCommand {
   func buildFlavor() -> BuildFlavor {
     let defaultSanitize: SanitizeVariant? = release ? nil : .stackOverflow
     return BuildFlavor(
-      isRelease: release, environment: .browser,
+      isRelease: release, environment: .defaultBrowser,
       sanitize: sanitize ?? defaultSanitize,
       swiftCompilerFlags: buildOptions.swiftCompilerFlags
     )
