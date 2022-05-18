@@ -20,7 +20,6 @@ public enum DestinationEnvironment {
   case firefox
   case chrome
   case edge
-  case browser
 }
 
 public extension String {
