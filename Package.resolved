@@ -195,8 +195,8 @@
         "repositoryURL": "https://github.com/swiftwasm/WasmTransformer",
         "state": {
           "branch": null,
-          "revision": "a6d18ccfe15bb0cc93799296909101236e47ad3b",
-          "version": "0.0.4"
+          "revision": "b5255decea7ac2e3ff674f5f433d499b2b971ebb",
+          "version": "0.3.0"
         }
       },
       {

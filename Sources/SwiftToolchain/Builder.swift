@@ -56,8 +56,19 @@ public final class Builder {
     )
 
     var transformers: [(inout InputByteStream, inout InMemoryOutputWriter) throws -> ()] = []
-    if self.flavor.environment != .other {
-      transformers.append(I64ImportTransformer().transform)
+    if self.flavor.environment == .node || self.flavor.environment == .defaultBrowser {
+      // If building for JS-host environments,
+      // - i64 params in imports are not supported without bigint-i64 feature
+      // - The param types in imports don't have to be strictly same as host expected
+      // - Users cannot avoid having such imports come from WASI since they are
+      //   mandatory imports.
+      //
+      // So lower i64 param types to be i32. It happens *only for WASI imports*
+      // since users can avoid such imports coming from other user modules.
+      let transformer = I64ImportTransformer(shouldLower: {
+        $0.module == "wasi_snapshot_preview1" || $0.module == "wasi_unstable"
+      })
+      transformers.append(transformer.transform)
     }
 
     switch self.flavor.sanitize {

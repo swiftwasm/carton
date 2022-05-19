@@ -18,25 +18,7 @@ import CartonKit
 import SwiftToolchain
 import TSCBasic
 
-private enum Environment: String, CaseIterable, ExpressibleByArgument {
-  static var allCasesNames: [String] { Environment.allCases.map { $0.rawValue } }
-
-  case wasmer
-  case node
-  case defaultBrowser
-
-  var destination: DestinationEnvironment {
-    switch self {
-    case .defaultBrowser:
-      return .browser
-    case .wasmer:
-      return .other
-    case .node:
-      return .browser
-    }
-  }
-
-}
+extension Environment: ExpressibleByArgument {}
 
 extension SanitizeVariant: ExpressibleByArgument {}
 
@@ -80,7 +62,7 @@ struct Test: AsyncParsableCommand {
   private var buildFlavor: BuildFlavor {
     BuildFlavor(
       isRelease: release,
-      environment: environment.destination,
+      environment: environment,
       sanitize: sanitize,
       swiftCompilerFlags: buildOptions.swiftCompilerFlags
     )

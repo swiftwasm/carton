@@ -51,7 +51,7 @@ struct Bundle: AsyncParsableCommand {
 
   func buildFlavor() -> BuildFlavor {
     BuildFlavor(
-      isRelease: !debug, environment: .browser,
+      isRelease: !debug, environment: .defaultBrowser,
       sanitize: nil, swiftCompilerFlags: buildOptions.swiftCompilerFlags
     )
   }
