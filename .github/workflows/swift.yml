@@ -63,7 +63,9 @@ jobs:
             source /home/runner/.wasmer/wasmer.sh
           fi
 
-          swift test -Xswiftc -Xfrontend -Xswiftc -validate-tbd-against-ir=none --static-swift-stdlib
+          # Cleaning up the build directory is required, because `swift test` fails with `--static-swift-stdlib` on Linux.
+          rm -rf .build/x86_64-unknown-linux-gnu
+          swift test -Xswiftc -Xfrontend -Xswiftc -validate-tbd-against-ir=none
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
