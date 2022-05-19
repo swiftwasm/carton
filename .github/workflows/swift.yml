@@ -61,7 +61,7 @@ jobs:
           if [ -e /home/runner/.wasmer/wasmer.sh ]; then
             source /home/runner/.wasmer/wasmer.sh
           fi
-          ls -l .build
+          rm -rf .build/x86_64-unknown-linux-gnu
           swift test -Xswiftc -Xfrontend -Xswiftc -validate-tbd-against-ir=none
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
