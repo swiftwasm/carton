@@ -24,7 +24,7 @@ extension Application {
     let port: Int
     let host: String
     let mainWasmPath: AbsolutePath
-    let customIndexContent: String?
+    let customIndexPath: AbsolutePath?
     let manifest: Manifest
     let product: ProductDescription?
     let entrypoint: Entrypoint
@@ -43,9 +43,16 @@ extension Application {
     middleware.use(FileMiddleware(publicDirectory: directory))
 
     // register routes
-    get { _ in
-      HTML(value: HTML.indexPage(
-        customContent: configuration.customIndexContent,
+    get { (request: Request) async throws -> HTML in
+      let customIndexContent: String?
+      if let path = configuration.customIndexPath?.pathString {
+        customIndexContent = try await String(buffer: request.fileio.collectFile(at: path).get())
+      } else {
+        customIndexContent = nil
+      }
+
+      return HTML(value: HTML.indexPage(
+        customContent: customIndexContent,
         entrypointName: configuration.entrypoint.fileName
       ))
     }

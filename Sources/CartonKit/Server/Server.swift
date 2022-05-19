@@ -95,7 +95,7 @@ public actor Server {
     let shouldSkipAutoOpen: Bool
     let port: Int
     let host: String
-    let customIndexContent: String?
+    let customIndexPath: AbsolutePath?
     let manifest: Manifest
     let product: ProductDescription?
     let entrypoint: Entrypoint
@@ -108,7 +108,7 @@ public actor Server {
       shouldSkipAutoOpen: Bool,
       port: Int,
       host: String,
-      customIndexContent: String?,
+      customIndexPath: AbsolutePath?,
       manifest: Manifest,
       product: ProductDescription?,
       entrypoint: Entrypoint,
@@ -120,7 +120,7 @@ public actor Server {
       self.shouldSkipAutoOpen = shouldSkipAutoOpen
       self.port = port
       self.host = host
-      self.customIndexContent = customIndexContent
+      self.customIndexPath = customIndexPath
       self.manifest = manifest
       self.product = product
       self.entrypoint = entrypoint
@@ -147,7 +147,7 @@ public actor Server {
         port: configuration.port,
         host: configuration.host,
         mainWasmPath: configuration.mainWasmPath,
-        customIndexContent: configuration.customIndexContent,
+        customIndexPath: configuration.customIndexPath,
         manifest: configuration.manifest,
         product: configuration.product,
         entrypoint: configuration.entrypoint,
