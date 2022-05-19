@@ -5,9 +5,9 @@
         "package": "JavaScriptKit",
         "repositoryURL": "https://github.com/swiftwasm/JavaScriptKit",
         "state": {
-          "branch": "maxd/runtime-resources",
-          "revision": "9eeece48977313153334b7fd7f9f279cdc8ef39b",
-          "version": null
+          "branch": null,
+          "revision": "2d7bc960eed438dce7355710ece43fa004bbb3ac",
+          "version": "0.15.0"
         }
       }
     ]

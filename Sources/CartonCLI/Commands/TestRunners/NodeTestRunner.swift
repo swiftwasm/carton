@@ -42,17 +42,6 @@ struct NodeTestRunner: TestRunner {
       try localFileSystem.removeFileTree(staticDirectory.appending(component: existingSymlink))
     }
 
-    let resourceDirectories = try localFileSystem.resourcesDirectoryNames(relativeTo: buildDirectory)
-
-    // Create new symlink for each resource directory.
-    for resourcesDirectoryName in resourceDirectories {
-      try localFileSystem.createSymbolicLink(
-        staticDirectory.appending(component: resourcesDirectoryName),
-        pointingAt: buildDirectory.appending(component: resourcesDirectoryName),
-        relative: false
-      )
-    }
-
     var nodeArguments = ["node", entrypointPath.pathString, testFilePath.pathString]
     if listTestCases {
       nodeArguments.append(contentsOf: ["--", "-l"])
@@ -60,6 +49,6 @@ struct NodeTestRunner: TestRunner {
       nodeArguments.append("--")
       nodeArguments.append(contentsOf: testCases)
     }
-    try await Process.run(nodeArguments, terminal)
+    try await Process.run(nodeArguments, environment: ["NODE_PATH": buildDirectory.pathString], terminal)
   }
 }

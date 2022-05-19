@@ -65,6 +65,7 @@ public extension TSCBasic.Process {
   // swiftlint:disable:next function_body_length
   static func run(
     _ arguments: [String],
+    environment: [String: String] = [:],
     loadingMessage: String = "Running...",
     parser: ProcessOutputParser? = nil,
     _ terminal: InteractiveWriter
@@ -98,6 +99,7 @@ public extension TSCBasic.Process {
 
           let process = Process(
             arguments: arguments,
+            environment: ProcessEnv.vars.merging(environment) { (_, new) in new },
             outputRedirection: .stream(stdout: stdout, stderr: stderr),
             verbose: true,
             startNewProcessGroup: true

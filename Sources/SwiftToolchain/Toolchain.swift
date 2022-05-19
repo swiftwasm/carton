@@ -19,7 +19,7 @@ import TSCBasic
 import TSCUtility
 import WasmTransformer
 
-public let compatibleJSKitVersion = Version(0, 14, 0)
+public let compatibleJSKitVersion = Version(0, 15, 0)
 
 enum ToolchainError: Error, CustomStringConvertible {
   case directoryDoesNotExist(AbsolutePath)
@@ -86,10 +86,10 @@ extension PackageDependency {
     default: break
     }
     if let exactVersion = exactVersion {
-      return exactVersion == compatibleJSKitVersion
+      return exactVersion >= compatibleJSKitVersion
     }
     if let versionRange = versionRange {
-      return versionRange.upperBound >= compatibleJSKitVersion
+      return versionRange.lowerBound >= compatibleJSKitVersion
     }
     return false
   }
@@ -148,7 +148,7 @@ public final class Toolchain {
   }
 
   private func inferDevProduct(hint: String?) throws -> ProductDescription? {
-    let manifest = try self.manifest.get()
+    let manifest = try manifest.get()
 
     var candidateProducts = manifest.products
       .filter { $0.type == .executable }
@@ -202,7 +202,7 @@ public final class Toolchain {
   }
 
   public func inferSourcesPaths() throws -> [AbsolutePath] {
-    let manifest = try self.manifest.get()
+    let manifest = try manifest.get()
 
     let targetPaths = manifest.targets.compactMap { target -> String? in
 
@@ -224,12 +224,51 @@ public final class Toolchain {
     }
   }
 
+  private func emitJSKitWarningIfNeeded() throws {
+    let manifest = try manifest.get()
+    guard let jsKit = manifest.dependencies.first(where: {
+      $0.nameForTargetDependencyResolutionOnly == "JavaScriptKit"
+    }) else {
+      return
+    }
+
+    switch jsKit {
+    case .fileSystem:
+      terminal.write(
+        """
+
+        The local version of JavaScriptKit found in your dependency tree is not known to be \
+        compatible with carton \(cartonVersion). Please specify a JavaScriptKit dependency of \
+        version \(compatibleJSKitVersion) in your `Package.swift`.\n
+
+        """,
+        inColor: .red
+      )
+
+    default:
+      guard !jsKit.isJavaScriptKitCompatible else { return }
+      terminal.write(
+        """
+
+        JavaScriptKit requirement \(jsKit
+          .requirementDescription), which is present in your dependency tree is not \
+        known to be compatible with carton \(cartonVersion). Please specify a JavaScriptKit \
+        dependency of version \(compatibleJSKitVersion) in your `Package.swift`.\n
+
+        """,
+        inColor: .red
+      )
+    }
+  }
+
   public func buildCurrentProject(
     product: String?,
     flavor: BuildFlavor
   ) async throws -> BuildDescription {
     guard let product = try inferDevProduct(hint: product)
     else { throw ToolchainError.noExecutableProduct }
+
+    try emitJSKitWarningIfNeeded()
 
     let binPath = try inferBinPath(isRelease: flavor.isRelease)
     let mainWasmPath = binPath.appending(component: "\(product.name).wasm")
@@ -267,7 +306,7 @@ public final class Toolchain {
   public func buildTestBundle(
     flavor: BuildFlavor
   ) async throws -> AbsolutePath {
-    let manifest = try self.manifest.get()
+    let manifest = try manifest.get()
     let binPath = try inferBinPath(isRelease: flavor.isRelease)
     let testProductName = "\(manifest.displayName)PackageTests"
     let testBundlePath = binPath.appending(component: "\(testProductName).wasm")

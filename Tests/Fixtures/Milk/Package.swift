@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.6
 import PackageDescription
 let package = Package(
   name: "Milk",
@@ -7,10 +7,10 @@ let package = Package(
     .executable(name: "Milk", targets: ["Milk"]),
   ],
   dependencies: [
-    .package(name: "Tokamak", url: "https://github.com/TokamakUI/Tokamak", .branch("maxd/update-jskit")),
+    .package(url: "https://github.com/TokamakUI/Tokamak", branch: "main"),
   ],
   targets: [
-    .target(
+    .executableTarget(
       name: "Milk",
       dependencies: [
         .product(name: "TokamakShim", package: "Tokamak"),
