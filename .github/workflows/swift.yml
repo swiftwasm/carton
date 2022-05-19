@@ -46,7 +46,7 @@ jobs:
       - name: Build the project
         run: |
           swift -v
-          swift build -Xswiftc -Xfrontend -Xswiftc -validate-tbd-against-ir=none
+          swift build -Xswiftc -Xfrontend -Xswiftc -validate-tbd-against-ir=none --static-swift-stdlib
 
       - name: Build and install JavaScript and sanitizer resources
         run: |
