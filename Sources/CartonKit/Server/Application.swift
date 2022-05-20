@@ -60,20 +60,25 @@ extension Application {
 
     get("main.wasm") {
       // stream the file
-      $0.eventLoop
-        .makeSucceededFuture($0.fileio.streamFile(at: configuration.mainWasmPath.pathString))
+      $0.fileio.streamFile(at: configuration.mainWasmPath.pathString)
     }
 
     // Serve resources for all targets at their respective paths.
     let buildDirectory = configuration.mainWasmPath.parentDirectory
 
-    for directoryName in try localFileSystem.resourcesDirectoryNames(relativeTo: buildDirectory) {
-      get(.constant(directoryName), "**") {
-        $0.eventLoop.makeSucceededFuture($0.fileio.streamFile(at: AbsolutePath(
-          buildDirectory.appending(component: directoryName),
-          $0.parameters.getCatchall().joined(separator: "/")
-        ).pathString))
+    func requestHandler(_ directoryName: String) -> ((Request) -> Response) {
+      { (request: Request) -> Response in
+        request.fileio.streamFile(
+          at: AbsolutePath(
+            buildDirectory.appending(component: directoryName),
+            request.parameters.getCatchall().joined(separator: "/")
+          ).pathString
+        )
       }
+    }
+
+    for directoryName in try localFileSystem.resourcesDirectoryNames(relativeTo: buildDirectory) {
+      get(.constant(directoryName), "**", use: requestHandler(directoryName))
     }
 
     let inferredMainTarget = configuration.manifest.targets.first {
@@ -84,11 +89,6 @@ extension Application {
     guard let mainTarget = inferredMainTarget else { return }
 
     let resourcesPath = configuration.manifest.resourcesPath(for: mainTarget)
-    get("**") {
-      $0.eventLoop.makeSucceededFuture($0.fileio.streamFile(at: AbsolutePath(
-        buildDirectory.appending(component: resourcesPath),
-        $0.parameters.getCatchall().joined(separator: "/")
-      ).pathString))
-    }
+    get("**", use: requestHandler(resourcesPath))
   }
 }

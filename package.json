@@ -3,13 +3,6 @@
   "version": "0.14.2",
   "description": "📦 Watcher, bundler, and test runner for your SwiftWasm apps ",
   "main": "index.js",
-  "scripts": {
-    "dev": "webpack --config entrypoint/dev.config.js",
-    "bundle": "webpack --config entrypoint/bundle.config.js",
-    "test": "webpack --config entrypoint/test.config.js",
-    "testNode": "webpack --config entrypoint/testNode.config.js",
-    "build": "run-p dev bundle test"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/swiftwasm/carton.git"
@@ -29,10 +22,8 @@
   "devDependencies": {
     "@wasmer/wasi": "^0.12.0",
     "@wasmer/wasmfs": "^0.12.0",
-    "javascript-kit-swift": "^0.14.0",
+    "esbuild": "^0.14.38",
     "npm-run-all": "^4.1.5",
-    "reconnecting-websocket": "^4.4.0",
-    "webpack": "^5.64.2",
-    "webpack-cli": "^4.9.1"
+    "reconnecting-websocket": "^4.4.0"
   }
 }

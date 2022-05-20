@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import ReconnectingWebSocket from "reconnecting-websocket";
-import { WasmRunner } from "./common"
+import { WasmRunner } from "./common.js";
 
 const socket = new ReconnectingWebSocket(`ws://${location.host}/watcher`);
 
@@ -23,34 +23,43 @@ socket.addEventListener("message", (message) => {
   }
 });
 
-const wasmRunner = WasmRunner({
-  onStderr() {
-    const prevLimit = Error.stackTraceLimit;
-    Error.stackTraceLimit = 1000
-    socket.send(
-      JSON.stringify({
-        kind: "stackTrace",
-        stackTrace: new Error().stack,
-      })
-    );
-    Error.stackTraceLimit = prevLimit;
-  }
-})
-
 const startWasiTask = async () => {
   // Fetch our Wasm File
   const response = await fetch("/main.wasm");
   const responseArrayBuffer = await response.arrayBuffer();
 
+  let runtimeConstructor;
+  try {
+    const { SwiftRuntime } = await import(
+      "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs"
+    );
+    runtimeConstructor = SwiftRuntime;
+  } catch {
+    console.log(
+      "JavaScriptKit module not available, running without JavaScriptKit runtime."
+    );
+  }
+
+  const wasmRunner = WasmRunner(
+    {
+      onStderr() {
+        const prevLimit = Error.stackTraceLimit;
+        Error.stackTraceLimit = 1000;
+        socket.send(
+          JSON.stringify({
+            kind: "stackTrace",
+            stackTrace: new Error().stack,
+          })
+        );
+        Error.stackTraceLimit = prevLimit;
+      },
+    },
+    runtimeConstructor
+  );
+
   // Instantiate the WebAssembly file
   const wasmBytes = new Uint8Array(responseArrayBuffer).buffer;
-  await wasmRunner.run(wasmBytes, {
-    __stack_sanitizer: {
-      report_stack_overflow: () => {
-        throw new Error("Detected stack-buffer-overflow.")
-      }
-    }
-  })
+  await wasmRunner.run(wasmBytes);
 };
 
 function handleError(e) {

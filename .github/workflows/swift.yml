@@ -13,13 +13,14 @@ jobs:
         include:
           - os: macos-12
             swift_version: 5.6
-            xcode: /Applications/Xcode_13.3.app/Contents/Developer
+            xcode: /Applications/Xcode_13.4.app/Contents/Developer
           - os: macos-11
             swift_version: 5.5
             xcode: /Applications/Xcode_13.2.1.app/Contents/Developer
           - os: ubuntu-20.04
             swift_version: 5.5
     name: Build on ${{ matrix.os }} with Swift ${{ matrix.swift_version }}
+    timeout-minutes: 40
     runs-on: ${{ matrix.os }}
 
     steps:

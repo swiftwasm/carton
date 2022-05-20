@@ -65,12 +65,17 @@ public extension TSCBasic.Process {
   // swiftlint:disable:next function_body_length
   static func run(
     _ arguments: [String],
+    environment: [String: String] = [:],
     loadingMessage: String = "Running...",
     parser: ProcessOutputParser? = nil,
     _ terminal: InteractiveWriter
   ) async throws {
     terminal.clearLine()
     terminal.write("\(loadingMessage)\n", inColor: .yellow)
+
+    if !environment.isEmpty {
+      terminal.write(environment.map { "\($0)=\($1)" }.joined(separator: " ") + " ")
+    }
 
     let processName = arguments[0].first == "/" ?
       AbsolutePath(arguments[0]).basename : arguments[0]
@@ -98,6 +103,7 @@ public extension TSCBasic.Process {
 
           let process = Process(
             arguments: arguments,
+            environment: ProcessEnv.vars.merging(environment) { _, new in new },
             outputRedirection: .stream(stdout: stdout, stderr: stderr),
             verbose: true,
             startNewProcessGroup: true
