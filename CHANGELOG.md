@@ -4,7 +4,7 @@ This release of `carton` includes enhancements and bugfixes. Namely:
 
 - Compatibility with [JavaScriptKit 0.15.0](https://github.com/swiftwasm/JavaScriptKit/releases/tag/0.15.0) and later.
   The long-standing incompatibility between different versions of `carton` and JavaScriptKit is resolved now. All
-  version combinations of `carton` and JavaScriptKit higher then 0.15 should be compatible with each other. This is
+  version combinations of `carton` and JavaScriptKit higher than 0.15 should be compatible with each other. This is
   achieved by supplying JavaScriptKit runtime via SwiftPM resources, instead of embedding within `.js` entrypoints as
   we did previously. If you relied on the previous behavior, please [open an
   issue](https://github.com/swiftwasm/carton/issues/new) describing your use case.
