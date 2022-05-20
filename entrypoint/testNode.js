@@ -32,7 +32,12 @@ const startWasiTask = async () => {
     const { SwiftRuntime } = await import(
       "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs"
     );
+
     runtimeConstructor = SwiftRuntime;
+
+    // Make `require` function available in the Swift environment. By default it's only available on the local scope,
+    // but not on the `global` object.
+    global.require = require;
   } catch {
     // No JavaScriptKit module found, run the Wasm module without JSKit
   }

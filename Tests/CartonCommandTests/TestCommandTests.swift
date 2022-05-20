@@ -24,7 +24,8 @@ import XCTest
 extension TestCommandTests: Testable {}
 
 private enum Constants {
-  static let anyPackageName = "TestApp"
+  static let testAppPackageName = "TestApp"
+  static let nodeJSKitPackageName = "NodeJSKitTest"
 }
 
 final class TestCommandTests: XCTestCase {
@@ -36,7 +37,7 @@ final class TestCommandTests: XCTestCase {
   }
 
   func testWithNoArguments() throws {
-    let packageDirectory = givenAPackageTestDirectory(Constants.anyPackageName)
+    let packageDirectory = givenAPackageTestDirectory(Constants.testAppPackageName)
 
     AssertExecuteCommand(
       command: "carton test",
@@ -45,8 +46,18 @@ final class TestCommandTests: XCTestCase {
     )
   }
 
-  func testEnvironmentNode() throws {
-    let packageDirectory = givenAPackageTestDirectory(Constants.anyPackageName)
+  func testEnvironmentNodeNoJSKit() throws {
+    let packageDirectory = givenAPackageTestDirectory(Constants.testAppPackageName)
+
+    AssertExecuteCommand(
+      command: "carton test --environment node",
+      cwd: packageDirectory.url,
+      debug: true
+    )
+  }
+
+  func testEnvironmentNodeJSKit() throws {
+    let packageDirectory = givenAPackageTestDirectory(Constants.nodeJSKitPackageName)
 
     AssertExecuteCommand(
       command: "carton test --environment node",
@@ -57,30 +68,30 @@ final class TestCommandTests: XCTestCase {
 
   // This test is prone to hanging on Linux.
   #if os(macOS)
-    func testEnvironmentDefaultBrowser() throws {
-      let packageDirectory = givenAPackageTestDirectory()
+  func testEnvironmentDefaultBrowser() throws {
+    let packageDirectory = givenAPackageTestDirectory()
 
-      let expectedTestSuiteCount = 1
-      let expectedTestsCount = 1
+    let expectedTestSuiteCount = 1
+    let expectedTestsCount = 1
 
-      let expectedContent =
-        """
-        Test Suites: \(ControlCode.CSI)32m\(expectedTestSuiteCount) passed\(ControlCode
+    let expectedContent =
+      """
+      Test Suites: \(ControlCode.CSI)32m\(expectedTestSuiteCount) passed\(ControlCode
         .CSI)0m, \(expectedTestSuiteCount) total
-        Tests:       \(ControlCode.CSI)32m\(expectedTestsCount) passed\(ControlCode
+      Tests:       \(ControlCode.CSI)32m\(expectedTestsCount) passed\(ControlCode
         .CSI)0m, \(expectedTestsCount) total
-        """
+      """
 
-      AssertExecuteCommand(
-        command: "carton test --environment defaultBrowser",
-        cwd: packageDirectory.url,
-        expected: expectedContent,
-        expectedContains: true
-      )
-    }
+    AssertExecuteCommand(
+      command: "carton test --environment defaultBrowser",
+      cwd: packageDirectory.url,
+      expected: expectedContent,
+      expectedContains: true
+    )
+  }
   #endif
 
-  private func givenAPackageTestDirectory(_ name: String = Constants.anyPackageName)
+  private func givenAPackageTestDirectory(_ name: String = Constants.testAppPackageName)
     -> TestDirectory
   {
     let packageDirectory = TestDirectory(testFixturesDirectory, name)
@@ -89,7 +100,6 @@ final class TestCommandTests: XCTestCase {
 
     return packageDirectory
   }
-
 }
 
 private class TestDirectory {
@@ -99,7 +109,7 @@ private class TestDirectory {
   var exists: Bool { directory.exists }
 
   init(_ testDirectory: AbsolutePath, _ dirName: String) {
-    self.directory = testDirectory.appending(components: dirName)
+    directory = testDirectory.appending(components: dirName)
     cleanBuildDir()
   }
 
