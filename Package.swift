@@ -27,11 +27,11 @@ let package = Package(
     .package(
       name: "SwiftPM",
       url: "https://github.com/apple/swift-package-manager.git",
-      .branch("release/5.6")
+      .branch("release/5.7")
     ),
     .package(
       url: "https://github.com/apple/swift-tools-support-core.git",
-      .branch("release/5.6")
+      .branch("release/5.7")
     ),
     .package(url: "https://github.com/vapor/vapor.git", from: "4.53.0"),
     .package(url: "https://github.com/apple/swift-crypto.git", from: "1.1.0"),
