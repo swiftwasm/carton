@@ -3,11 +3,22 @@
 set -ex
 
 if [ -x "$(command -v sudo)" ]; then
-  sudo apt-get update -y
-  sudo apt-get install -y zlib1g-dev libsqlite3-dev libcurl4-openssl-dev
+  sudoCommand=(sudo)
 else
-  apt-get update -y
-  apt-get install -y zlib1g-dev libsqlite3-dev libcurl4-openssl-dev
+  sudoCommand=()
+fi
+
+$sudoCommand apt-get update -y
+$sudoCommand apt-get install -y zlib1g-dev libsqlite3-dev libcurl4-openssl-dev
+
+if [ -x "$(command -v sudo)" ]; then
+  aptGet=(sudo apt-get)
+else
+  aptGet=apt-get
+fi
+
+if ! [ -x "$(command -v swift)" ]; then
+  curl -s https://archive.swiftlang.xyz/install.sh | $sudoCommand bash
 fi
 
 BINARYEN_VERSION=105

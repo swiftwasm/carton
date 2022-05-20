@@ -182,12 +182,15 @@ public class ToolchainSystem {
     }
 
     let releaseData = try fileSystem.readFileContents(releaseFile).description
-    let ubuntuSuffix: String
-    if releaseData.contains("DISTRIB_RELEASE=18.04") {
-      ubuntuSuffix = "ubuntu18.04"
-    } else if releaseData.contains("DISTRIB_RELEASE=20.04") {
-      ubuntuSuffix = "ubuntu20.04"
-    } else {
+    var ubuntuSuffix: String?
+    for release in ["18.04", "20.04", "22.04"] {
+      if releaseData.contains("DISTRIB_RELEASE=\(release)") {
+        ubuntuSuffix = "ubuntu\(release)"
+        break
+      }
+    }
+
+    guard let ubuntuSuffix = ubuntuSuffix else {
       throw ToolchainError.unsupportedOperatingSystem
     }
 
