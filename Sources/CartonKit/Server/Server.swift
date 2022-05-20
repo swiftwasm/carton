@@ -201,6 +201,8 @@ public actor Server {
     }
 
     isBuildCurrentlyRunning = true
+    defer { isBuildCurrentlyRunning = false }
+
     // `configuration.builder` is guaranteed to be non-nil here as its presence is checked in `init`
     try await run(configuration.builder!, configuration.terminal)
 
@@ -213,7 +215,6 @@ public actor Server {
     }
 
     isSubsequentBuildScheduled = false
-    isBuildCurrentlyRunning = false
   }
 
   private func add(pendingChanges: [AbsolutePath]) {}
