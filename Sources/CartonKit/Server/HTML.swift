@@ -34,9 +34,7 @@ extension HTML: ResponseEncodable {
     ))
   }
 
-  public static func readCustomIndexPage(at path: String?,
-                                         on fileSystem: FileSystem) throws -> String?
-  {
+  public static func readCustomIndexPage(at path: String?, on fileSystem: FileSystem) throws -> String? {
     if let customIndexPage = path {
       let content = try localFileSystem.readFileContents(customIndexPage.isAbsolutePath ?
         AbsolutePath(customIndexPage) :

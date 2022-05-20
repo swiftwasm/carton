@@ -24,7 +24,7 @@ extension Application {
     let port: Int
     let host: String
     let mainWasmPath: AbsolutePath
-    let customIndexContent: String?
+    let customIndexPath: AbsolutePath?
     let manifest: Manifest
     let product: ProductDescription?
     let entrypoint: Entrypoint
@@ -43,11 +43,20 @@ extension Application {
     middleware.use(FileMiddleware(publicDirectory: directory))
 
     // register routes
-    get { _ in
-      HTML(value: HTML.indexPage(
-        customContent: configuration.customIndexContent,
-        entrypointName: configuration.entrypoint.fileName
-      ))
+    get { (request: Request) -> EventLoopFuture<HTML> in
+      let customIndexContent: EventLoopFuture<String?>
+      if let path = configuration.customIndexPath?.pathString {
+        customIndexContent = request.fileio.collectFile(at: path).map { String(buffer: $0) }
+      } else {
+        customIndexContent = request.eventLoop.makeSucceededFuture(nil)
+      }
+
+      return customIndexContent.map {
+        HTML(value: HTML.indexPage(
+          customContent: $0,
+          entrypointName: configuration.entrypoint.fileName
+        ))
+      }
     }
 
     webSocket("watcher") { request, ws in

@@ -127,7 +127,7 @@ struct Dev: AsyncParsableCommand {
         shouldSkipAutoOpen: skipAutoOpen,
         port: port,
         host: host,
-        customIndexContent: HTML.readCustomIndexPage(at: customIndexPage, on: localFileSystem),
+        customIndexPath: customIndexPage.map { AbsolutePath($0, relativeTo: localFileSystem.currentWorkingDirectory!) },
         // swiftlint:disable:next force_try
         manifest: try! toolchain.manifest.get(),
         product: build.product,

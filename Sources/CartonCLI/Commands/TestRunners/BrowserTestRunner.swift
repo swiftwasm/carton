@@ -39,7 +39,7 @@ struct BrowserTestRunner: TestRunner {
         shouldSkipAutoOpen: false,
         port: port,
         host: host,
-        customIndexContent: nil,
+        customIndexPath: nil,
         manifest: manifest,
         product: nil,
         entrypoint: Constants.entrypoint,
