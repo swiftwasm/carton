@@ -50,8 +50,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/TokamakUI/Tokamak",
       "state" : {
-        "branch" : "main",
-        "revision" : "337b80a4c408db814e5e9e61bd232b4f96251308"
+        "revision" : "5b7e7058e8e6d3679b9da84bbe0b0e1abe21b751",
+        "version" : "0.10.1"
       }
     }
   ],
