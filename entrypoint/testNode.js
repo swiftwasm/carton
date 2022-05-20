@@ -35,7 +35,7 @@ const startWasiTask = async () => {
 
     runtimeConstructor = SwiftRuntime;
 
-    // Make `require` function available in the Swift environment. By default it's only available on the local scope,
+    // Make `require` function available in the Swift environment. By default it's only available in the local scope,
     // but not on the `global` object.
     global.require = require;
   } catch {
