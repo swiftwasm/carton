@@ -62,13 +62,7 @@ const startWasiTask = async () => {
   const wasmBytes = new Uint8Array(responseArrayBuffer).buffer;
   // Start the WebAssembly WASI instance
   try {
-    await wasmRunner.run(wasmBytes, {
-      __stack_sanitizer: {
-        report_stack_overflow: () => {
-          throw new Error("Detected stack-buffer-overflow.");
-        },
-      },
-    });
+    await wasmRunner.run(wasmBytes);
   } catch (error) {
     if (!(error instanceof WASIExitError) || error.code != 0) {
       throw error; // not a successful test run, rethrow

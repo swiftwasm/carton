@@ -44,13 +44,7 @@ const startWasiTask = async () => {
 
   const wasmRunner = WasmRunner({ args: testArgs }, runtimeConstructor);
 
-  await wasmRunner.run(wasmBytes, {
-    __stack_sanitizer: {
-      report_stack_overflow: () => {
-        throw new Error("Detected stack-buffer-overflow.");
-      },
-    },
-  });
+  await wasmRunner.run(wasmBytes);
 };
 
 startWasiTask().catch((e) => {

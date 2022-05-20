@@ -64,6 +64,14 @@ export const WasmRunner = (rawOptions, SwiftRuntime) => {
 
   return {
     async run(wasmBytes, extraWasmImports) {
+      if (!extraWasmImports) {
+        extraWasmImports = {};
+      }
+      extraWasmImports.__stack_sanitizer = {
+        report_stack_overflow: () => {
+          throw new Error("Detected stack buffer overflow.");
+        },
+      };
       const importObject = createWasmImportObject(extraWasmImports);
       const module = await WebAssembly.instantiate(wasmBytes, importObject);
 

@@ -59,13 +59,7 @@ const startWasiTask = async () => {
 
   // Instantiate the WebAssembly file
   const wasmBytes = new Uint8Array(responseArrayBuffer).buffer;
-  await wasmRunner.run(wasmBytes, {
-    __stack_sanitizer: {
-      report_stack_overflow: () => {
-        throw new Error("Detected stack-buffer-overflow.");
-      },
-    },
-  });
+  await wasmRunner.run(wasmBytes);
 };
 
 function handleError(e) {
