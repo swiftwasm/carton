@@ -54,7 +54,7 @@ not supported.
 This runtime allows Swift and JavaScript code to interoperate in Node.js and browser environments. Because of how
 JavaScriptKit runtime was embedded, older versions of JavaScriptKit were incompatible with different versions of
 `carton` and vice versa. This incompatibility between different versions was resolved starting with JavaScriptKit 0.15
-and `carton` 0.15. All version combinations of `carton` and JavaScriptKit higher then those are compatible with each
+and `carton` 0.15. All version combinations of `carton` and JavaScriptKit higher than those are compatible with each
 other.
 
 You still have to keep in mind that older versions of SwiftWasm may be incompatible with newer `carton`. You can follow
