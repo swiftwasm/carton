@@ -2,19 +2,20 @@
 
 This release of `carton` includes enhancements and bugfixes. Namely:
 
-- Compatibility with [JavaScriptKit 0.15.0](https://github.com/swiftwasm/JavaScriptKit/releases/tag/0.15.0) and later. The long-standing incompatibility between different versions of `carton` and JavaScriptKit is resolved now. All version
-  combinations of `carton` and JavaScriptKit higher then 0.15 should be compatible with each other. This is achieved by
-  supplying JavaScriptKit runtime via SwiftPM resources, instead of embedding within `.js` entrypoints, as we did previously.
-  If you relied on the previous behavior, please [open an issue](https://github.com/swiftwasm/carton/issues/new)
-  describing your use case.
-- `carton test` can now run your test suite with Node.js when that is installed. Run it as `carton test --environment node`
-  to enable this.
+- Compatibility with [JavaScriptKit 0.15.0](https://github.com/swiftwasm/JavaScriptKit/releases/tag/0.15.0) and later.
+  The long-standing incompatibility between different versions of `carton` and JavaScriptKit is resolved now. All
+  version combinations of `carton` and JavaScriptKit higher then 0.15 should be compatible with each other. This is
+  achieved by supplying JavaScriptKit runtime via SwiftPM resources, instead of embedding within `.js` entrypoints, as
+  we did previously. If you relied on the previous behavior, please [open an
+  issue](https://github.com/swiftwasm/carton/issues/new) describing your use case.
+- `carton test` can now run your test suite with Node.js when that is installed. Run it as `carton test --environment node` to enable this.
 - SwiftPM resources from sub-dependencies of your package are now available on the web server with `carton dev` and
   bundled with `carton bundle`. Resources from each target are still isolated in subdirectories named with
   `\(packageName)_\(targetName).resources` format, which is hardcoded by SwiftPM. Resources from the main target you're
   building are still available at the root path, also accessible via `Bundle.main.path(forResource:ofType:)` function
   when you import Foundation (mind the binary size overhead when relying on Foundation). Incorrect paths accessed via
-  `Bundle.module` are a known issue, which we track as [swiftwasm/swift#4573](https://github.com/swiftwasm/swift/issues/4573).
+  `Bundle.module` are a known issue, which we track as
+  [swiftwasm/swift#4573](https://github.com/swiftwasm/swift/issues/4573).
 
 Many thanks to [@AntonioCandinho](https://github.com/AntonioCandinho), [@j-f1](https://github.com/j-f1), and
 [@kateinoigakukun](https://github.com/kateinoigakukun) for contributions!
