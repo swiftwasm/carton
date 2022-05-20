@@ -43,18 +43,20 @@ extension Application {
     middleware.use(FileMiddleware(publicDirectory: directory))
 
     // register routes
-    get { (request: Request) async throws -> HTML in
-      let customIndexContent: String?
+    get { (request: Request) -> EventLoopFuture<HTML> in
+      let customIndexContent: EventLoopFuture<String?>
       if let path = configuration.customIndexPath?.pathString {
-        customIndexContent = try await String(buffer: request.fileio.collectFile(at: path).get())
+        customIndexContent = request.fileio.collectFile(at: path).map { String(buffer: $0) }
       } else {
-        customIndexContent = nil
+        customIndexContent = request.eventLoop.makeSucceededFuture(nil)
       }
 
-      return HTML(value: HTML.indexPage(
-        customContent: customIndexContent,
-        entrypointName: configuration.entrypoint.fileName
-      ))
+      return customIndexContent.map {
+        HTML(value: HTML.indexPage(
+          customContent: $0,
+          entrypointName: configuration.entrypoint.fileName
+        ))
+      }
     }
 
     webSocket("watcher") { request, ws in

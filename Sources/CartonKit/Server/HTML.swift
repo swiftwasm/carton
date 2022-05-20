@@ -25,13 +25,13 @@ public struct HTML {
   let value: String
 }
 
-extension HTML: AsyncResponseEncodable {
-  public func encodeResponse(for request: Request) async throws -> Response {
+extension HTML: ResponseEncodable {
+  public func encodeResponse(for request: Request) -> EventLoopFuture<Response> {
     var headers = HTTPHeaders()
     headers.add(name: .contentType, value: "text/html")
-    return try await request.eventLoop.makeSucceededFuture(.init(
+    return request.eventLoop.makeSucceededFuture(.init(
       status: .ok, headers: headers, body: .init(string: value)
-    )).get()
+    ))
   }
 
   public static func customIndexPath(from path: String, on fileSystem: FileSystem) -> AbsolutePath {
@@ -40,9 +40,7 @@ extension HTML: AsyncResponseEncodable {
       AbsolutePath(localFileSystem.currentWorkingDirectory!, path)
   }
 
-  public static func readCustomIndexPage(at path: String?,
-                                         on fileSystem: FileSystem) throws -> String?
-  {
+  public static func readCustomIndexPage(at path: String?, on fileSystem: FileSystem) throws -> String? {
     if let customIndexPage = path {
       let content = try localFileSystem.readFileContents(customIndexPage.isAbsolutePath ?
         AbsolutePath(customIndexPage) :

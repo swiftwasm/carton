@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
   name: "carton",
-  platforms: [.macOS(.v12)],
+  platforms: [.macOS("10.15.4")],
   products: [
     .library(name: "SwiftToolchain", targets: ["SwiftToolchain"]),
     .library(name: "CartonHelpers", targets: ["CartonHelpers"]),
