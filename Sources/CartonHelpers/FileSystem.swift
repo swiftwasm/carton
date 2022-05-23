@@ -52,7 +52,7 @@ public extension FileSystem {
 
   func resourcesDirectoryNames(relativeTo buildDirectory: AbsolutePath) throws -> [String] {
     try getDirectoryContents(buildDirectory).filter {
-      $0.hasSuffix(".resources") && isDirectory(buildDirectory.appending(component: $0))
+      $0.hasSuffix(".resources")
     }
   }
 }
