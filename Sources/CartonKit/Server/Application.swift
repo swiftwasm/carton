@@ -59,7 +59,8 @@ extension Application {
       }
     }
 
-    webSocket("watcher") { request, ws in
+    // Don't limit the size of frame to accept large test outputs
+    webSocket("watcher", maxFrameSize: .init(integerLiteral: Int(UInt32.max))) { request, ws in
       let environment = request.headers["User-Agent"].compactMap(DestinationEnvironment.init).first
         ?? .other
 
