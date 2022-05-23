@@ -31,6 +31,7 @@ struct NodeTestRunner: TestRunner {
   func run() async throws {
     terminal.write("\nRunning the test bundle with Node.js:\n", inColor: .yellow)
 
+    try Constants.entrypoint.check(on: localFileSystem, terminal)
     let (_, _, entrypointPath) = Constants.entrypoint.paths(on: localFileSystem)
 
     // Allow Node.js to resolve modules from resource directories by making them relative to the entrypoint path.
