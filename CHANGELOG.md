@@ -1,3 +1,11 @@
+# 0.15.1 (23 May 2022)
+
+This release fixes an issue when temporary symlinks weren't cleaned up after running `carton test --environment node`.
+
+**Merged pull requests:**
+
+- Fix symlinks not fully cleaned up in Node.js tests ([#349](https://github.com/swiftwasm/carton/pull/349)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+
 # 0.15.0 (20 May 2022)
 
 This release of `carton` includes enhancements and bugfixes. Namely:
