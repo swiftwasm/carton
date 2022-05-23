@@ -1,3 +1,11 @@
+# 0.15.2 (23 May 2022)
+
+This release fixes an issue when JS entrypoints weren't unpacked during `carton test --environment node` runs.
+
+**Merged pull requests:**
+
+- Add missing check for Node.js entrypoint ([#350](https://github.com/swiftwasm/carton/pull/350)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+
 # 0.15.1 (23 May 2022)
 
 This release fixes an issue when temporary symlinks weren't cleaned up after running `carton test --environment node`.
