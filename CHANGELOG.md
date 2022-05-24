@@ -1,3 +1,13 @@
+# 0.15.3 (24 May 2022)
+
+This release fixes an issue when `carton test` wouldn't be finished after large number of test suites, and
+improved HTML 5 compatibility.
+
+**Merged pull requests:**
+
+- Stop limiting WS frame size to 16kb for large number of test suites ([#353](https://github.com/swiftwasm/carton/pull/353)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+- Use standards mode in default index page ([#351](https://github.com/swiftwasm/carton/pull/351)) via [@carson-katri](https://github.com/carson-katri)
+
 # 0.15.2 (23 May 2022)
 
 This release fixes an issue when JS entrypoints weren't unpacked during `carton test --environment node` runs.
