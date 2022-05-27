@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "ExecutableTarget",
     dependencies: [
-        .package(path: "../../../../"),
+        .package(path: "../../../../CartonPlugin"),
     ],
     targets: [
         .executableTarget(
