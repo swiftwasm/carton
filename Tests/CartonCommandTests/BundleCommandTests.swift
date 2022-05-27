@@ -24,7 +24,7 @@ extension BundleCommandTests: Testable {}
 final class BundleCommandTests: XCTestCase {
   func testWithNoArguments() throws {
     // given I've created a directory
-    let package = "Milk"
+    let package = "EchoExecutable"
     let packageDirectory = testFixturesDirectory.appending(component: package)
 
     let bundle = "Bundle"
@@ -59,7 +59,7 @@ final class BundleCommandTests: XCTestCase {
   }
 
   func testWithXswiftc() throws {
-    let package = "Milk"
+    let package = "EchoExecutable"
     let packageDirectory = testFixturesDirectory.appending(component: package)
 
     let bundle = "Bundle"

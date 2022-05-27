@@ -109,6 +109,7 @@ let package = Package(
         "CartonCLI",
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
+        .product(name: "TSCTestSupport", package: "swift-tools-support-core"),
       ]
     ),
   ]

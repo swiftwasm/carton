@@ -41,7 +41,7 @@ final class SDKCommandTests: XCTestCase {
   }
 
   func testLocalNoFile() throws {
-    let package = "Milk"
+    let package = "EchoExecutable"
     let packageDirectory = testFixturesDirectory.appending(component: package)
     let swiftVersion = packageDirectory.appending(component: ".swift-version")
 
@@ -63,7 +63,7 @@ final class SDKCommandTests: XCTestCase {
   }
 
   func testLocalWithFile() throws {
-    let package = "Milk"
+    let package = "EchoExecutable"
     let packageDirectory = testFixturesDirectory.appending(component: package)
     let swiftVersion = packageDirectory.appending(component: ".swift-version")
 

@@ -35,7 +35,7 @@ final class DevCommandTests: XCTestCase {
     let url = "http://127.0.0.1:8080"
 
     // the directory was built using `carton init --template tokamak`
-    let package = "Milk"
+    let package = "EchoExecutable"
     let packageDirectory = testFixturesDirectory.appending(component: package)
     XCTAssertTrue(
       packageDirectory.exists,
@@ -64,7 +64,7 @@ final class DevCommandTests: XCTestCase {
     let url = "http://127.0.0.1:8081"
 
     // the directory was built using `carton init --template tokamak`
-    let package = "Milk"
+    let package = "EchoExecutable"
     let packageDirectory = testFixturesDirectory.appending(component: package)
     XCTAssertTrue(
       packageDirectory.exists,
