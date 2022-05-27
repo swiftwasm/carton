@@ -1,4 +1,4 @@
-// swift-tools-version:5.5
+// swift-tools-version:5.6
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -13,6 +13,7 @@ let package = Package(
     .library(name: "CartonCLI", targets: ["CartonCLI"]),
     .executable(name: "carton", targets: ["Carton"]),
     .executable(name: "carton-release", targets: ["carton-release"]),
+    .plugin(name: "WebAssemblyBuildSupport", targets: ["WebAssemblyBuildSupport"]),
   ],
   dependencies: [
     .package(
@@ -50,6 +51,12 @@ let package = Package(
       dependencies: [
         "CartonCLI",
       ]
+    ),
+    .plugin(
+      name: "WebAssemblyBuildSupport",
+      capability: .command(
+        intent: .custom(verb: "build-wasm", description: "Build .wasm")
+      )
     ),
     .target(
       name: "CartonCLI",
