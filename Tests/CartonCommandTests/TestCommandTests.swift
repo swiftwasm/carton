@@ -73,8 +73,9 @@ final class TestCommandTests: XCTestCase {
           .CSI)0m, \(expectedTestsCount) total
         """
 
+      // FIXME: Don't assume a specific port is available since it can be used by others or tests
       AssertExecuteCommand(
-        command: "carton test --environment defaultBrowser",
+        command: "carton test --environment defaultBrowser --port 8082",
         cwd: packageDirectory.url,
         expected: expectedContent,
         expectedContains: true

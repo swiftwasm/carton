@@ -29,6 +29,7 @@ final class DevCommandTests: XCTestCase {
 
   #if os(macOS)
   func testWithNoArguments() throws {
+    // FIXME: Don't assume a specific port is available since it can be used by others or tests
     try withFixture("EchoExecutable") { packageDirectory in
       guard let process = executeCommand(
         command: "carton dev --verbose",
@@ -44,6 +45,7 @@ final class DevCommandTests: XCTestCase {
   }
 
   func testWithArguments() throws {
+    // FIXME: Don't assume a specific port is available since it can be used by others or tests
     try withFixture("EchoExecutable") { packageDirectory in
       guard let process = executeCommand(
         command: "carton dev --verbose --port 8081",
