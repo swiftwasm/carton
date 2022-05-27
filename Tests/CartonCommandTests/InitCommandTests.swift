@@ -91,7 +91,6 @@ final class InitCommandTests: XCTestCase {
         .appending(components: "Sources", package, "main.swift").pathString)
 
       XCTAssertEqual(expectedTemplateSource, actualTemplateSource, "Template Sources do not match")
-
     }
   }
 

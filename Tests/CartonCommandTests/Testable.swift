@@ -42,7 +42,7 @@ public var packageDirectory: AbsolutePath {
     .parentDirectory
 }
 
-func withFixture(_ name: String, _ body: (AbsolutePath) throws -> Void) throws {
+func withFixture(_ name: String, _ body: (AbsolutePath) throws -> ()) throws {
   let fixtureDir = testFixturesDirectory.appending(component: name)
   try withTemporaryDirectory(prefix: name) { tmpDirPath in
     let dstDir = tmpDirPath.appending(component: name)

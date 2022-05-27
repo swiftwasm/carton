@@ -27,7 +27,6 @@ private enum Constants {
 }
 
 final class TestCommandTests: XCTestCase {
-
   func testWithNoArguments() throws {
     try withFixture(Constants.testAppPackageName) { packageDirectory in
       AssertExecuteCommand(
