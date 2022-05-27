@@ -56,6 +56,10 @@ struct Test: AsyncParsableCommand {
   )
   var host = "127.0.0.1"
 
+  @Flag(name: .customLong("skip-build"),
+        help: "Skip building the test target")
+  var shouldSkipBuilding: Bool = false
+
   @OptionGroup()
   var buildOptions: BuildOptions
 
@@ -71,7 +75,19 @@ struct Test: AsyncParsableCommand {
   func run() async throws {
     let terminal = InteractiveWriter.stdout
     let toolchain = try await Toolchain(localFileSystem, terminal)
-    let bundlePath = try await toolchain.buildTestBundle(flavor: buildFlavor)
+    let bundlePath: AbsolutePath
+    if shouldSkipBuilding {
+      bundlePath = try toolchain.getTestProduct(flavor: buildFlavor).artifactPath
+      guard localFileSystem.exists(bundlePath) else {
+        terminal.write(
+          "No built binary found in \(bundlePath)\n",
+          inColor: .red
+        )
+        throw ExitCode.failure
+      }
+    } else {
+      bundlePath = try await toolchain.buildTestBundle(flavor: buildFlavor)
+    }
 
     switch environment {
     case .wasmer:

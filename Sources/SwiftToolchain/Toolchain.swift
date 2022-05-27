@@ -302,14 +302,19 @@ public final class Toolchain {
     return .init(arguments: builderArguments, mainWasmPath: mainWasmPath, product: product)
   }
 
-  /// Returns an absolute path to the resulting test bundle
-  public func buildTestBundle(
-    flavor: BuildFlavor
-  ) async throws -> AbsolutePath {
+  public func getTestProduct(flavor: BuildFlavor) throws -> (name: String, artifactPath: AbsolutePath) {
     let manifest = try manifest.get()
     let binPath = try inferBinPath(isRelease: flavor.isRelease)
     let testProductName = "\(manifest.displayName)PackageTests"
     let testBundlePath = binPath.appending(component: "\(testProductName).wasm")
+    return (testProductName, testBundlePath)
+  }
+
+  /// Returns an absolute path to the resulting test bundle
+  public func buildTestBundle(
+    flavor: BuildFlavor
+  ) async throws -> AbsolutePath {
+    let (testProductName, testBundlePath) = try getTestProduct(flavor: flavor)
     terminal.logLookup("- test bundle to run: ", testBundlePath.pathString)
 
     terminal.write(
