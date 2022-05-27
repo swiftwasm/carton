@@ -19,100 +19,80 @@
 import TSCBasic
 import XCTest
 
-extension InitCommandTests: Testable {}
-
 final class InitCommandTests: XCTestCase {
   func testWithNoArguments() throws {
-    // given I've created a directory
-    let package = "wasp"
-    let packageDirectory = testFixturesDirectory.appending(component: package)
+    try withTemporaryDirectory { tmpDirPath in
+      let package = "wasp"
+      let packageDirectory = tmpDirPath.appending(component: package)
 
-    // it's ok if there is nothing to delete
-    do { try packageDirectory.delete() } catch {}
+      try packageDirectory.mkdir()
+      try ProcessEnv.chdir(packageDirectory)
+      try Process.checkNonZeroExit(arguments: [cartonPath, "init"])
 
-    try packageDirectory.mkdir()
-
-    XCTAssertTrue(packageDirectory.exists, "Did not create \(package) directory")
-
-    AssertExecuteCommand(
-      command: "carton init",
-      cwd: packageDirectory.url
-    )
-
-    // Confirm that the files are actually in the folder
-    XCTAssertTrue(packageDirectory.ls().contains("Package.swift"), "Package.swift does not exist")
-    XCTAssertTrue(packageDirectory.ls().contains("README.md"), "README.md does not exist")
-    XCTAssertTrue(packageDirectory.ls().contains(".gitignore"), ".gitignore does not exist")
-    XCTAssertTrue(packageDirectory.ls().contains("Sources"), "Sources does not exist")
-    XCTAssertTrue(
-      packageDirectory.ls().contains("Sources/\(package)"),
-      "Sources/\(package) does not exist"
-    )
-    XCTAssertTrue(
-      packageDirectory.ls().contains("Sources/\(package)/main.swift"),
-      "Sources/\(package)/main.swift does not exist"
-    )
-    XCTAssertTrue(packageDirectory.ls().contains("Tests"), "Tests does not exist")
-    XCTAssertTrue(
-      packageDirectory.ls().contains("Tests/\(package)Tests"),
-      "Tests/\(package)Tests does not exist"
-    )
-    XCTAssertTrue(
-      packageDirectory.ls().contains("Tests/\(package)Tests/\(package)Tests.swift"),
-      "Tests/\(package)Tests/\(package)Tests.swift does not exist"
-    )
-
-    // finally, clean up
-    try packageDirectory.delete()
+      // Confirm that the files are actually in the folder
+      XCTAssertTrue(packageDirectory.ls().contains("Package.swift"), "Package.swift does not exist")
+      XCTAssertTrue(packageDirectory.ls().contains("README.md"), "README.md does not exist")
+      XCTAssertTrue(packageDirectory.ls().contains(".gitignore"), ".gitignore does not exist")
+      XCTAssertTrue(packageDirectory.ls().contains("Sources"), "Sources does not exist")
+      XCTAssertTrue(
+        packageDirectory.ls().contains("Sources/\(package)"),
+        "Sources/\(package) does not exist"
+      )
+      XCTAssertTrue(
+        packageDirectory.ls().contains("Sources/\(package)/main.swift"),
+        "Sources/\(package)/main.swift does not exist"
+      )
+      XCTAssertTrue(packageDirectory.ls().contains("Tests"), "Tests does not exist")
+      XCTAssertTrue(
+        packageDirectory.ls().contains("Tests/\(package)Tests"),
+        "Tests/\(package)Tests does not exist"
+      )
+      XCTAssertTrue(
+        packageDirectory.ls().contains("Tests/\(package)Tests/\(package)Tests.swift"),
+        "Tests/\(package)Tests/\(package)Tests.swift does not exist"
+      )
+    }
   }
 
   func testInitWithTokamakTemplate() throws {
-    // given I've created a directory
-    let package = "fusion"
-    let packageDirectory = testFixturesDirectory.appending(component: package)
+    try withTemporaryDirectory { tmpDirPath in
 
-    // it's ok if there is nothing to delete
-    do { try packageDirectory.delete() } catch {}
+      let package = "fusion"
+      let packageDirectory = tmpDirPath.appending(component: package)
 
-    try packageDirectory.mkdir()
+      try packageDirectory.mkdir()
+      try ProcessEnv.chdir(packageDirectory)
+      try Process.checkNonZeroExit(arguments: [cartonPath, "init", "--template", "tokamak"])
 
-    XCTAssertTrue(packageDirectory.exists, "Did not create \(package) directory")
+      // Confirm that the files are actually in the folder
+      XCTAssertTrue(packageDirectory.ls().contains("Package.swift"), "Package.swift does not exist")
+      XCTAssertTrue(packageDirectory.ls().contains("README.md"), "README.md does not exist")
+      XCTAssertTrue(packageDirectory.ls().contains(".gitignore"), ".gitignore does not exist")
+      XCTAssertTrue(packageDirectory.ls().contains("Sources"), "Sources does not exist")
+      XCTAssertTrue(
+        packageDirectory.ls().contains("Sources/\(package)"),
+        "Sources/\(package) does not exist"
+      )
+      XCTAssertTrue(
+        packageDirectory.ls().contains("Sources/\(package)/main.swift"),
+        "Sources/\(package)/main.swift does not exist"
+      )
+      XCTAssertTrue(packageDirectory.ls().contains("Tests"), "Tests does not exist")
+      XCTAssertTrue(
+        packageDirectory.ls().contains("Tests/\(package)Tests"),
+        "Tests/\(package)Tests does not exist"
+      )
+      XCTAssertTrue(
+        packageDirectory.ls().contains("Tests/\(package)Tests/\(package)Tests.swift"),
+        "Tests/\(package)Tests/\(package)Tests.swift does not exist"
+      )
 
-    AssertExecuteCommand(
-      command: "carton init --template tokamak",
-      cwd: packageDirectory.url
-    )
+      let actualTemplateSource = try String(contentsOfFile: packageDirectory
+        .appending(components: "Sources", package, "main.swift").pathString)
 
-    // Confirm that the files are actually in the folder
-    XCTAssertTrue(packageDirectory.ls().contains("Package.swift"), "Package.swift does not exist")
-    XCTAssertTrue(packageDirectory.ls().contains("README.md"), "README.md does not exist")
-    XCTAssertTrue(packageDirectory.ls().contains(".gitignore"), ".gitignore does not exist")
-    XCTAssertTrue(packageDirectory.ls().contains("Sources"), "Sources does not exist")
-    XCTAssertTrue(
-      packageDirectory.ls().contains("Sources/\(package)"),
-      "Sources/\(package) does not exist"
-    )
-    XCTAssertTrue(
-      packageDirectory.ls().contains("Sources/\(package)/main.swift"),
-      "Sources/\(package)/main.swift does not exist"
-    )
-    XCTAssertTrue(packageDirectory.ls().contains("Tests"), "Tests does not exist")
-    XCTAssertTrue(
-      packageDirectory.ls().contains("Tests/\(package)Tests"),
-      "Tests/\(package)Tests does not exist"
-    )
-    XCTAssertTrue(
-      packageDirectory.ls().contains("Tests/\(package)Tests/\(package)Tests.swift"),
-      "Tests/\(package)Tests/\(package)Tests.swift does not exist"
-    )
+      XCTAssertEqual(expectedTemplateSource, actualTemplateSource, "Template Sources do not match")
 
-    let actualTemplateSource = try String(contentsOfFile: packageDirectory
-      .appending(components: "Sources", package, "main.swift").pathString)
-
-    XCTAssertEqual(expectedTemplateSource, actualTemplateSource, "Template Sources do not match")
-
-    // finally, clean up
-    try packageDirectory.delete()
+    }
   }
 
   let expectedTemplateSource =

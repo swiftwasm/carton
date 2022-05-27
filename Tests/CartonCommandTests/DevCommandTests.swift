@@ -19,11 +19,8 @@ import AsyncHTTPClient
 @testable import CartonCLI
 import XCTest
 
-extension DevCommandTests: Testable {}
-
 final class DevCommandTests: XCTestCase {
   private var client: HTTPClient?
-  private var process: Process?
 
   override func tearDown() {
     try? client?.syncShutdown()
@@ -32,65 +29,37 @@ final class DevCommandTests: XCTestCase {
 
   #if os(macOS)
   func testWithNoArguments() throws {
-    let url = "http://127.0.0.1:8080"
+    try withFixture("EchoExecutable") { packageDirectory in
+      guard let process = executeCommand(
+        command: "carton dev --verbose",
+        shouldPrintOutput: true,
+        cwd: packageDirectory.url
+      ) else {
+        XCTFail("Could not create process")
+        return
+      }
 
-    // the directory was built using `carton init --template tokamak`
-    let package = "EchoExecutable"
-    let packageDirectory = testFixturesDirectory.appending(component: package)
-    XCTAssertTrue(
-      packageDirectory.exists,
-      "\(package) directory does not exist. Cannot execute tests."
-    )
-
-    do { try packageDirectory.appending(component: ".build").delete() } catch {}
-
-    guard let process = executeCommand(
-      command: "carton dev --verbose",
-      shouldPrintOutput: true,
-      cwd: packageDirectory.url
-    ) else {
-      XCTFail("Could not create process")
-      return
+      checkForExpectedContent(process: process, at: "http://127.0.0.1:8080")
     }
-    self.process = process
-
-    checkForExpectedContent(at: url)
-
-    // clean up
-    do { try packageDirectory.appending(component: ".build").delete() } catch {}
   }
 
   func testWithArguments() throws {
-    let url = "http://127.0.0.1:8081"
+    try withFixture("EchoExecutable") { packageDirectory in
+      guard let process = executeCommand(
+        command: "carton dev --verbose --port 8081",
+        shouldPrintOutput: true,
+        cwd: packageDirectory.url
+      ) else {
+        XCTFail("Could not create process")
+        return
+      }
 
-    // the directory was built using `carton init --template tokamak`
-    let package = "EchoExecutable"
-    let packageDirectory = testFixturesDirectory.appending(component: package)
-    XCTAssertTrue(
-      packageDirectory.exists,
-      "\(package) directory does not exist. Cannot execute tests."
-    )
-
-    do { try packageDirectory.appending(component: ".build").delete() } catch {}
-
-    guard let process = executeCommand(
-      command: "carton dev --verbose --port 8081",
-      shouldPrintOutput: true,
-      cwd: packageDirectory.url
-    ) else {
-      XCTFail("Could not create process")
-      return
+      checkForExpectedContent(process: process, at: "http://127.0.0.1:8081")
     }
-    self.process = process
-
-    checkForExpectedContent(at: url)
-
-    // clean up
-    do { try packageDirectory.appending(component: ".build").delete() } catch {}
   }
   #endif
 
-  func checkForExpectedContent(at url: String) {
+  func checkForExpectedContent(process: Process, at url: String) {
     // client time out for connecting and responding
     let timeOut: Int64 = 60
 
@@ -128,8 +97,7 @@ final class DevCommandTests: XCTestCase {
     // give the server some time to start
     repeat {
       // Don't wait for anything if the process is dead.
-      guard process?.isRunning == true else {
-        process = nil
+      guard process.isRunning else {
         break
       }
 
@@ -139,7 +107,7 @@ final class DevCommandTests: XCTestCase {
     } while count < polls && response == nil
 
     // end the process regardless of success
-    process?.terminate()
+    process.terminate()
 
     if let response = response {
       XCTAssertTrue(response.status == .ok, "Response was not ok")

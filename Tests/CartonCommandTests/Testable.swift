@@ -17,45 +17,37 @@
 
 import Foundation
 import TSCBasic
+import TSCTestSupport
 
-public protocol Testable {
-  var productsDirectory: AbsolutePath { get }
-  var testFixturesDirectory: AbsolutePath { get }
-  var packageDirectory: AbsolutePath { get }
+/// Returns path to the built products directory.
+public var productsDirectory: AbsolutePath {
+  #if os(macOS)
+  for bundle in Bundle.allBundles where bundle.bundlePath.hasSuffix(".xctest") {
+    return AbsolutePath(bundle.bundleURL.deletingLastPathComponent().path)
+  }
+  fatalError("couldn't find the products directory")
+  #else
+  return AbsolutePath(Bundle.main.bundleURL.path)
+  #endif
 }
 
-public extension Testable {
-  /// Returns path to the built products directory.
-  var productsDirectory: AbsolutePath {
-    #if os(macOS)
-    for bundle in Bundle.allBundles where bundle.bundlePath.hasSuffix(".xctest") {
-      return AbsolutePath(bundle.bundleURL.deletingLastPathComponent().path)
-    }
-    fatalError("couldn't find the products directory")
-    #else
-    return AbsolutePath(Bundle.main.bundleURL.path)
-    #endif
-  }
+public var testFixturesDirectory: AbsolutePath {
+  packageDirectory.appending(components: "Tests", "Fixtures")
+}
 
-  var testFixturesDirectory: AbsolutePath {
-    packageDirectory.appending(components: "Tests", "Fixtures")
-  }
+public var packageDirectory: AbsolutePath {
+  AbsolutePath(#filePath)
+    .parentDirectory
+    .parentDirectory
+    .parentDirectory
+}
 
-  var packageDirectory: AbsolutePath {
-    // necessary if you are using xcode
-    if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
-      return productsDirectory
-        .parentDirectory
-        .parentDirectory
-        .parentDirectory
-        .parentDirectory
-        .parentDirectory
-    }
-
-    return productsDirectory
-      .parentDirectory
-      .parentDirectory
-      .parentDirectory
+func withFixture(_ name: String, _ body: (AbsolutePath) throws -> Void) throws {
+  let fixtureDir = testFixturesDirectory.appending(component: name)
+  try withTemporaryDirectory(prefix: name) { tmpDirPath in
+    let dstDir = tmpDirPath.appending(component: name)
+    try systemQuietly("cp", "-R", "-H", fixtureDir.pathString, dstDir.pathString)
+    try body(dstDir)
   }
 }
 
