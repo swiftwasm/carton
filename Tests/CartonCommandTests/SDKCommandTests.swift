@@ -19,8 +19,6 @@
 import TSCBasic
 import XCTest
 
-extension SDKCommandTests: Testable {}
-
 final class SDKCommandTests: XCTestCase {
   func testInstall() throws {
     AssertExecuteCommand(
@@ -41,52 +39,28 @@ final class SDKCommandTests: XCTestCase {
   }
 
   func testLocalNoFile() throws {
-    let package = "Milk"
-    let packageDirectory = testFixturesDirectory.appending(component: package)
-    let swiftVersion = packageDirectory.appending(component: ".swift-version")
-
-    let versionInfo: String? = try? String(contentsOf: swiftVersion.url)
-
-    // it's ok if there is nothing to delete
-    do { try swiftVersion.delete() } catch {}
-
-    AssertExecuteCommand(
-      command: "carton sdk local",
-      cwd: packageDirectory.url,
-      expected: "Version file is not present: ",
-      expectedContains: true
-    )
-
-    if let info = versionInfo {
-      try info.write(to: swiftVersion.url, atomically: true, encoding: .utf8)
+    try withTemporaryDirectory { tmpDir in
+      AssertExecuteCommand(
+        command: "carton sdk local",
+        cwd: tmpDir.url,
+        expected: "Version file is not present: ",
+        expectedContains: true
+      )
     }
   }
 
   func testLocalWithFile() throws {
-    let package = "Milk"
-    let packageDirectory = testFixturesDirectory.appending(component: package)
-    let swiftVersion = packageDirectory.appending(component: ".swift-version")
+    try withTemporaryDirectory { tmpDir in
+      let swiftVersion = tmpDir.appending(component: ".swift-version")
+      let alternateLocal = "wasm-5.4.0"
+      try alternateLocal.write(to: swiftVersion.url, atomically: true, encoding: .utf8)
 
-    let versionInfo: String? = try? String(contentsOf: swiftVersion.url)
-
-    // it's ok if there is nothing to delete
-    do { try swiftVersion.delete() } catch {}
-
-    let alternateLocal = "wasm-5.4.0"
-
-    try alternateLocal.write(to: swiftVersion.url, atomically: true, encoding: .utf8)
-
-    AssertExecuteCommand(
-      command: "carton sdk local",
-      cwd: packageDirectory.url,
-      expected: "wasm-5.4.0",
-      expectedContains: true
-    )
-
-    // remove the fixture we created and write the original back if there was one
-    do { try swiftVersion.delete() } catch {}
-    if let info = versionInfo {
-      try info.write(to: swiftVersion.url, atomically: true, encoding: .utf8)
+      AssertExecuteCommand(
+        command: "carton sdk local",
+        cwd: tmpDir.url,
+        expected: "wasm-5.4.0",
+        expectedContains: true
+      )
     }
   }
 }

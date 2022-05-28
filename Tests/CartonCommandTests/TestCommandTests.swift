@@ -21,106 +21,67 @@ import XCTest
 
 @testable import CartonCLI
 
-extension TestCommandTests: Testable {}
-
 private enum Constants {
   static let testAppPackageName = "TestApp"
   static let nodeJSKitPackageName = "NodeJSKitTest"
 }
 
 final class TestCommandTests: XCTestCase {
-  private var client: HTTPClient?
-
-  override func tearDown() {
-    try? client?.syncShutdown()
-    client = nil
-  }
-
   func testWithNoArguments() throws {
-    let packageDirectory = givenAPackageTestDirectory(Constants.testAppPackageName)
-
-    AssertExecuteCommand(
-      command: "carton test",
-      cwd: packageDirectory.url,
-      debug: true
-    )
+    try withFixture(Constants.testAppPackageName) { packageDirectory in
+      AssertExecuteCommand(
+        command: "carton test",
+        cwd: packageDirectory.url,
+        debug: true
+      )
+    }
   }
 
   func testEnvironmentNodeNoJSKit() throws {
-    let packageDirectory = givenAPackageTestDirectory(Constants.testAppPackageName)
-
-    AssertExecuteCommand(
-      command: "carton test --environment node",
-      cwd: packageDirectory.url,
-      debug: true
-    )
+    try withFixture(Constants.testAppPackageName) { packageDirectory in
+      AssertExecuteCommand(
+        command: "carton test --environment node",
+        cwd: packageDirectory.url,
+        debug: true
+      )
+    }
   }
 
   func testEnvironmentNodeJSKit() throws {
-    let packageDirectory = givenAPackageTestDirectory(Constants.nodeJSKitPackageName)
-
-    AssertExecuteCommand(
-      command: "carton test --environment node",
-      cwd: packageDirectory.url,
-      debug: true
-    )
+    try withFixture(Constants.nodeJSKitPackageName) { packageDirectory in
+      AssertExecuteCommand(
+        command: "carton test --environment node",
+        cwd: packageDirectory.url,
+        debug: true
+      )
+    }
   }
 
   // This test is prone to hanging on Linux.
   #if os(macOS)
   func testEnvironmentDefaultBrowser() throws {
-    let packageDirectory = givenAPackageTestDirectory()
+    try withFixture(Constants.testAppPackageName) { packageDirectory in
+      let expectedTestSuiteCount = 1
+      let expectedTestsCount = 1
 
-    let expectedTestSuiteCount = 1
-    let expectedTestsCount = 1
+      let expectedContent =
+        """
+        Test Suites: \(ControlCode.CSI)32m\(expectedTestSuiteCount) passed\(ControlCode
+          .CSI)0m, \(expectedTestSuiteCount) total
+        Tests:       \(ControlCode.CSI)32m\(expectedTestsCount) passed\(ControlCode
+          .CSI)0m, \(expectedTestsCount) total
+        """
 
-    let expectedContent =
-      """
-      Test Suites: \(ControlCode.CSI)32m\(expectedTestSuiteCount) passed\(ControlCode
-        .CSI)0m, \(expectedTestSuiteCount) total
-      Tests:       \(ControlCode.CSI)32m\(expectedTestsCount) passed\(ControlCode
-        .CSI)0m, \(expectedTestsCount) total
-      """
-
-    AssertExecuteCommand(
-      command: "carton test --environment defaultBrowser",
-      cwd: packageDirectory.url,
-      expected: expectedContent,
-      expectedContains: true
-    )
+      // FIXME: Don't assume a specific port is available since it can be used by others or tests
+      AssertExecuteCommand(
+        command: "carton test --environment defaultBrowser --port 8082",
+        cwd: packageDirectory.url,
+        expected: expectedContent,
+        expectedContains: true
+      )
+    }
   }
   #endif
-
-  private func givenAPackageTestDirectory(_ name: String = Constants.testAppPackageName)
-    -> TestDirectory
-  {
-    let packageDirectory = TestDirectory(testFixturesDirectory, name)
-
-    XCTAssertTrue(packageDirectory.exists, "The TestApp directory does not exist")
-
-    return packageDirectory
-  }
-}
-
-private class TestDirectory {
-  private var directory: AbsolutePath
-
-  var url: URL { directory.url }
-  var exists: Bool { directory.exists }
-
-  init(_ testDirectory: AbsolutePath, _ dirName: String) {
-    directory = testDirectory.appending(components: dirName)
-    cleanBuildDir()
-  }
-
-  deinit {
-    cleanBuildDir()
-  }
-
-  private func cleanBuildDir() {
-    // Clean up once this object is not needed anymore
-    try? directory.appending(component: ".build").delete()
-  }
 }
 
 enum ControlCode {

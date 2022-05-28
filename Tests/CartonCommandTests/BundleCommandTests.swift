@@ -19,63 +19,36 @@
 import TSCBasic
 import XCTest
 
-extension BundleCommandTests: Testable {}
-
 final class BundleCommandTests: XCTestCase {
   func testWithNoArguments() throws {
-    // given I've created a directory
-    let package = "Milk"
-    let packageDirectory = testFixturesDirectory.appending(component: package)
+    try withFixture("EchoExecutable") { packageDirectory in
+      let bundleDirectory = packageDirectory.appending(component: "Bundle")
 
-    let bundle = "Bundle"
-    let bundleDirectory = packageDirectory.appending(component: bundle)
+      AssertExecuteCommand(command: "carton bundle", cwd: packageDirectory.url)
 
-    // it's ok if there is nothing to delete
-    do { try bundleDirectory.delete() } catch {}
-
-    XCTAssertFalse(bundleDirectory.exists, "The Bundle directory should not exist")
-
-    AssertExecuteCommand(
-      command: "carton bundle",
-      cwd: packageDirectory.url,
-      debug: true
-    )
-
-    // Confirm that the files are actually in the folder
-    XCTAssertTrue(bundleDirectory.exists, "The Bundle directory should exist")
-    XCTAssertTrue(bundleDirectory.ls().contains("index.html"), "Bundle does not have index.html")
-    XCTAssertFalse(
-      (bundleDirectory.ls().filter { $0.contains("wasm") }).isEmpty,
-      ".wasm file does not exist"
-    )
-    XCTAssertFalse(
-      (bundleDirectory.ls().filter { $0.contains("js") }).isEmpty,
-      ".js does not exist"
-    )
-
-    // finally, clean up
-    try bundleDirectory.delete()
-    try packageDirectory.appending(component: ".build").delete()
+      // Confirm that the files are actually in the folder
+      XCTAssertTrue(bundleDirectory.exists, "The Bundle directory should exist")
+      XCTAssertTrue(bundleDirectory.ls().contains("index.html"), "Bundle does not have index.html")
+      XCTAssertFalse(
+        (bundleDirectory.ls().filter { $0.contains("wasm") }).isEmpty,
+        ".wasm file does not exist"
+      )
+      XCTAssertFalse(
+        (bundleDirectory.ls().filter { $0.contains("js") }).isEmpty,
+        ".js does not exist"
+      )
+    }
   }
 
   func testWithXswiftc() throws {
-    let package = "Milk"
-    let packageDirectory = testFixturesDirectory.appending(component: package)
-
-    let bundle = "Bundle"
-    let bundleDirectory = packageDirectory.appending(component: bundle)
-
-    // it's ok if there is nothing to delete
-    do { try bundleDirectory.delete() } catch {}
-
-    AssertExecuteCommand(
-      command: "carton bundle -Xswiftc --fake-swiftc-options",
-      cwd: packageDirectory.url,
-      expected: "error: unknown argument: '--fake-swiftc-options'",
-      expectedContains: true
-    )
-
-    try packageDirectory.appending(component: ".build").delete()
+    try withFixture("EchoExecutable") { packageDirectory in
+      AssertExecuteCommand(
+        command: "carton bundle -Xswiftc --fake-swiftc-options",
+        cwd: packageDirectory.url,
+        expected: "error: unknown argument: '--fake-swiftc-options'",
+        expectedContains: true
+      )
+    }
   }
 
   func testWithDebugInfo() throws {
