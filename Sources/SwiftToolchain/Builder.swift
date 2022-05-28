@@ -87,7 +87,7 @@ public final class Builder {
     for transformer in transformers {
       var input = InputByteStream(bytes: inputBinary)
       var writer = InMemoryOutputWriter(reservingCapacity: inputBinary.count)
-      try transformer(&input, &writer)
+      try! transformer(&input, &writer)
       inputBinary = writer.bytes()
     }
 
