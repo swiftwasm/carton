@@ -50,13 +50,13 @@ public final class Builder {
       terminal
     )
 
-    self.terminal.logLookup(
+    terminal.logLookup(
       "`swift build` completed in ",
       String(format: "%.2f seconds", abs(buildStarted.timeIntervalSinceNow))
     )
 
     var transformers: [(inout InputByteStream, inout InMemoryOutputWriter) throws -> ()] = []
-    if self.flavor.environment == .node || self.flavor.environment == .defaultBrowser {
+    if flavor.environment == .node || flavor.environment == .defaultBrowser {
       // If building for JS-host environments,
       // - i64 params in imports are not supported without bigint-i64 feature
       // - The param types in imports don't have to be strictly same as host expected
@@ -71,7 +71,7 @@ public final class Builder {
       transformers.append(transformer.transform)
     }
 
-    switch self.flavor.sanitize {
+    switch flavor.sanitize {
     case .stackOverflow:
       transformers.append(StackOverflowSanitizer().transform)
     case .none:
@@ -80,23 +80,23 @@ public final class Builder {
 
     guard !transformers.isEmpty else { return }
 
-    let binary = try self.fileSystem.readFileContents(self.mainWasmPath)
+    let binary = try fileSystem.readFileContents(mainWasmPath)
 
     let transformStarted = Date()
     var inputBinary = binary.contents
     for transformer in transformers {
       var input = InputByteStream(bytes: inputBinary)
       var writer = InMemoryOutputWriter(reservingCapacity: inputBinary.count)
-      try! transformer(&input, &writer)
+      try transformer(&input, &writer)
       inputBinary = writer.bytes()
     }
 
-    self.terminal.logLookup(
+    terminal.logLookup(
       "Binary transformation for Safari compatibility completed in ",
       String(format: "%.2f seconds", abs(transformStarted.timeIntervalSinceNow))
     )
 
-    try self.fileSystem.writeFileContents(self.mainWasmPath, bytes: .init(inputBinary))
+    try fileSystem.writeFileContents(mainWasmPath, bytes: .init(inputBinary))
   }
 
   public func run() async throws {
