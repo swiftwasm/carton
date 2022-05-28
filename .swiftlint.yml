@@ -7,10 +7,10 @@ disabled_rules:
   - cyclomatic_complexity
   - opening_brace
   - todo
-
-line_length: 120
-
-function_body_length: 50
+  - function_parameter_count
+  - line_length
+  - function_body_length
+  - file_length
 
 included:
   - Sources
