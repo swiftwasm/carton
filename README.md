@@ -93,6 +93,8 @@ either: `wasmer`, `node` or `defaultBrowser`. Code that depends on
 [JavaScriptKit](https://github.com/swiftwasm/JavaScriptKit) should pass either `--environment node` or
 `--environment defaultBrowser` options, depending on whether it needs Web APIs to work. Otherwise
 the test run will not succeed, since JavaScript environment is not available with `--environment wasmer`.
+You can use the command with a prebuilt test bundle binary instead of building it in carton by passing
+`--prebuilt-test-bundle-path <your binary path>`.
 
 The `carton sdk` command and its subcommands allow you to manage installed SwiftWasm toolchains, but
 is rarely needed, as `carton dev` installs the recommended version of SwiftWasm automatically.
