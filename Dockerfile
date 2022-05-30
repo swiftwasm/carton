@@ -31,7 +31,7 @@ RUN curl -fsSLO --compressed "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE
 
 RUN cd carton && \
   ./install_ubuntu_deps.sh && \
-  swift build -c release && \
+  swift build -c release --static-swift-stdlib && \
   mv .build/release/carton /usr/bin && \
   cd .. && \
   rm -rf carton /tmp/wasmer*
