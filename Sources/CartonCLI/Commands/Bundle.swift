@@ -46,8 +46,12 @@ struct Bundle: AsyncParsableCommand {
   @Flag(help: "Emit names and DWARF sections in the .wasm file.")
   var debugInfo: Bool = false
 
-  @Option(name: .long,
-          help: "Which optimizations to apply to the .wasm binary output.\nAvailable values: \(WasmOptimizations.allCases.map { $0.rawValue }.joined(separator: ", "))")
+  @Option(
+    name: .long,
+    help: "Which optimizations to apply to the .wasm binary output.\nAvailable values: \(
+      WasmOptimizations.allCases.map { $0.rawValue }.joined(separator: ", ")
+    )"
+  )
   var wasmOptimizations: WasmOptimizations = .size
 
   @OptionGroup()
