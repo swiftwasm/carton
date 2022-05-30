@@ -57,6 +57,19 @@ final class TestCommandTests: XCTestCase {
     }
   }
 
+  func testSkipBuild() throws {
+    try withFixture(Constants.nodeJSKitPackageName) { packageDirectory in
+      AssertExecuteCommand(
+        command: "carton test --environment node",
+        cwd: packageDirectory.url
+      )
+      AssertExecuteCommand(
+        command: "carton test --environment node --skip-build",
+        cwd: packageDirectory.url
+      )
+    }
+  }
+
   // This test is prone to hanging on Linux.
   #if os(macOS)
   func testEnvironmentDefaultBrowser() throws {
