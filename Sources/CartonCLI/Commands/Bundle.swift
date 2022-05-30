@@ -26,6 +26,10 @@ private let dependency = Entrypoint(
   sha256: bundleEntrypointSHA256
 )
 
+enum WasmOptimizations: String, CaseIterable, ExpressibleByArgument {
+  case size, none
+}
+
 struct Bundle: AsyncParsableCommand {
   @Option(help: "Specify name of an executable product to produce the bundle for.")
   var product: String?
@@ -41,6 +45,10 @@ struct Bundle: AsyncParsableCommand {
 
   @Flag(help: "Emit names and DWARF sections in the .wasm file.")
   var debugInfo: Bool = false
+
+  @Option(name: .long,
+          help: "Which optimizations to apply to the .wasm binary output.\nAvailable values: \(WasmOptimizations.allCases.map { $0.rawValue }.joined(separator: ", "))")
+  var wasmOptimizations: WasmOptimizations = .size
 
   @OptionGroup()
   var buildOptions: BuildOptions
@@ -86,21 +94,18 @@ struct Bundle: AsyncParsableCommand {
     let bundleDirectory = AbsolutePath(localFileSystem.currentWorkingDirectory!, "Bundle")
     try localFileSystem.removeFileTree(bundleDirectory)
     try localFileSystem.createDirectory(bundleDirectory)
-    let optimizedPath = AbsolutePath(bundleDirectory, "main.wasm")
-    var wasmOptArgs = ["wasm-opt", "-Os", build.mainWasmPath.pathString, "-o", optimizedPath.pathString]
-    if debugInfo {
-      wasmOptArgs.append("--debuginfo")
+    
+    let wasmOutputFilePath = AbsolutePath(bundleDirectory, "main.wasm")
+
+    if wasmOptimizations == .size {
+      try await optimize(build.mainWasmPath, outputPath: wasmOutputFilePath, terminal: terminal)
+    } else {
+      try localFileSystem.move(from: build.mainWasmPath, to: wasmOutputFilePath)
     }
-    try await Process.run(wasmOptArgs, terminal)
-    try terminal.logLookup(
-      "After stripping debug info the main binary size is ",
-      localFileSystem.humanReadableFileSize(optimizedPath),
-      newline: true
-    )
 
     try copyToBundle(
       terminal: terminal,
-      optimizedPath: optimizedPath,
+      wasmOutputFilePath: wasmOutputFilePath,
       buildDirectory: build.mainWasmPath.parentDirectory,
       bundleDirectory: bundleDirectory,
       toolchain: toolchain,
@@ -108,6 +113,19 @@ struct Bundle: AsyncParsableCommand {
     )
 
     terminal.write("Bundle generation finished successfully\n", inColor: .green, bold: true)
+  }
+
+  func optimize(_ inputPath: AbsolutePath, outputPath: AbsolutePath, terminal: InteractiveWriter) async throws {
+    var wasmOptArgs = ["wasm-opt", "-Os", inputPath.pathString, "-o", outputPath.pathString]
+    if debugInfo {
+      wasmOptArgs.append("--debuginfo")
+    }
+    try await Process.run(wasmOptArgs, terminal)
+    try terminal.logLookup(
+      "After stripping debug info the main binary size is ",
+      localFileSystem.humanReadableFileSize(outputPath),
+      newline: true
+    )
   }
 
   func strip(_ wasmPath: AbsolutePath) throws {
@@ -118,17 +136,17 @@ struct Bundle: AsyncParsableCommand {
 
   func copyToBundle(
     terminal: InteractiveWriter,
-    optimizedPath: AbsolutePath,
+    wasmOutputFilePath: AbsolutePath,
     buildDirectory: AbsolutePath,
     bundleDirectory: AbsolutePath,
     toolchain: Toolchain,
     product: ProductDescription
   ) throws {
     // Rename the final binary to use a part of its hash to bust browsers and CDN caches.
-    let optimizedHash = try localFileSystem.readFileContents(optimizedPath).hexSHA256.prefix(16)
-    let mainModuleName = "\(optimizedHash).wasm"
+    let wasmFileHash = try localFileSystem.readFileContents(wasmOutputFilePath).hexSHA256.prefix(16)
+    let mainModuleName = "\(wasmFileHash).wasm"
     let mainModulePath = AbsolutePath(bundleDirectory, mainModuleName)
-    try localFileSystem.move(from: optimizedPath, to: mainModulePath)
+    try localFileSystem.move(from: wasmOutputFilePath, to: mainModulePath)
 
     // Copy the bundle entrypoint, point to the binary, and give it a cachebuster name.
     let (_, _, entrypointPath) = dependency.paths(on: localFileSystem)
