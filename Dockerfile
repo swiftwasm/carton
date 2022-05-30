@@ -2,6 +2,16 @@ FROM swift:5.6-focal
 
 COPY . carton/
 
+RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
+  apt-get -q install -y \
+  build-essential \
+  libncurses5 \
+  libsqlite3-0 \
+  libsqlite3-dev \
+  libxkbcommon0 \
+  curl \
+  unzip
+
 RUN cd carton && \
   ./install_ubuntu_deps.sh && \
   swift build -c release --static-swift-stdlib
@@ -34,9 +44,11 @@ RUN mkdir -p $CARTON_ROOT/sdk && \
 ENV NODE_VERSION=18.1.0 
 
 RUN curl -fsSLO --compressed "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" && \
-    tar -xJf "node-v$NODE_VERSION-linux-x64.tar.xz" -C /usr/local --strip-components=1 --no-same-owner
+  tar -xJf "node-v$NODE_VERSION-linux-x64.tar.xz" -C /usr/local --strip-components=1 --no-same-owner
 
-COPY --from=0 /carton/.build/debug/carton /usr/bin
-  
+COPY --from=0 /carton/.build/release/carton /usr/bin
+
+RUN carton --version
+
 # Set the default command to run
 CMD ["carton --help"]
