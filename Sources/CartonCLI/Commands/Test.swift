@@ -79,7 +79,7 @@ struct Test: AsyncParsableCommand {
       bundlePath = AbsolutePath(preBundlePath, relativeTo: localFileSystem.currentWorkingDirectory!)
       guard localFileSystem.exists(bundlePath) else {
         terminal.write(
-          "No prebuilt binary found in \(bundlePath)\n",
+          "No prebuilt binary found at \(bundlePath)\n",
           inColor: .red
         )
         throw ExitCode.failure
