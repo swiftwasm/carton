@@ -56,6 +56,9 @@ struct Test: AsyncParsableCommand {
   )
   var host = "127.0.0.1"
 
+  @Option(help: "Use the given bundle instead of building the test target")
+  var prebuiltTestBundlePath: String?
+
   @OptionGroup()
   var buildOptions: BuildOptions
 
@@ -71,7 +74,19 @@ struct Test: AsyncParsableCommand {
   func run() async throws {
     let terminal = InteractiveWriter.stdout
     let toolchain = try await Toolchain(localFileSystem, terminal)
-    let bundlePath = try await toolchain.buildTestBundle(flavor: buildFlavor)
+    let bundlePath: AbsolutePath
+    if let preBundlePath = self.prebuiltTestBundlePath {
+      bundlePath = AbsolutePath(preBundlePath, relativeTo: localFileSystem.currentWorkingDirectory!)
+      guard localFileSystem.exists(bundlePath) else {
+        terminal.write(
+          "No prebuilt binary found at \(bundlePath)\n",
+          inColor: .red
+        )
+        throw ExitCode.failure
+      }
+    } else {
+      bundlePath = try await toolchain.buildTestBundle(flavor: buildFlavor)
+    }
 
     switch environment {
     case .wasmer:
