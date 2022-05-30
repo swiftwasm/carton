@@ -64,7 +64,7 @@ final class TestCommandTests: XCTestCase {
         cwd: packageDirectory.url
       )
       AssertExecuteCommand(
-        command: "carton test --environment node --skip-build",
+        command: "carton test --environment node --bundle-path ./.build/wasm32-unknown-wasi/debug/NodeJSKitTestPackageTests.wasm",
         cwd: packageDirectory.url
       )
     }
