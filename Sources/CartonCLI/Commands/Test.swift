@@ -57,7 +57,7 @@ struct Test: AsyncParsableCommand {
   var host = "127.0.0.1"
 
   @Option(help: "Use the given bundle instead of building the test target")
-  var bundlePath: String?
+  var prebuiltTestBundlePath: String?
 
   @OptionGroup()
   var buildOptions: BuildOptions
@@ -75,7 +75,7 @@ struct Test: AsyncParsableCommand {
     let terminal = InteractiveWriter.stdout
     let toolchain = try await Toolchain(localFileSystem, terminal)
     let bundlePath: AbsolutePath
-    if let preBundlePath = self.bundlePath {
+    if let preBundlePath = self.prebuiltTestBundlePath {
       bundlePath = AbsolutePath(preBundlePath, relativeTo: localFileSystem.currentWorkingDirectory!)
       guard localFileSystem.exists(bundlePath) else {
         terminal.write(
