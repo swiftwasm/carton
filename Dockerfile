@@ -1,7 +1,5 @@
 FROM swift:5.6-focal
 
-COPY . carton/
-
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && apt-get -q update && \
   apt-get -q install -y \
   build-essential \
@@ -11,6 +9,8 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
   libxkbcommon0 \
   curl \
   unzip
+
+COPY . carton/
 
 RUN cd carton && \
   ./install_ubuntu_deps.sh && \
