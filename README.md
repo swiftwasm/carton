@@ -114,7 +114,9 @@ files except `index.html` are named by their content hashes to enable [cache
 busting](https://www.keycdn.com/support/what-is-cache-busting). As with `carton dev`, a custom
 `index.html` page can be provided through the `--custom-index-page` option. You can also pass
 `--debug-info` flag to preserve `names` and DWARF sections in the resulting `.wasm` file, as these
-are stripped in the `release` configuration by default.
+are stripped in the `release` configuration by default. By default, `carton bundle` will run `wasm-opt`
+on the resulting .wasm binary in order to reduce its file size. That behaviour can be disabled (in order
+to speed up the build) by appending the `--wasm-optimizations none` option.
 
 The `carton package` command proxies its subcommands to `swift package` invocations on the
 currently-installed toolchain. This may be useful in situations where you'd like to generate an
