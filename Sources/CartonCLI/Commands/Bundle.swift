@@ -49,11 +49,11 @@ struct Bundle: AsyncParsableCommand {
   @Option(
     name: .long,
     help: """
-        Which optimizations to apply to the .wasm binary output.
-        Available values: \(
-            WasmOptimizations.allCases.map { $0.rawValue }.joined(separator: ", ")
-        )
-        """
+    Which optimizations to apply to the .wasm binary output.
+    Available values: \(
+      WasmOptimizations.allCases.map(\.rawValue).joined(separator: ", ")
+    )
+    """
   )
   var wasmOptimizations: WasmOptimizations = .size
 
@@ -101,7 +101,7 @@ struct Bundle: AsyncParsableCommand {
     let bundleDirectory = AbsolutePath(localFileSystem.currentWorkingDirectory!, "Bundle")
     try localFileSystem.removeFileTree(bundleDirectory)
     try localFileSystem.createDirectory(bundleDirectory)
-    
+
     let wasmOutputFilePath = AbsolutePath(bundleDirectory, "main.wasm")
 
     if wasmOptimizations == .size {
