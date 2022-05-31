@@ -48,7 +48,12 @@ struct Bundle: AsyncParsableCommand {
 
   @Option(
     name: .long,
-    help: "Which optimizations to apply to the .wasm binary output.\n Available values: \(WasmOptimizations.allCases.map { $0.rawValue }.joined(separator: ", "))"
+    help: """
+        Which optimizations to apply to the .wasm binary output.
+        Available values: \(
+            WasmOptimizations.allCases.map { $0.rawValue }.joined(separator: ", ")
+        )
+        """
   )
   var wasmOptimizations: WasmOptimizations = .size
 
