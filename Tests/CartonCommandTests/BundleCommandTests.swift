@@ -68,4 +68,29 @@ final class BundleCommandTests: XCTestCase {
       XCTAssert(headers.contains("\"name\""), "name section not found: \(headers)")
     }
   }
+
+  func testWasmOptimizationOptions() throws {
+    try withTemporaryDirectory { tmpDirPath in
+      try ProcessEnv.chdir(tmpDirPath)
+      try Process.checkNonZeroExit(arguments: [cartonPath, "init", "--template", "basic"])
+
+      func getFileSizeOfWasmBinary(wasmOptimizations: WasmOptimizations) throws -> UInt64 {
+        let bundleDirectory = tmpDirPath.appending(component: "Bundle")
+
+        try Process.checkNonZeroExit(arguments: [cartonPath, "bundle", "--wasm-optimizations", wasmOptimizations.rawValue])
+
+        guard let wasmFile = (bundleDirectory.ls().filter { $0.contains("wasm") }).first else {
+          XCTFail("No wasm binary found")
+          return 0
+        }
+
+        return try localFileSystem.getFileInfo(bundleDirectory.appending(component: wasmFile)).size
+      }
+
+      try XCTAssertGreaterThan(
+        getFileSizeOfWasmBinary(wasmOptimizations: .none),
+        getFileSizeOfWasmBinary(wasmOptimizations: .size)
+      )
+    }
+  }
 }
