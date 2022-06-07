@@ -112,7 +112,7 @@ struct Dev: AsyncParsableCommand {
 
     let sources = try paths.flatMap { try localFileSystem.traverseRecursively($0) }
 
-    try await Server(
+    let server = try await Server(
       .init(
         builder: Builder(
           arguments: build.arguments,
@@ -124,7 +124,6 @@ struct Dev: AsyncParsableCommand {
         ),
         mainWasmPath: build.mainWasmPath,
         verbose: verbose,
-        shouldSkipAutoOpen: skipAutoOpen,
         port: port,
         host: host,
         customIndexPath: customIndexPage.map { AbsolutePath($0, relativeTo: localFileSystem.currentWorkingDirectory!) },
@@ -134,6 +133,11 @@ struct Dev: AsyncParsableCommand {
         entrypoint: Self.entrypoint,
         terminal: terminal
       )
-    ).run()
+    )
+    try await server.start()
+    if !skipAutoOpen {
+      await openInSystemBrowser(url: server.localURL)
+    }
+    try await server.waitUntilStop()
   }
 }
