@@ -33,16 +33,31 @@ public struct WebDriverClient {
         }
     }
 
-    public static func newSession(endpoint: URL, httpClient: HTTPClient) async throws -> WebDriverClient {
+    public static let defaultSessionRequestBody = #"""
+{
+  "capabilities": {
+    "alwaysMatch": {
+      "goog:chromeOptions": {
+        "w3c": true,
+        "args": ["--headless", "--no-sandbox"]
+      }
+    }
+  }
+}
+"""#
+
+    public static func newSession(endpoint: URL, body: String = defaultSessionRequestBody,
+                                  httpClient: HTTPClient) async throws -> WebDriverClient {
         struct Response: Decodable {
             let sessionId: String
         }
         struct Request: Encodable {
             let capabilities: [String: String] = [:]
+            let desiredCapabilities: [String: String] = [:]
         }
         let httpResponse = try await httpClient.post(
             url: endpoint.appendingPathComponent("session").absoluteString,
-            body: makeRequestBody(Request())
+            body: HTTPClient.Body.string(body)
         ).get()
         guard let responseBody = httpResponse.body else {
             throw WebDriverError.newSessionFailed(httpResponse)
