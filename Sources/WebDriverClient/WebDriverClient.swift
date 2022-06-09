@@ -42,6 +42,9 @@ public struct WebDriverClient {
         },
         "moz:firefoxOptions": {
           "args": ["-headless"]
+        },
+        "ms:edgeOptions": {
+          "args": ["--headless", "--no-sandbox"]
         }
       }
     }
