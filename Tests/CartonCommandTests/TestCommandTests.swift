@@ -70,6 +70,18 @@ final class TestCommandTests: XCTestCase {
     }
   }
 
+  func testHeadlessBrowser() throws {
+    guard Process.findExecutable("safaridriver") != nil else {
+      throw XCTSkip("WebDriver is required")
+    }
+    try withFixture(Constants.testAppPackageName) { packageDirectory in
+      AssertExecuteCommand(
+        command: "carton test --environment defaultBrowser --headless",
+        cwd: packageDirectory.url
+      )
+    }
+  }
+
   // This test is prone to hanging on Linux.
   #if os(macOS)
   func testEnvironmentDefaultBrowser() throws {
