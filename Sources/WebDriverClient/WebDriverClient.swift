@@ -14,6 +14,7 @@
 
 import AsyncHTTPClient
 import Foundation
+import NIOFoundationCompat
 
 public enum WebDriverError: Error {
   case newSessionFailed(HTTPClient.Response)
