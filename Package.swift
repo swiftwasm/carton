@@ -86,7 +86,7 @@ let package = Package(
       ]
     ),
     .target(name: "WebDriverClient", dependencies: [
-        .product(name: "AsyncHTTPClient", package: "async-http-client"),
+      .product(name: "AsyncHTTPClient", package: "async-http-client"),
     ]),
     // This target is used only for release automation tasks and
     // should not be installed by `carton` users.

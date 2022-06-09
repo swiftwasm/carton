@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import AsyncHTTPClient
 import CartonHelpers
 import CartonKit
 import Foundation
+import NIOCore
+import NIOPosix
 import PackageModel
 import TSCBasic
 import WebDriverClient
-import AsyncHTTPClient
-import NIOCore
-import NIOPosix
 
 private enum Constants {
   static let entrypoint = Entrypoint(fileName: "test.js", sha256: testEntrypointSHA256)
@@ -32,15 +32,15 @@ enum BrowserTestRunnerError: Error, CustomStringConvertible {
 
   var description: String {
     switch self {
-    case .invalidRemoteURL(let url): return "Invalid remote URL: \(url)"
+    case let .invalidRemoteURL(url): return "Invalid remote URL: \(url)"
     case .failedToFindDriver:
       return """
-Failed to find WebDriver executable or remote URL to a running driver process.
-Please make sure that you satisfied one of the followings (smaller item number lower priority):
-1. `chromedriver`, `geckodriver`, `safaridriver`, or `msedgedriver` has been installed in `PATH`
-2. Set `WEBDRIVER_PATH` with the path to your WebDriver executable.
-3. Set `WEBDRIVER_REMOTE_URL` with the address of remote WebDriver like `WEBDRIVER_REMOTE_URL=http://localhost:9515`.
-"""
+      Failed to find WebDriver executable or remote URL to a running driver process.
+      Please make sure that you satisfied one of the followings (smaller item number lower priority):
+      1. `chromedriver`, `geckodriver`, `safaridriver`, or `msedgedriver` has been installed in `PATH`
+      2. Set `WEBDRIVER_PATH` with the path to your WebDriver executable.
+      3. Set `WEBDRIVER_REMOTE_URL` with the address of remote WebDriver like `WEBDRIVER_REMOTE_URL=http://localhost:9515`.
+      """
     }
   }
 }
@@ -55,17 +55,24 @@ struct BrowserTestRunner: TestRunner {
   let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
   let httpClient: HTTPClient
 
-  internal init(testFilePath: AbsolutePath, host: String, port: Int, headless: Bool, manifest: Manifest, terminal: InteractiveWriter) {
+  internal init(
+    testFilePath: AbsolutePath,
+    host: String,
+    port: Int,
+    headless: Bool,
+    manifest: Manifest,
+    terminal: InteractiveWriter
+  ) {
     self.testFilePath = testFilePath
     self.host = host
     self.port = port
     self.headless = headless
     self.manifest = manifest
     self.terminal = terminal
-    self.httpClient = HTTPClient(eventLoopGroupProvider: .shared(eventLoopGroup))
+    httpClient = HTTPClient(eventLoopGroupProvider: .shared(eventLoopGroup))
   }
 
-  typealias Disposer = () -> Void
+  typealias Disposer = () -> ()
 
   func findAvailablePort() async throws -> SocketAddress {
     let bootstrap = ServerBootstrap(group: eventLoopGroup)
@@ -75,6 +82,7 @@ struct BrowserTestRunner: TestRunner {
     try await channel.close()
     return localAddr
   }
+
   func launchDriver(executablePath: String) async throws -> (URL, Disposer) {
     let address = try await findAvailablePort()
     let process = Process(arguments: [
@@ -108,14 +116,14 @@ struct BrowserTestRunner: TestRunner {
       },
       {
         let driverCandidates = [
-          "chromedriver", "geckodriver", "safaridriver", "msedgedriver"
+          "chromedriver", "geckodriver", "safaridriver", "msedgedriver",
         ]
         terminal.logLookup("- checking WebDriver executable in PATH: ", driverCandidates.joined(separator: ", "))
         guard let found = driverCandidates.lazy.compactMap({ Process.findExecutable($0) }).first else {
           return nil
         }
         return try await launchDriver(executablePath: found.pathString)
-      }
+      },
     ]
     for strategy in strategies {
       if let (url, disposer) = try await strategy() {
@@ -144,7 +152,7 @@ struct BrowserTestRunner: TestRunner {
       .shared(eventLoopGroup)
     )
     try await server.start()
-    var disposer: () async throws -> Void = {}
+    var disposer: () async throws -> () = {}
     do {
       if headless {
         let (endpoint, clientDisposer) = try await selectWebDriver()

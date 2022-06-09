@@ -220,14 +220,14 @@ public actor Server {
   }
 
   public func start() throws {
-      try self.app.start()
+    try app.start()
   }
 
   /// Wait and handle the shutdown
   public func waitUntilStop() async throws {
     defer { self.app.shutdown() }
-    try await self.app.running?.onStop.get()
-    try self.closeSockets()
+    try await app.running?.onStop.get()
+    try closeSockets()
   }
 
   func closeSockets() throws {
