@@ -80,14 +80,16 @@ struct BrowserTestRunner: TestRunner {
     let process = Process(arguments: [
       executablePath, "--port=\(address.port!)",
     ])
+    terminal.logLookup("Launch WebDriver executable: ", executablePath)
     try process.launch()
     let disposer = { process.signal(SIGKILL) }
     return (URL(string: "http://\(address.ipAddress!):\(address.port!)")!, disposer)
   }
 
-  func makeWebDriverClient(httpClient: HTTPClient) async throws -> (WebDriverClient, Disposer) {
+  func selectWebDriver() async throws -> (URL, Disposer) {
     let strategies: [() async throws -> (URL, Disposer)?] = [
       {
+        terminal.logLookup("- checking WebDriver endpoint: ", "WEBDRIVER_REMOTE_URL")
         guard let value = ProcessInfo.processInfo.environment["WEBDRIVER_REMOTE_URL"] else {
           return nil
         }
@@ -97,15 +99,18 @@ struct BrowserTestRunner: TestRunner {
         return (url, {})
       },
       {
+        terminal.logLookup("- checking WebDriver executable: ", "WEBDRIVER_PATH")
         guard let executable = ProcessEnv.vars["WEBDRIVER_PATH"] else {
           return nil
         }
-        return try await launchDriver(executablePath: executable)
+        let (url, disposer) = try await launchDriver(executablePath: executable)
+        return (url, disposer)
       },
       {
         let driverCandidates = [
           "chromedriver", "geckodriver", "safaridriver", "msedgedriver"
         ]
+        terminal.logLookup("- checking WebDriver executable in PATH: ", driverCandidates.joined(separator: ", "))
         guard let found = driverCandidates.lazy.compactMap({ Process.findExecutable($0) }).first else {
           return nil
         }
@@ -114,7 +119,7 @@ struct BrowserTestRunner: TestRunner {
     ]
     for strategy in strategies {
       if let (url, disposer) = try await strategy() {
-        return (try await WebDriverClient.newSession(endpoint: url, httpClient: httpClient), disposer)
+        return (url, disposer)
       }
     }
     throw BrowserTestRunnerError.failedToFindDriver
@@ -142,7 +147,8 @@ struct BrowserTestRunner: TestRunner {
     var disposer: () async throws -> Void = {}
     do {
       if headless {
-        let (client, clientDisposer) = try await makeWebDriverClient(httpClient: httpClient)
+        let (endpoint, clientDisposer) = try await selectWebDriver()
+        let client = try await WebDriverClient.newSession(endpoint: endpoint, httpClient: httpClient)
         disposer = {
           try await client.closeSession()
           clientDisposer()
