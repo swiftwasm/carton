@@ -77,7 +77,7 @@ public actor Server {
   private let app: Application
 
   /// Local URL of this server, `https://128.0.0.1:8080/` by default.
-  public let localURL: String
+  private let localURL: String
 
   /// Whether a build that could be triggered by this server is currently running.
   private var isBuildCurrentlyRunning = false
@@ -219,8 +219,9 @@ public actor Server {
     connections.remove(connection)
   }
 
-  public func start() throws {
+  public func start() throws -> String {
     try app.start()
+    return localURL
   }
 
   /// Wait and handle the shutdown

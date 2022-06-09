@@ -134,9 +134,9 @@ struct Dev: AsyncParsableCommand {
         terminal: terminal
       )
     )
-    try await server.start()
+    let localURL = try await server.start()
     if !skipAutoOpen {
-      await openInSystemBrowser(url: server.localURL)
+      openInSystemBrowser(url: localURL)
     }
     try await server.waitUntilStop()
   }

@@ -151,7 +151,7 @@ struct BrowserTestRunner: TestRunner {
       ),
       .shared(eventLoopGroup)
     )
-    try await server.start()
+    let localURL = try await server.start()
     var disposer: () async throws -> () = {}
     do {
       if headless {
@@ -161,10 +161,10 @@ struct BrowserTestRunner: TestRunner {
           try await client.closeSession()
           clientDisposer()
         }
-        try await client.goto(url: server.localURL)
+        try await client.goto(url: localURL)
       } else {
         disposer = {}
-        await openInSystemBrowser(url: server.localURL)
+        openInSystemBrowser(url: localURL)
       }
       try await server.waitUntilStop()
       try await disposer()
