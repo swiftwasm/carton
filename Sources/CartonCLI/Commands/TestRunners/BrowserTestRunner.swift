@@ -55,7 +55,7 @@ struct BrowserTestRunner: TestRunner {
   let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
   let httpClient: HTTPClient
 
-  internal init(
+  init(
     testFilePath: AbsolutePath,
     host: String,
     port: Int,
