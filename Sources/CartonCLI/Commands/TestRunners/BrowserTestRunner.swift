@@ -36,10 +36,10 @@ enum BrowserTestRunnerError: Error, CustomStringConvertible {
     case .failedToFindWebDriver:
       return """
       Failed to find WebDriver executable or remote URL to a running driver process.
-      Please make sure that you satisfied one of the followings (smaller item number lower priority):
-      1. `chromedriver`, `geckodriver`, `safaridriver`, or `msedgedriver` has been installed in `PATH`
+      Please make sure that you are satisfied with one of the followings (in order of priority)
+      1. Set `WEBDRIVER_REMOTE_URL` with the address of remote WebDriver like `WEBDRIVER_REMOTE_URL=http://localhost:9515`.
       2. Set `WEBDRIVER_PATH` with the path to your WebDriver executable.
-      3. Set `WEBDRIVER_REMOTE_URL` with the address of remote WebDriver like `WEBDRIVER_REMOTE_URL=http://localhost:9515`.
+      3. `chromedriver`, `geckodriver`, `safaridriver`, or `msedgedriver` has been installed in `PATH`
       """
     }
   }
