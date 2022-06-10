@@ -95,7 +95,7 @@ either: `wasmer`, `node` or `defaultBrowser`. Code that depends on
 the test run will not succeed, since JavaScript environment is not available with `--environment wasmer`.
 If you want to run your test suite on CI or without GUI but on browser, you can pass `--headless` flag.
 It enables [WebDriver](https://w3c.github.io/webdriver/)-based headless browser testing. Note that you
-need to install a WebDriver in `PATH` before running tests.
+need to install a WebDriver executable in `PATH` before running tests.
 You can use the command with a prebuilt test bundle binary instead of building it in carton by passing
 `--prebuilt-test-bundle-path <your binary path>`.
 
