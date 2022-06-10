@@ -92,7 +92,6 @@ public struct WebDriverClient {
   }
 
   public func goto(url: String) async throws {
-    struct Response: Decodable {}
     struct Request: Encodable {
       let url: String
     }
