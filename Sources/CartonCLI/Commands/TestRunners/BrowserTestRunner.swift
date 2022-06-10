@@ -28,12 +28,12 @@ private enum Constants {
 
 enum BrowserTestRunnerError: Error, CustomStringConvertible {
   case invalidRemoteURL(String)
-  case failedToFindDriver
+  case failedToFindWebDriver
 
   var description: String {
     switch self {
     case let .invalidRemoteURL(url): return "Invalid remote URL: \(url)"
-    case .failedToFindDriver:
+    case .failedToFindWebDriver:
       return """
       Failed to find WebDriver executable or remote URL to a running driver process.
       Please make sure that you satisfied one of the followings (smaller item number lower priority):
@@ -130,7 +130,7 @@ struct BrowserTestRunner: TestRunner {
         return (url, disposer)
       }
     }
-    throw BrowserTestRunnerError.failedToFindDriver
+    throw BrowserTestRunnerError.failedToFindWebDriver
   }
 
   func run() async throws {
