@@ -63,6 +63,7 @@ let package = Package(
         .product(name: "Vapor", package: "vapor"),
         "CartonHelpers",
         "SwiftToolchain",
+        "WebDriverClient",
       ]
     ),
     .target(
@@ -84,6 +85,10 @@ let package = Package(
         "WasmTransformer",
       ]
     ),
+    .target(name: "WebDriverClient", dependencies: [
+      .product(name: "AsyncHTTPClient", package: "async-http-client"),
+      .product(name: "NIOFoundationCompat", package: "swift-nio"),
+    ]),
     // This target is used only for release automation tasks and
     // should not be installed by `carton` users.
     .executableTarget(
@@ -112,5 +117,6 @@ let package = Package(
         .product(name: "TSCTestSupport", package: "swift-tools-support-core"),
       ]
     ),
+    .testTarget(name: "WebDriverClientTests", dependencies: ["WebDriverClient"]),
   ]
 )

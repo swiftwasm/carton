@@ -22,6 +22,10 @@ extension Environment: ExpressibleByArgument {}
 
 extension SanitizeVariant: ExpressibleByArgument {}
 
+struct TestError: Error, CustomStringConvertible {
+  let description: String
+}
+
 struct Test: AsyncParsableCommand {
 
   static let configuration = CommandConfiguration(abstract: "Run the tests in a WASI environment.")
@@ -40,6 +44,12 @@ struct Test: AsyncParsableCommand {
       "Environment used to run the tests. Available values: \(Environment.allCasesNames.joined(separator: ", "))"
   )
   private var environment = Environment.wasmer
+
+  /// It is implemented as a separate flag instead of a `--environment` variant because `--environment`
+  /// is designed to accept specific browser names in the future like `--environment firefox`. 
+  /// Then `--headless` should be able to be used with `defaultBrowser` and other browser values.
+  @Flag(help: "When running browser tests, run the browser in headless mode")
+  var headless: Bool = false
 
   @Option(help: "Turn on runtime checks for various behavior.")
   private var sanitize: SanitizeVariant?
@@ -69,6 +79,12 @@ struct Test: AsyncParsableCommand {
       sanitize: sanitize,
       swiftCompilerFlags: buildOptions.swiftCompilerFlags
     )
+  }
+
+  func validate() throws {
+    if headless && environment != .defaultBrowser {
+      throw TestError(description: "The `--headless` flag can be applied only for browser environments")
+    }
   }
 
   func run() async throws {
@@ -101,6 +117,7 @@ struct Test: AsyncParsableCommand {
         testFilePath: bundlePath,
         host: host,
         port: port,
+        headless: headless,
         // swiftlint:disable:next force_try
         manifest: try! toolchain.manifest.get(),
         terminal: terminal
