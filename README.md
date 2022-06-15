@@ -62,7 +62,7 @@ the compatibility matrix if you need to use older verions:
 
 | `carton` version | SwiftWasm version | JavaScriptKit version | Tokamak version |
 | ---------------- | ----------------- | --------------------- | --------------- |
-| 0.15             | 5.6               | 0.15+                 | 0.10.1+         |
+| 0.15+            | 5.6               | 0.15+                 | 0.10.1+         |
 | 0.14             | 5.6               | 0.14                  | 0.10            |
 | 0.13             | 5.5               | 0.13                  | 0.9.1           |
 | 0.12.2           | 5.5               | 0.12                  | 0.9.1           |
