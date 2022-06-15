@@ -1,3 +1,22 @@
+# 0.16.0 (15 June 2022)
+
+This release adds several enhancements in `carton test`, and allows you to customize optimization strategy.
+One of the notable enhancement is `--headless` option added in `carton test`, which runs tests using
+W3C WebDriver protocol
+
+**Merged pull requests:**
+
+- Revert "Use `--static-swift-stdlib` for easier distribution on Linux" ([#365](https://github.com/swiftwasm/carton/pull/365)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update SwiftPM dependencies ([#363](https://github.com/swiftwasm/carton/pull/363)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Headless test runner ([#362](https://github.com/swiftwasm/carton/pull/362)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+- Add option to disable wasm optimizations ([#359](https://github.com/swiftwasm/carton/pull/359)) via [@ephemer](https://github.com/ephemer)
+- Update SwiftPM dependencies ([#360](https://github.com/swiftwasm/carton/pull/360)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Use `--static-swift-stdlib` for easier distribution on Linux ([#343](https://github.com/swiftwasm/carton/pull/343)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Add `--prebuilt-test-bundle-path` option to `carton test` ([#358](https://github.com/swiftwasm/carton/pull/358)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+- Update SwiftPM dependencies ([#357](https://github.com/swiftwasm/carton/pull/357)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Fix linter error in `Builder.swift` ([#356](https://github.com/swiftwasm/carton/pull/356)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Clean up integration tests and fixtures ([#355](https://github.com/swiftwasm/carton/pull/355)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+
 # 0.15.3 (24 May 2022)
 
 This release fixes an issue when `carton test` wouldn't be finished after large number of test suites, and
