@@ -3,11 +3,9 @@
 set -ex
 
 if [ -x "$(command -v sudo)" ]; then
-  sudo apt-get update -y
-  sudo apt-get install -y zlib1g-dev libsqlite3-dev libcurl4-openssl-dev
+  sudo apt-get install zlib1g-dev libsqlite3-dev
 else
-  apt-get update -y
-  apt-get install -y zlib1g-dev libsqlite3-dev libcurl4-openssl-dev
+  apt-get install zlib1g-dev libsqlite3-dev
 fi
 
 BINARYEN_VERSION=105
