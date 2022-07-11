@@ -166,8 +166,9 @@ struct BrowserTestRunner: TestRunner {
         disposer = {}
         openInSystemBrowser(url: localURL)
       }
-      try await server.waitUntilStop()
+      let hadError = try await server.waitUntilTestFinished()
       try await disposer()
+      exit(hadError ? EXIT_FAILURE : EXIT_SUCCESS)
     } catch {
       try await disposer()
       throw error
