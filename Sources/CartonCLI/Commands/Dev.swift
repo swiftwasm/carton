@@ -112,7 +112,7 @@ struct Dev: AsyncParsableCommand {
 
     let sources = try paths.flatMap { try localFileSystem.traverseRecursively($0) }
 
-    try await Server(
+    let server = try await Server(
       .init(
         builder: Builder(
           arguments: build.arguments,
@@ -124,16 +124,20 @@ struct Dev: AsyncParsableCommand {
         ),
         mainWasmPath: build.mainWasmPath,
         verbose: verbose,
-        shouldSkipAutoOpen: skipAutoOpen,
         port: port,
         host: host,
-        customIndexContent: HTML.readCustomIndexPage(at: customIndexPage, on: localFileSystem),
+        customIndexPath: customIndexPage.map { AbsolutePath($0, relativeTo: localFileSystem.currentWorkingDirectory!) },
         // swiftlint:disable:next force_try
         manifest: try! toolchain.manifest.get(),
         product: build.product,
         entrypoint: Self.entrypoint,
         terminal: terminal
       )
-    ).run()
+    )
+    let localURL = try await server.start()
+    if !skipAutoOpen {
+      openInSystemBrowser(url: localURL)
+    }
+    try await server.waitUntilStop()
   }
 }

@@ -79,9 +79,6 @@ public actor Server {
   /// Local URL of this server, `https://128.0.0.1:8080/` by default.
   private let localURL: String
 
-  /// Whether a browser tab should automatically open as soon as the server is ready.
-  private let shouldSkipAutoOpen: Bool
-
   /// Whether a build that could be triggered by this server is currently running.
   private var isBuildCurrentlyRunning = false
 
@@ -92,10 +89,9 @@ public actor Server {
     let builder: Builder?
     let mainWasmPath: AbsolutePath
     let verbose: Bool
-    let shouldSkipAutoOpen: Bool
     let port: Int
     let host: String
-    let customIndexContent: String?
+    let customIndexPath: AbsolutePath?
     let manifest: Manifest
     let product: ProductDescription?
     let entrypoint: Entrypoint
@@ -105,10 +101,9 @@ public actor Server {
       builder: Builder?,
       mainWasmPath: AbsolutePath,
       verbose: Bool,
-      shouldSkipAutoOpen: Bool,
       port: Int,
       host: String,
-      customIndexContent: String?,
+      customIndexPath: AbsolutePath?,
       manifest: Manifest,
       product: ProductDescription?,
       entrypoint: Entrypoint,
@@ -117,10 +112,9 @@ public actor Server {
       self.builder = builder
       self.mainWasmPath = mainWasmPath
       self.verbose = verbose
-      self.shouldSkipAutoOpen = shouldSkipAutoOpen
       self.port = port
       self.host = host
-      self.customIndexContent = customIndexContent
+      self.customIndexPath = customIndexPath
       self.manifest = manifest
       self.product = product
       self.entrypoint = entrypoint
@@ -129,17 +123,17 @@ public actor Server {
   }
 
   public init(
-    _ configuration: Configuration
+    _ configuration: Configuration,
+    _ eventLoopGroupProvider: Application.EventLoopGroupProvider = .createNew
   ) async throws {
     var env = Environment(
       name: configuration.verbose ? "development" : "production",
       arguments: ["vapor"]
     )
     localURL = "http://\(configuration.host):\(configuration.port)/"
-    shouldSkipAutoOpen = configuration.shouldSkipAutoOpen
 
     try LoggingSystem.bootstrap(from: &env)
-    app = Application(env)
+    app = Application(env, eventLoopGroupProvider)
     watcher = nil
 
     try app.configure(
@@ -147,7 +141,7 @@ public actor Server {
         port: configuration.port,
         host: configuration.host,
         mainWasmPath: configuration.mainWasmPath,
-        customIndexContent: configuration.customIndexContent,
+        customIndexPath: configuration.customIndexPath,
         manifest: configuration.manifest,
         product: configuration.product,
         entrypoint: configuration.entrypoint,
@@ -165,8 +159,6 @@ public actor Server {
         onWebSocketClose: { [weak self] in await self?.remove(connection: $0) }
       )
     )
-    // Listen to Vapor App lifecycle events
-    app.lifecycle.use(self)
 
     guard let builder = configuration.builder else {
       return
@@ -201,6 +193,8 @@ public actor Server {
     }
 
     isBuildCurrentlyRunning = true
+    defer { isBuildCurrentlyRunning = false }
+
     // `configuration.builder` is guaranteed to be non-nil here as its presence is checked in `init`
     try await run(configuration.builder!, configuration.terminal)
 
@@ -213,7 +207,6 @@ public actor Server {
     }
 
     isSubsequentBuildScheduled = false
-    isBuildCurrentlyRunning = false
   }
 
   private func add(pendingChanges: [AbsolutePath]) {}
@@ -226,24 +219,16 @@ public actor Server {
     connections.remove(connection)
   }
 
-  /// Blocking function that starts the HTTP server.
-  public nonisolated func run() async throws {
-    // Explicitly hop to another thread to avoid blocking the thread that is running the actor executor
-    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-      Thread {
-        Task {
-          do {
-            defer { self.app.shutdown() }
-            try self.app.run()
-            try await self.closeSockets()
-            continuation.resume()
-          } catch {
-            continuation.resume(with: .failure(error))
-          }
-        }
-      }
-      .start()
-    }
+  public func start() throws -> String {
+    try app.start()
+    return localURL
+  }
+
+  /// Wait and handle the shutdown
+  public func waitUntilStop() async throws {
+    defer { self.app.shutdown() }
+    try await app.running?.onStop.get()
+    try closeSockets()
   }
 
   func closeSockets() throws {
@@ -307,34 +292,27 @@ extension Server {
   }
 }
 
-extension Server: LifecycleHandler {
-  public nonisolated func didBoot(_ application: Application) throws {
-    guard !shouldSkipAutoOpen else { return }
-    openInSystemBrowser(url: localURL)
-  }
-
-  /// Attempts to open the specified URL string in system browser on macOS and Linux.
-  /// - Returns: true if launching command returns successfully.
-  @discardableResult
-  private nonisolated func openInSystemBrowser(url: String) -> Bool {
-    #if os(macOS)
-    let openCommand = "open"
-    #elseif os(Linux)
-    let openCommand = "xdg-open"
-    #else
+/// Attempts to open the specified URL string in system browser on macOS and Linux.
+/// - Returns: true if launching command returns successfully.
+@discardableResult
+public func openInSystemBrowser(url: String) -> Bool {
+  #if os(macOS)
+  let openCommand = "open"
+  #elseif os(Linux)
+  let openCommand = "xdg-open"
+  #else
+  return false
+  #endif
+  let process = Process(
+    arguments: [openCommand, url],
+    outputRedirection: .none,
+    verbose: false,
+    startNewProcessGroup: true
+  )
+  do {
+    try process.launch()
+    return true
+  } catch {
     return false
-    #endif
-    let process = Process(
-      arguments: [openCommand, url],
-      outputRedirection: .none,
-      verbose: false,
-      startNewProcessGroup: true
-    )
-    do {
-      try process.launch()
-      return true
-    } catch {
-      return false
-    }
   }
 }

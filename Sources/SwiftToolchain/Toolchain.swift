@@ -19,7 +19,7 @@ import TSCBasic
 import TSCUtility
 import WasmTransformer
 
-public let compatibleJSKitVersion = Version(0, 14, 0)
+public let compatibleJSKitVersion = Version(0, 15, 0)
 
 enum ToolchainError: Error, CustomStringConvertible {
   case directoryDoesNotExist(AbsolutePath)
@@ -86,10 +86,10 @@ extension PackageDependency {
     default: break
     }
     if let exactVersion = exactVersion {
-      return exactVersion == compatibleJSKitVersion
+      return exactVersion >= compatibleJSKitVersion
     }
     if let versionRange = versionRange {
-      return versionRange.upperBound >= compatibleJSKitVersion
+      return versionRange.lowerBound >= compatibleJSKitVersion
     }
     return false
   }
@@ -127,7 +127,8 @@ public final class Toolchain {
     self.terminal = terminal
     if let workingDirectory = fileSystem.currentWorkingDirectory {
       let swiftc = swiftPath.parentDirectory.appending(component: "swiftc")
-      manifest = await Result { try await Manifest.from(path: workingDirectory, swiftc: swiftc, fileSystem: fileSystem, terminal: terminal)
+      manifest = await Result {
+        try await Manifest.from(path: workingDirectory, swiftc: swiftc, fileSystem: fileSystem, terminal: terminal)
       }
     } else {
       manifest = .failure(ToolchainError.noWorkingDirectory)
@@ -147,7 +148,7 @@ public final class Toolchain {
   }
 
   private func inferDevProduct(hint: String?) throws -> ProductDescription? {
-    let manifest = try self.manifest.get()
+    let manifest = try manifest.get()
 
     var candidateProducts = manifest.products
       .filter { $0.type == .executable }
@@ -201,7 +202,7 @@ public final class Toolchain {
   }
 
   public func inferSourcesPaths() throws -> [AbsolutePath] {
-    let manifest = try self.manifest.get()
+    let manifest = try manifest.get()
 
     let targetPaths = manifest.targets.compactMap { target -> String? in
 
@@ -224,7 +225,7 @@ public final class Toolchain {
   }
 
   private func emitJSKitWarningIfNeeded() throws {
-    let manifest = try self.manifest.get()
+    let manifest = try manifest.get()
     guard let jsKit = manifest.dependencies.first(where: {
       $0.nameForTargetDependencyResolutionOnly == "JavaScriptKit"
     }) else {
@@ -301,14 +302,19 @@ public final class Toolchain {
     return .init(arguments: builderArguments, mainWasmPath: mainWasmPath, product: product)
   }
 
+  public func getTestProduct(flavor: BuildFlavor) throws -> (name: String, artifactPath: AbsolutePath) {
+    let manifest = try manifest.get()
+    let binPath = try inferBinPath(isRelease: flavor.isRelease)
+    let testProductName = "\(manifest.displayName)PackageTests"
+    let testBundlePath = binPath.appending(component: "\(testProductName).wasm")
+    return (testProductName, testBundlePath)
+  }
+
   /// Returns an absolute path to the resulting test bundle
   public func buildTestBundle(
     flavor: BuildFlavor
   ) async throws -> AbsolutePath {
-    let manifest = try self.manifest.get()
-    let binPath = try inferBinPath(isRelease: flavor.isRelease)
-    let testProductName = "\(manifest.displayName)PackageTests"
-    let testBundlePath = binPath.appending(component: "\(testProductName).wasm")
+    let (testProductName, testBundlePath) = try getTestProduct(flavor: flavor)
     terminal.logLookup("- test bundle to run: ", testBundlePath.pathString)
 
     terminal.write(

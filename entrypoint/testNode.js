@@ -1,4 +1,4 @@
-// Copyright 2020 Carton contributors
+// Copyright 2022 Carton contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import fs from "fs/promises";
-import { WasmRunner } from "./common";
+import { WasmRunner } from "./common.js";
 
 const args = [...process.argv];
 args.shift();
@@ -24,18 +24,27 @@ if (!wasmFile) {
   throw Error("No WASM test file specified, can not run tests");
 }
 
-const wasmRunner = WasmRunner({ args: testArgs });
-
 const startWasiTask = async () => {
   const wasmBytes = await fs.readFile(wasmFile);
 
-  await wasmRunner.run(wasmBytes, {
-    __stack_sanitizer: {
-      report_stack_overflow: () => {
-        throw new Error("Detected stack-buffer-overflow.");
-      },
-    },
-  });
+  let runtimeConstructor;
+  try {
+    const { SwiftRuntime } = await import(
+      "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs"
+    );
+
+    runtimeConstructor = SwiftRuntime;
+
+    // Make `require` function available in the Swift environment. By default it's only available in the local scope,
+    // but not on the `global` object.
+    global.require = require;
+  } catch {
+    // No JavaScriptKit module found, run the Wasm module without JSKit
+  }
+
+  const wasmRunner = WasmRunner({ args: testArgs }, runtimeConstructor);
+
+  await wasmRunner.run(wasmBytes);
 };
 
 startWasiTask().catch((e) => {

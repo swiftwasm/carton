@@ -1,4 +1,4 @@
-// Copyright 2020 Carton contributors
+// Copyright 2022 Carton contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,4 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-public let cartonVersion = "0.16.0"
+@testable import CartonCLI
+import TSCBasic
+import XCTest
+
+final class IntegrationTests: XCTestCase {
+  func testTokamakBundle() throws {
+    try withTemporaryDirectory { tmpDirPath in
+      try ProcessEnv.chdir(tmpDirPath)
+      try Process.checkNonZeroExit(arguments: [cartonPath, "init", "--template", "tokamak"])
+      try Process.checkNonZeroExit(arguments: [cartonPath, "bundle"])
+    }
+  }
+}

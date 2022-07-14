@@ -1,3 +1,93 @@
+# 0.16.0 (15 June 2022)
+
+This release adds several enhancements in `carton test`, and allows you to customize optimization strategy.
+One of the notable enhancement is `--headless` option added in `carton test`, which runs tests using
+W3C WebDriver protocol
+
+**Merged pull requests:**
+
+- Revert "Use `--static-swift-stdlib` for easier distribution on Linux" ([#365](https://github.com/swiftwasm/carton/pull/365)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update SwiftPM dependencies ([#363](https://github.com/swiftwasm/carton/pull/363)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Headless test runner ([#362](https://github.com/swiftwasm/carton/pull/362)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+- Add option to disable wasm optimizations ([#359](https://github.com/swiftwasm/carton/pull/359)) via [@ephemer](https://github.com/ephemer)
+- Update SwiftPM dependencies ([#360](https://github.com/swiftwasm/carton/pull/360)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Use `--static-swift-stdlib` for easier distribution on Linux ([#343](https://github.com/swiftwasm/carton/pull/343)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Add `--prebuilt-test-bundle-path` option to `carton test` ([#358](https://github.com/swiftwasm/carton/pull/358)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+- Update SwiftPM dependencies ([#357](https://github.com/swiftwasm/carton/pull/357)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Fix linter error in `Builder.swift` ([#356](https://github.com/swiftwasm/carton/pull/356)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Clean up integration tests and fixtures ([#355](https://github.com/swiftwasm/carton/pull/355)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+
+# 0.15.3 (24 May 2022)
+
+This release fixes an issue when `carton test` wouldn't be finished after large number of test suites, and
+improved HTML 5 compatibility.
+
+**Merged pull requests:**
+
+- Stop limiting WS frame size to 16kb for large number of test suites ([#353](https://github.com/swiftwasm/carton/pull/353)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+- Use standards mode in default index page ([#351](https://github.com/swiftwasm/carton/pull/351)) via [@carson-katri](https://github.com/carson-katri)
+
+# 0.15.2 (23 May 2022)
+
+This release fixes an issue when JS entrypoints weren't unpacked during `carton test --environment node` runs.
+
+**Merged pull requests:**
+
+- Add missing check for Node.js entrypoint ([#350](https://github.com/swiftwasm/carton/pull/350)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+
+# 0.15.1 (23 May 2022)
+
+This release fixes an issue when temporary symlinks weren't cleaned up after running `carton test --environment node`.
+
+**Merged pull requests:**
+
+- Fix symlinks not fully cleaned up in Node.js tests ([#349](https://github.com/swiftwasm/carton/pull/349)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+
+# 0.15.0 (20 May 2022)
+
+This release of `carton` includes enhancements and bugfixes. Namely:
+
+- Compatibility with [JavaScriptKit 0.15.0](https://github.com/swiftwasm/JavaScriptKit/releases/tag/0.15.0) and later.
+  The long-standing incompatibility between different versions of `carton` and JavaScriptKit is resolved now. All
+  version combinations of `carton` and JavaScriptKit higher than 0.15 should be compatible with each other. This is
+  achieved by supplying JavaScriptKit runtime via SwiftPM resources, instead of embedding within `.js` entrypoints as
+  we did previously. If you relied on the previous behavior, please [open an
+  issue](https://github.com/swiftwasm/carton/issues/new) describing your use case.
+- `carton test` can now run your test suite with Node.js when that is installed. Run it as `carton test --environment node` to enable this.
+- SwiftPM resources from sub-dependencies of your package are now available on the web server with `carton dev` and
+  bundled with `carton bundle`. Resources from each target are still isolated in subdirectories named with
+  `\(packageName)_\(targetName).resources` format, which is hardcoded by SwiftPM. Resources from the main target you're
+  building are still available at the root path, also accessible via `Bundle.main.path(forResource:ofType:)` function
+  when you import Foundation (mind the binary size overhead when relying on Foundation). Incorrect paths accessed via
+  `Bundle.module` are a known issue, which we track as
+  [swiftwasm/swift#4573](https://github.com/swiftwasm/swift/issues/4573).
+
+Many thanks to [@AntonioCandinho](https://github.com/AntonioCandinho), [@j-f1](https://github.com/j-f1), and
+[@kateinoigakukun](https://github.com/kateinoigakukun) for contributions!
+
+**Closed issues:**
+
+- Re-read supplied `index.html` on updates ([#341](https://github.com/swiftwasm/carton/issues/341))
+- `carton dev` stops rebuilding/reloading after error ([#339](https://github.com/swiftwasm/carton/issues/339))
+- Avoid applying `I64ImportTransformer` when JS BigInt support is enabled ([#326](https://github.com/swiftwasm/carton/issues/326))
+- `swjs_create_typed_array` error on `carton test` ([#322](https://github.com/swiftwasm/carton/issues/322))
+- Host JSKit entrypoint assets on GH Pages CDN ([#317](https://github.com/swiftwasm/carton/issues/317))
+
+**Merged pull requests:**
+
+- Fix watcher breakage on failed builds ([#347](https://github.com/swiftwasm/carton/pull/347)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Re-read custom `index.html` on updates ([#342](https://github.com/swiftwasm/carton/pull/342)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Use JSKit runtime from SwiftPM resources ([#335](https://github.com/swiftwasm/carton/pull/335)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Fix JavaScriptBigIntSupport compatibility issue ([#338](https://github.com/swiftwasm/carton/pull/338)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+- Embed static.zip in Swift code instead of downloading from remote ([#334](https://github.com/swiftwasm/carton/pull/334)) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+- Clarify `--environment` option for `carton test` in `README.md` ([#333](https://github.com/swiftwasm/carton/pull/333)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Add `carton`/SwiftWasm/JSKit compat matrix to `README.md` ([#332](https://github.com/swiftwasm/carton/pull/332)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Add support for running tests using NodeJS ([#328](https://github.com/swiftwasm/carton/pull/328)) via [@AntonioCandinho](https://github.com/AntonioCandinho)
+- Serve all available resources with `dev`/`bundle` ([#330](https://github.com/swiftwasm/carton/pull/330)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update to v2 of Contributor Covenant in shared GitHub repo ([#329](https://github.com/swiftwasm/carton/pull/329)) via [@j-f1](https://github.com/j-f1)
+- Fix 5.6 template: use `executableTarget` ([#325](https://github.com/swiftwasm/carton/pull/325)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update SwiftPM dependencies ([#324](https://github.com/swiftwasm/carton/pull/324)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+
 # 0.14.2 (30 April 2022)
 
 This is a bugfix release resolving an issue with JavaScript entrypoint code.
@@ -6,9 +96,9 @@ Many thanks to [@fjtrujy](https://github.com/fjtrujy) for the contribution!
 
 **Closed issues:**
 
-* Apply `clock_res_get` patch in all entrypoints ([#321](https://github.com/swiftwasm/carton/issues/321))
+- Apply `clock_res_get` patch in all entrypoints ([#321](https://github.com/swiftwasm/carton/issues/321))
 
-**Merged pull requests:** 
+**Merged pull requests:**
 
 - Update SwiftPM dependencies ([#319](https://github.com/swiftwasm/carton/pull/319)) via [@MaxDesiatov](https://github.com/MaxDesiatov)
 - Update SwiftPM dependencies ([#320](https://github.com/swiftwasm/carton/pull/320)) via [@MaxDesiatov](https://github.com/MaxDesiatov)

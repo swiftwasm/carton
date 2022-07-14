@@ -21,96 +21,92 @@ import XCTest
 
 @testable import CartonCLI
 
-extension TestCommandTests: Testable {}
-
 private enum Constants {
-  static let anyPackageName = "TestApp"
+  static let testAppPackageName = "TestApp"
+  static let nodeJSKitPackageName = "NodeJSKitTest"
 }
 
 final class TestCommandTests: XCTestCase {
-  private var client: HTTPClient?
-
-  override func tearDown() {
-    try? client?.syncShutdown()
-    client = nil
-  }
-
   func testWithNoArguments() throws {
-    let packageDirectory = givenAPackageTestDirectory(Constants.anyPackageName)
-
-    AssertExecuteCommand(
-      command: "carton test",
-      cwd: packageDirectory.url,
-      debug: true
-    )
+    try withFixture(Constants.testAppPackageName) { packageDirectory in
+      AssertExecuteCommand(
+        command: "carton test",
+        cwd: packageDirectory.url,
+        debug: true
+      )
+    }
   }
 
-  func testEnvironmentNode() throws {
-    let packageDirectory = givenAPackageTestDirectory(Constants.anyPackageName)
+  func testEnvironmentNodeNoJSKit() throws {
+    try withFixture(Constants.testAppPackageName) { packageDirectory in
+      AssertExecuteCommand(
+        command: "carton test --environment node",
+        cwd: packageDirectory.url,
+        debug: true
+      )
+    }
+  }
 
-    AssertExecuteCommand(
-      command: "carton test --environment node",
-      cwd: packageDirectory.url,
-      debug: true
-    )
+  func testEnvironmentNodeJSKit() throws {
+    try withFixture(Constants.nodeJSKitPackageName) { packageDirectory in
+      AssertExecuteCommand(
+        command: "carton test --environment node",
+        cwd: packageDirectory.url,
+        debug: true
+      )
+    }
+  }
+
+  func testSkipBuild() throws {
+    try withFixture(Constants.nodeJSKitPackageName) { packageDirectory in
+      AssertExecuteCommand(
+        command: "carton test --environment node",
+        cwd: packageDirectory.url
+      )
+      AssertExecuteCommand(
+        command: "carton test --environment node --prebuilt-test-bundle-path ./.build/wasm32-unknown-wasi/debug/NodeJSKitTestPackageTests.wasm",
+        cwd: packageDirectory.url
+      )
+    }
+  }
+
+  func testHeadlessBrowser() throws {
+    guard Process.findExecutable("safaridriver") != nil else {
+      throw XCTSkip("WebDriver is required")
+    }
+    try withFixture(Constants.testAppPackageName) { packageDirectory in
+      AssertExecuteCommand(
+        command: "carton test --environment defaultBrowser --headless",
+        cwd: packageDirectory.url
+      )
+    }
   }
 
   // This test is prone to hanging on Linux.
   #if os(macOS)
-    func testEnvironmentDefaultBrowser() throws {
-      let packageDirectory = givenAPackageTestDirectory()
-
+  func testEnvironmentDefaultBrowser() throws {
+    try withFixture(Constants.testAppPackageName) { packageDirectory in
       let expectedTestSuiteCount = 1
       let expectedTestsCount = 1
 
       let expectedContent =
         """
         Test Suites: \(ControlCode.CSI)32m\(expectedTestSuiteCount) passed\(ControlCode
-        .CSI)0m, \(expectedTestSuiteCount) total
+          .CSI)0m, \(expectedTestSuiteCount) total
         Tests:       \(ControlCode.CSI)32m\(expectedTestsCount) passed\(ControlCode
-        .CSI)0m, \(expectedTestsCount) total
+          .CSI)0m, \(expectedTestsCount) total
         """
 
+      // FIXME: Don't assume a specific port is available since it can be used by others or tests
       AssertExecuteCommand(
-        command: "carton test --environment defaultBrowser",
+        command: "carton test --environment defaultBrowser --port 8082",
         cwd: packageDirectory.url,
         expected: expectedContent,
         expectedContains: true
       )
     }
+  }
   #endif
-
-  private func givenAPackageTestDirectory(_ name: String = Constants.anyPackageName)
-    -> TestDirectory
-  {
-    let packageDirectory = TestDirectory(testFixturesDirectory, name)
-
-    XCTAssertTrue(packageDirectory.exists, "The TestApp directory does not exist")
-
-    return packageDirectory
-  }
-
-}
-
-private class TestDirectory {
-  private var directory: AbsolutePath
-
-  var url: URL { directory.url }
-  var exists: Bool { directory.exists }
-
-  init(_ testDirectory: AbsolutePath, _ dirName: String) {
-    self.directory = testDirectory.appending(components: dirName)
-    cleanBuildDir()
-  }
-
-  deinit {
-    cleanBuildDir()
-  }
-
-  private func cleanBuildDir() {
-    // Clean up once this object is not needed anymore
-    try? directory.appending(component: ".build").delete()
-  }
 }
 
 enum ControlCode {

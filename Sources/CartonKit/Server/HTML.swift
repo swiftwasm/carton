@@ -34,9 +34,7 @@ extension HTML: ResponseEncodable {
     ))
   }
 
-  public static func readCustomIndexPage(at path: String?,
-                                         on fileSystem: FileSystem) throws -> String?
-  {
+  public static func readCustomIndexPage(at path: String?, on fileSystem: FileSystem) throws -> String? {
     if let customIndexPage = path {
       let content = try localFileSystem.readFileContents(customIndexPage.isAbsolutePath ?
         AbsolutePath(customIndexPage) :
@@ -53,7 +51,7 @@ extension HTML: ResponseEncodable {
   }
 
   public static func indexPage(customContent: String?, entrypointName: String) -> String {
-    let scriptTag = #"<script type="text/javascript" src="\#(entrypointName)"></script>"#
+    let scriptTag = #"<script type="module" src="\#(entrypointName)"></script>"#
     if let customContent = customContent {
       return customContent.replacingOccurrences(
         of: "</head>",
@@ -62,6 +60,7 @@ extension HTML: ResponseEncodable {
     }
 
     return #"""
+    <!DOCTYPE html>
     <html>
       <head>
           <meta charset="utf-8" />

@@ -22,6 +22,10 @@ extension Environment: ExpressibleByArgument {}
 
 extension SanitizeVariant: ExpressibleByArgument {}
 
+struct TestError: Error, CustomStringConvertible {
+  let description: String
+}
+
 struct Test: AsyncParsableCommand {
 
   static let configuration = CommandConfiguration(abstract: "Run the tests in a WASI environment.")
@@ -41,6 +45,12 @@ struct Test: AsyncParsableCommand {
   )
   private var environment = Environment.wasmer
 
+  /// It is implemented as a separate flag instead of a `--environment` variant because `--environment`
+  /// is designed to accept specific browser names in the future like `--environment firefox`. 
+  /// Then `--headless` should be able to be used with `defaultBrowser` and other browser values.
+  @Flag(help: "When running browser tests, run the browser in headless mode")
+  var headless: Bool = false
+
   @Option(help: "Turn on runtime checks for various behavior.")
   private var sanitize: SanitizeVariant?
 
@@ -56,6 +66,9 @@ struct Test: AsyncParsableCommand {
   )
   var host = "127.0.0.1"
 
+  @Option(help: "Use the given bundle instead of building the test target")
+  var prebuiltTestBundlePath: String?
+
   @OptionGroup()
   var buildOptions: BuildOptions
 
@@ -68,10 +81,28 @@ struct Test: AsyncParsableCommand {
     )
   }
 
+  func validate() throws {
+    if headless && environment != .defaultBrowser {
+      throw TestError(description: "The `--headless` flag can be applied only for browser environments")
+    }
+  }
+
   func run() async throws {
     let terminal = InteractiveWriter.stdout
     let toolchain = try await Toolchain(localFileSystem, terminal)
-    let bundlePath = try await toolchain.buildTestBundle(flavor: buildFlavor)
+    let bundlePath: AbsolutePath
+    if let preBundlePath = self.prebuiltTestBundlePath {
+      bundlePath = AbsolutePath(preBundlePath, relativeTo: localFileSystem.currentWorkingDirectory!)
+      guard localFileSystem.exists(bundlePath) else {
+        terminal.write(
+          "No prebuilt binary found at \(bundlePath)\n",
+          inColor: .red
+        )
+        throw ExitCode.failure
+      }
+    } else {
+      bundlePath = try await toolchain.buildTestBundle(flavor: buildFlavor)
+    }
 
     switch environment {
     case .wasmer:
@@ -86,6 +117,7 @@ struct Test: AsyncParsableCommand {
         testFilePath: bundlePath,
         host: host,
         port: port,
+        headless: headless,
         // swiftlint:disable:next force_try
         manifest: try! toolchain.manifest.get(),
         terminal: terminal
