@@ -146,7 +146,7 @@ struct Bundle: AsyncParsableCommand {
     wasmOutputFilePath: AbsolutePath,
     buildDirectory: AbsolutePath,
     bundleDirectory: AbsolutePath,
-    toolchain: Toolchain,
+    toolchain: SwiftToolchain.Toolchain,
     product: ProductDescription
   ) throws {
     // Rename the final binary to use a part of its hash to bust browsers and CDN caches.
