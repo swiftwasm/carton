@@ -1,3 +1,14 @@
+# 0.16.1 (22 July 2022)
+
+This release fixes an issue when `carton test` doesn't execute the all of async tests, and doesn't handle
+JS exception.
+
+**Merged pull requests:**
+
+- Exit non-zero status when test fail on browser [#370](https://github.com/swiftwasm/carton/pull/370) via [@kateinoigakukun](https://github.com/kateinoigakukun)
+- Update SwiftPM dependencies [#368](https://github.com/swiftwasm/carton/pull/368) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+- Update SwiftPM dependencies [#366](https://github.com/swiftwasm/carton/pull/366) via [@MaxDesiatov](https://github.com/MaxDesiatov)
+
 # 0.16.0 (15 June 2022)
 
 This release adds several enhancements in `carton test`, and allows you to customize optimization strategy.
