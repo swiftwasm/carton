@@ -3,7 +3,7 @@
 set -ex
 
 if [ -x "$(command -v sudo)" ]; then
-  sudoCommand=(sudo)
+  sudoCommand=sudo
 else
   sudoCommand=()
 fi
