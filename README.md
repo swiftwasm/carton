@@ -50,16 +50,19 @@ not supported.
 
 ### Version compatibility
 
-`carton` embeds runtime parts of [the JavaScriptKit library](https://github.com/swiftwasm/JavaScriptKit),
-which allows Swift and JavaScript code to interoperate in Node.js and browser environments. Because
-of how JavaScriptKit runtime is currently embedded, older versions of JavaScriptKit may be incompatible
-with new versions of `carton` and vice versa. [In the future](https://github.com/swiftwasm/carton/issues/155),
-this incompatibility between different versions of `carton` and JavaScriptKit will be resolved. Similarly,
-older versions of SwiftWasm may be incompatible with newer `carton`. You can follow the compatibility matrix
-if you need to use older verions:
+`carton` previously embedded runtime parts of [the JavaScriptKit library](https://github.com/swiftwasm/JavaScriptKit).
+This runtime allows Swift and JavaScript code to interoperate in Node.js and browser environments. Because of how
+JavaScriptKit runtime was embedded, older versions of JavaScriptKit were incompatible with different versions of
+`carton` and vice versa. This incompatibility between different versions was resolved starting with JavaScriptKit 0.15
+and `carton` 0.15. All version combinations of `carton` and JavaScriptKit higher than those are compatible with each
+other.
+
+You still have to keep in mind that older versions of SwiftWasm may be incompatible with newer `carton`. You can follow
+the compatibility matrix if you need to use older verions:
 
 | `carton` version | SwiftWasm version | JavaScriptKit version | Tokamak version |
 | ---------------- | ----------------- | --------------------- | --------------- |
+| 0.15+            | 5.6               | 0.15+                 | 0.10.1+         |
 | 0.14             | 5.6               | 0.14                  | 0.10            |
 | 0.13             | 5.5               | 0.13                  | 0.9.1           |
 | 0.12.2           | 5.5               | 0.12                  | 0.9.1           |
@@ -90,6 +93,11 @@ either: `wasmer`, `node` or `defaultBrowser`. Code that depends on
 [JavaScriptKit](https://github.com/swiftwasm/JavaScriptKit) should pass either `--environment node` or
 `--environment defaultBrowser` options, depending on whether it needs Web APIs to work. Otherwise
 the test run will not succeed, since JavaScript environment is not available with `--environment wasmer`.
+If you want to run your test suite on CI or without GUI but on browser, you can pass `--headless` flag.
+It enables [WebDriver](https://w3c.github.io/webdriver/)-based headless browser testing. Note that you
+need to install a WebDriver executable in `PATH` before running tests.
+You can use the command with a prebuilt test bundle binary instead of building it in carton by passing
+`--prebuilt-test-bundle-path <your binary path>`.
 
 The `carton sdk` command and its subcommands allow you to manage installed SwiftWasm toolchains, but
 is rarely needed, as `carton dev` installs the recommended version of SwiftWasm automatically.
@@ -109,7 +117,9 @@ files except `index.html` are named by their content hashes to enable [cache
 busting](https://www.keycdn.com/support/what-is-cache-busting). As with `carton dev`, a custom
 `index.html` page can be provided through the `--custom-index-page` option. You can also pass
 `--debug-info` flag to preserve `names` and DWARF sections in the resulting `.wasm` file, as these
-are stripped in the `release` configuration by default.
+are stripped in the `release` configuration by default. By default, `carton bundle` will run `wasm-opt`
+on the resulting .wasm binary in order to reduce its file size. That behaviour can be disabled (in order
+to speed up the build) by appending the `--wasm-optimizations none` option.
 
 The `carton package` command proxies its subcommands to `swift package` invocations on the
 currently-installed toolchain. This may be useful in situations where you'd like to generate an

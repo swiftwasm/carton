@@ -24,7 +24,7 @@ extension Application {
     let port: Int
     let host: String
     let mainWasmPath: AbsolutePath
-    let customIndexContent: String?
+    let customIndexPath: AbsolutePath?
     let manifest: Manifest
     let product: ProductDescription?
     let entrypoint: Entrypoint
@@ -43,14 +43,24 @@ extension Application {
     middleware.use(FileMiddleware(publicDirectory: directory))
 
     // register routes
-    get { _ in
-      HTML(value: HTML.indexPage(
-        customContent: configuration.customIndexContent,
-        entrypointName: configuration.entrypoint.fileName
-      ))
+    get { (request: Request) -> EventLoopFuture<HTML> in
+      let customIndexContent: EventLoopFuture<String?>
+      if let path = configuration.customIndexPath?.pathString {
+        customIndexContent = request.fileio.collectFile(at: path).map { String(buffer: $0) }
+      } else {
+        customIndexContent = request.eventLoop.makeSucceededFuture(nil)
+      }
+
+      return customIndexContent.map {
+        HTML(value: HTML.indexPage(
+          customContent: $0,
+          entrypointName: configuration.entrypoint.fileName
+        ))
+      }
     }
 
-    webSocket("watcher") { request, ws in
+    // Don't limit the size of frame to accept large test outputs
+    webSocket("watcher", maxFrameSize: .init(integerLiteral: Int(UInt32.max))) { request, ws in
       let environment = request.headers["User-Agent"].compactMap(DestinationEnvironment.init).first
         ?? .other
 
@@ -60,20 +70,25 @@ extension Application {
 
     get("main.wasm") {
       // stream the file
-      $0.eventLoop
-        .makeSucceededFuture($0.fileio.streamFile(at: configuration.mainWasmPath.pathString))
+      $0.fileio.streamFile(at: configuration.mainWasmPath.pathString)
     }
 
     // Serve resources for all targets at their respective paths.
     let buildDirectory = configuration.mainWasmPath.parentDirectory
 
-    for directoryName in try localFileSystem.resourcesDirectoryNames(relativeTo: buildDirectory) {
-      get(.constant(directoryName), "**") {
-        $0.eventLoop.makeSucceededFuture($0.fileio.streamFile(at: AbsolutePath(
-          buildDirectory.appending(component: directoryName),
-          $0.parameters.getCatchall().joined(separator: "/")
-        ).pathString))
+    func requestHandler(_ directoryName: String) -> ((Request) -> Response) {
+      { (request: Request) -> Response in
+        request.fileio.streamFile(
+          at: AbsolutePath(
+            buildDirectory.appending(component: directoryName),
+            request.parameters.getCatchall().joined(separator: "/")
+          ).pathString
+        )
       }
+    }
+
+    for directoryName in try localFileSystem.resourcesDirectoryNames(relativeTo: buildDirectory) {
+      get(.constant(directoryName), "**", use: requestHandler(directoryName))
     }
 
     let inferredMainTarget = configuration.manifest.targets.first {
@@ -84,11 +99,6 @@ extension Application {
     guard let mainTarget = inferredMainTarget else { return }
 
     let resourcesPath = configuration.manifest.resourcesPath(for: mainTarget)
-    get("**") {
-      $0.eventLoop.makeSucceededFuture($0.fileio.streamFile(at: AbsolutePath(
-        buildDirectory.appending(component: resourcesPath),
-        $0.parameters.getCatchall().joined(separator: "/")
-      ).pathString))
-    }
+    get("**", use: requestHandler(resourcesPath))
   }
 }
