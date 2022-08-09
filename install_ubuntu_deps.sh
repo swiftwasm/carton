@@ -5,7 +5,7 @@ set -ex
 if [ -x "$(command -v sudo)" ]; then
   sudoCommand=sudo
 else
-  sudoCommand=()
+  sudoCommand=""
 fi
 
 $sudoCommand apt-get update -y
