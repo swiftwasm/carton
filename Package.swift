@@ -35,6 +35,7 @@ let package = Package(
     ),
     .package(url: "https://github.com/vapor/vapor.git", from: "4.57.1"),
     .package(url: "https://github.com/apple/swift-crypto.git", from: "1.1.0"),
+    .package(url: "https://github.com/apple/swift-system.git", from: "1.2.1"),
     .package(url: "https://github.com/JohnSundell/Splash.git", from: "0.16.0"),
     .package(
       url: "https://github.com/swiftwasm/WasmTransformer",
@@ -61,6 +62,7 @@ let package = Package(
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
         .product(name: "Crypto", package: "swift-crypto"),
         .product(name: "Vapor", package: "vapor"),
+        .product(name: "CSystem", package: "swift-system", condition: .when(platforms: [.linux])),
         "CartonHelpers",
         "SwiftToolchain",
         "WebDriverClient",
