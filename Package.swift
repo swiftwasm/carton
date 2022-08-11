@@ -62,7 +62,7 @@ let package = Package(
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
         .product(name: "Crypto", package: "swift-crypto"),
         .product(name: "Vapor", package: "vapor"),
-        .product(name: "CSystem", package: "swift-system", condition: .when(platforms: [.linux])),
+        .product(name: "SystemPackage", package: "swift-system", condition: .when(platforms: [.linux])),
         "CartonHelpers",
         "SwiftToolchain",
         "WebDriverClient",
