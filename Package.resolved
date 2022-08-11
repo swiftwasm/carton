@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/swift-server/async-http-client.git",
         "state": {
           "branch": null,
-          "revision": "0527bbb466b8f48b36fe48933c425c42dac09358",
-          "version": "1.11.3"
+          "revision": "df87a860fdc41a595d5ca67f74cde9adbccc099a",
+          "version": "1.11.4"
         }
       },
       {
@@ -114,7 +114,7 @@
         "repositoryURL": "https://github.com/apple/swift-driver.git",
         "state": {
           "branch": "release/5.7",
-          "revision": "6196421893853783585188b782700751061fee5b",
+          "revision": "3d1af45a920fb1a4c3a1a3ca416fdd49dc8d48b3",
           "version": null
         }
       },
@@ -132,8 +132,8 @@
         "repositoryURL": "https://github.com/apple/swift-log.git",
         "state": {
           "branch": null,
-          "revision": "5d66f7ba25daf4f94100e7022febf3c75e37a6c7",
-          "version": "1.4.2"
+          "revision": "8fc79cae9d03a5e623c52cc2dbd2df165a7832b0",
+          "version": "1.4.3"
         }
       },
       {
@@ -177,8 +177,8 @@
         "repositoryURL": "https://github.com/apple/swift-nio-ssl.git",
         "state": {
           "branch": null,
-          "revision": "c30c680c78c99afdabf84805a83c8745387c4ac7",
-          "version": "2.20.2"
+          "revision": "0265283d3539ced108b9b8287eb3328c9d85acdc",
+          "version": "2.21.0"
         }
       },
       {
@@ -204,7 +204,7 @@
         "repositoryURL": "https://github.com/apple/swift-package-manager.git",
         "state": {
           "branch": "release/5.7",
-          "revision": "93c23444e270818a485af8cd907208171a1639ac",
+          "revision": "32bd2bdef837d10858b0141304d86e7d5529250e",
           "version": null
         }
       },
@@ -222,7 +222,7 @@
         "repositoryURL": "https://github.com/apple/swift-tools-support-core.git",
         "state": {
           "branch": "release/5.7",
-          "revision": "4ebe14f046cab223ffa24e156c444c35f6008174",
+          "revision": "184eba382f6abbb362ffc02942d790ff35019ad4",
           "version": null
         }
       },
@@ -249,8 +249,8 @@
         "repositoryURL": "https://github.com/vapor/websocket-kit.git",
         "state": {
           "branch": null,
-          "revision": "efb1bd5adab0381e521a50b11d3107081cdb5615",
-          "version": "2.6.0"
+          "revision": "2d9d2188a08eef4a869d368daab21b3c08510991",
+          "version": "2.6.1"
         }
       },
       {
