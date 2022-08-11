@@ -24,15 +24,20 @@ private enum Event {
     case kind
     case stackTrace
     case testRunOutput
+    case errorReport
   }
 
   enum Kind: String, Decodable {
     case stackTrace
     case testRunOutput
+    case testPassed
+    case errorReport
   }
 
   case stackTrace(String)
   case testRunOutput(String)
+  case testPassed
+  case errorReport(String)
 }
 
 extension Event: Decodable {
@@ -48,6 +53,11 @@ extension Event: Decodable {
     case .testRunOutput:
       let output = try container.decode(String.self, forKey: .testRunOutput)
       self = .testRunOutput(output)
+    case .testPassed:
+      self = .testPassed
+    case .errorReport:
+      let output = try container.decode(String.self, forKey: .errorReport)
+      self = .errorReport(output)
     }
   }
 }
@@ -84,6 +94,9 @@ public actor Server {
 
   /// Whether a subsequent build is currently scheduled on top of a currently running build.
   private var isSubsequentBuildScheduled = false
+
+  /// Continuation for waitUntilTestFinished, passing `hadError: Bool`
+  private var onTestFinishedContinuation: CheckedContinuation<Bool, Never>?
 
   public struct Configuration {
     let builder: Builder?
@@ -231,6 +244,18 @@ public actor Server {
     try closeSockets()
   }
 
+  /// Wait and handle the shutdown
+  public func waitUntilTestFinished() async throws -> Bool {
+    defer { self.app.shutdown() }
+    let hadError = await withCheckedContinuation { cont in
+      self.onTestFinishedContinuation = cont
+    }
+    self.onTestFinishedContinuation = nil
+    app.running?.stop()
+    try closeSockets()
+    return hadError
+  }
+
   func closeSockets() throws {
     for conn in connections {
       try conn.close().wait()
@@ -247,6 +272,10 @@ public actor Server {
     terminal.logLookup("The app is currently hosted at ", localURL)
     connections.forEach { $0.send("reload") }
   }
+
+  private func stopTest(hadError: Bool) {
+    self.onTestFinishedContinuation?.resume(returning: hadError)
+  }
 }
 
 extension Server {
@@ -257,9 +286,10 @@ extension Server {
     terminal: InteractiveWriter
   ) -> (WebSocket, String) -> () {
     { [weak self] _, text in
+      guard let self = self else { return }
       guard
         let data = text.data(using: .utf8),
-        let event = try? self?.decoder.decode(Event.self, from: data)
+        let event = try? self.decoder.decode(Event.self, from: data)
       else {
         return
       }
@@ -283,10 +313,14 @@ extension Server {
       case let .testRunOutput(output):
         TestsParser().parse(output, terminal)
 
-        // Test run finished, no need to keep the server running anymore.
-        if configuration.builder == nil {
-          kill(getpid(), SIGINT)
-        }
+      case .testPassed:
+        Task { await self.stopTest(hadError: false) }
+
+      case let .errorReport(output):
+        terminal.write("\nAn error occurred:\n", inColor: .red)
+        terminal.write(output + "\n")
+
+        Task { await self.stopTest(hadError: true) }
       }
     }
   }

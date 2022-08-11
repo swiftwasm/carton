@@ -60,27 +60,49 @@ const startWasiTask = async () => {
 
   // Instantiate the WebAssembly file
   const wasmBytes = new Uint8Array(responseArrayBuffer).buffer;
-  // Start the WebAssembly WASI instance
-  try {
-    await wasmRunner.run(wasmBytes);
-  } catch (error) {
-    if (!(error instanceof WASIExitError) || error.code != 0) {
-      throw error; // not a successful test run, rethrow
-    }
-  } finally {
-    // pass the output to the server in any case
-    socket.send(
-      JSON.stringify({
-        kind: "testRunOutput",
-        testRunOutput,
-      })
-    );
 
+  // There are 6 cases to exit test
+  // 1. Successfully finished XCTest with `exit(0)` synchronously
+  // 2. Unsuccessfully finished XCTest with `exit(non-zero)` synchronously
+  // 3. Successfully finished XCTest with `exit(0)` asynchronously
+  // 4. Unsuccessfully finished XCTest with `exit(non-zero)` asynchronously
+  // 5. Crash by throwing JS exception synchronously
+  // 6. Crash by throwing JS exception asynchronously
+
+  const handleExitOrError = (error) => {
+    // XCTest always calls `exit` at the end when no crash
+    if (error instanceof WASIExitError) {
+      // pass the output to the server in any case
+      socket.send(JSON.stringify({ kind: "testRunOutput", testRunOutput }));
+      if (error.code === 0) {
+        socket.send(JSON.stringify({ kind: "testPassed" }));
+      } else {
+        handleError(error) // test failed
+      }
+    } else {
+      handleError(error) // something wrong happens during test
+    }
     const divElement = document.createElement("p");
     divElement.innerHTML =
       "Test run finished. Check the output of <code>carton test</code> for details.";
     document.body.appendChild(divElement);
   }
+  // Handle asynchronous exits (case 3, 4, 6)
+  window.addEventListener("unhandledrejection", event => {
+    event.preventDefault();
+    const error = event.reason;
+    handleExitOrError(error);
+  });
+  // Start the WebAssembly WASI instance
+  try {
+    await wasmRunner.run(wasmBytes);
+  } catch (error) {
+    // Handle synchronous exits (case 1, 2, 5)
+    handleExitOrError(error)
+    return
+  }
+  // When JavaScriptEventLoop executor is still running,
+  // reachable here without catch (case 3, 4, 6)
 };
 
 function handleError(e) {
@@ -88,6 +110,7 @@ function handleError(e) {
   if (e instanceof WebAssembly.RuntimeError) {
     console.log(e.stack);
   }
+  socket.send(JSON.stringify({ kind: "errorReport", errorReport: e.toString() }));
 }
 
 try {

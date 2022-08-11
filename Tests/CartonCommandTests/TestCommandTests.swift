@@ -24,6 +24,8 @@ import XCTest
 private enum Constants {
   static let testAppPackageName = "TestApp"
   static let nodeJSKitPackageName = "NodeJSKitTest"
+  static let crashTestPackageName = "CrashTest"
+  static let failTestPackageName = "FailTest"
 }
 
 final class TestCommandTests: XCTestCase {
@@ -79,6 +81,27 @@ final class TestCommandTests: XCTestCase {
         command: "carton test --environment defaultBrowser --headless",
         cwd: packageDirectory.url
       )
+    }
+  }
+
+  func testHeadlessBrowserWithCrash() throws {
+    try checkCartonTestFail(fixture: Constants.crashTestPackageName)
+  }
+
+  func testHeadlessBrowserWithFail() throws {
+    try checkCartonTestFail(fixture: Constants.failTestPackageName)
+  }
+
+  func checkCartonTestFail(fixture: String) throws {
+    guard Process.findExecutable("safaridriver") != nil else {
+      throw XCTSkip("WebDriver is required")
+    }
+    try withFixture(fixture) { packageDirectory in
+      try ProcessEnv.chdir(packageDirectory)
+      let process = Process(arguments: [cartonPath, "test", "--environment", "defaultBrowser", "--headless"])
+      try process.launch()
+      let result = try process.waitUntilExit()
+      XCTAssertNotEqual(result.exitStatus, .terminated(code: 0))
     }
   }
 
