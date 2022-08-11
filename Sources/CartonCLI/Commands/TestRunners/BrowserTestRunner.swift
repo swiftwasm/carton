@@ -134,7 +134,7 @@ struct BrowserTestRunner: TestRunner {
   }
 
   func run() async throws {
-    defer { try! httpClient.syncShutdown() }
+    defer { try? httpClient.syncShutdown() }
     try Constants.entrypoint.check(on: localFileSystem, terminal)
     let server = try await Server(
       .init(
