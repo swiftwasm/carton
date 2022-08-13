@@ -12,6 +12,9 @@ jobs:
       matrix:
         include:
           - os: macos-12
+            swift_version: 5.7
+            xcode: /Applications/Xcode_14.0.app/Contents/Developer
+          - os: macos-12
             swift_version: 5.6
             xcode: /Applications/Xcode_13.4.app/Contents/Developer
           - os: macos-11
