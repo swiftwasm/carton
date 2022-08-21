@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/swift-server/async-http-client.git",
         "state": {
           "branch": null,
-          "revision": "df87a860fdc41a595d5ca67f74cde9adbccc099a",
-          "version": "1.11.4"
+          "revision": "fc510a39cff61b849bf5cdff17eb2bd6d0777b49",
+          "version": "1.11.5"
         }
       },
       {
@@ -132,8 +132,8 @@
         "repositoryURL": "https://github.com/apple/swift-log.git",
         "state": {
           "branch": null,
-          "revision": "8fc79cae9d03a5e623c52cc2dbd2df165a7832b0",
-          "version": "1.4.3"
+          "revision": "6fe203dc33195667ce1759bf0182975e4653ba1c",
+          "version": "1.4.4"
         }
       },
       {
@@ -222,8 +222,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "c814b6f6900bd479fd93fa28aea3b45afb6ea342",
-          "version": "4.65.0"
+          "revision": "971becba16d6faf5c4cb869d2e3026e822d09059",
+          "version": "4.65.1"
         }
       },
       {
