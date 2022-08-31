@@ -167,10 +167,12 @@ extension Templates {
       _ terminal: InteractiveWriter
     ) async throws {
       try fileSystem.changeCurrentWorkingDirectory(to: project.path)
-      try await createPackage(type: .executable,
-                        fileSystem: fileSystem,
-                        project: project,
-                        terminal)
+      try await createPackage(
+        type: .executable,
+        fileSystem: fileSystem,
+        project: project,
+        terminal
+      )
       try createManifest(
         fileSystem: fileSystem,
         project: project,
@@ -179,7 +181,7 @@ extension Templates {
           .init(
             name: "Tokamak",
             url: "https://github.com/TokamakUI/Tokamak",
-            version: .from("0.10.0")
+            version: .branch("v0.10")
           ),
         ],
         targetDepencencies: [
