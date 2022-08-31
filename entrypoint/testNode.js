@@ -13,7 +13,9 @@
 // limitations under the License.
 
 import fs from "fs/promises";
+import { WASIExitError } from "@wasmer/wasi";
 import { WasmRunner } from "./common.js";
+import { WASIProcExit } from "uwasi";
 
 const args = [...process.argv];
 args.shift();
@@ -44,7 +46,29 @@ const startWasiTask = async () => {
 
   const wasmRunner = WasmRunner({ args: testArgs }, runtimeConstructor);
 
-  await wasmRunner.run(wasmBytes);
+  const handleExitOrError = (error) => {
+    // XCTest always calls `exit` at the end when no crash
+    if (error instanceof WASIExitError || error instanceof WASIProcExit) {
+      if (error.code === 0) {
+        return // ok, the test succeed
+      } else {
+        throw error
+      }
+    } else {
+      throw error
+    }
+  }
+
+  process.on("unhandledrejection", event => {
+    const error = event.reason;
+    handleExitOrError(error);
+  });
+  try {
+    await wasmRunner.run(wasmBytes);
+  } catch (error) {
+    handleExitOrError(error)
+    return
+  }
 };
 
 startWasiTask().catch((e) => {
