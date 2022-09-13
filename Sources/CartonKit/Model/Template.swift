@@ -190,11 +190,12 @@ extension Templates {
       try fileSystem.writeFileContents(project.path.appending(
         components: "Sources",
         project.name,
-        "main.swift"
+        "App.swift"
       )) {
         """
         import TokamakDOM
 
+        @main
         struct TokamakApp: App {
             var body: some Scene {
                 WindowGroup("Tokamak App") {
@@ -208,11 +209,6 @@ extension Templates {
                 Text("Hello, world!")
             }
         }
-
-        // @main attribute is not supported in SwiftPM apps.
-        // See https://bugs.swift.org/browse/SR-12683 for more details.
-        TokamakApp.main()
-
         """
         .write(to: $0)
       }
