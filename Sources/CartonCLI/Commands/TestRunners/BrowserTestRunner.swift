@@ -134,6 +134,7 @@ struct BrowserTestRunner: TestRunner {
   }
 
   func run() async throws {
+    // swiftlint:disable force_try
     defer { try! httpClient.syncShutdown() }
     try Constants.entrypoint.check(on: localFileSystem, terminal)
     let server = try await Server(
