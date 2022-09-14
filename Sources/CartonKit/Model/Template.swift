@@ -187,6 +187,13 @@ extension Templates {
         ],
         terminal
       )
+      
+      try fileSystem.removeFileTree(project.path.appending(
+        components: "Sources",
+        project.name,
+        "main.swift"
+      ))
+      
       try fileSystem.writeFileContents(project.path.appending(
         components: "Sources",
         project.name,
