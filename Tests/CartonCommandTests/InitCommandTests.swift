@@ -74,8 +74,8 @@ final class InitCommandTests: XCTestCase {
         "Sources/\(package) does not exist"
       )
       XCTAssertTrue(
-        packageDirectory.ls().contains("Sources/\(package)/main.swift"),
-        "Sources/\(package)/main.swift does not exist"
+        packageDirectory.ls().contains("Sources/\(package)/App.swift"),
+        "Sources/\(package)/App.swift does not exist"
       )
       XCTAssertTrue(packageDirectory.ls().contains("Tests"), "Tests does not exist")
       XCTAssertTrue(
@@ -88,7 +88,7 @@ final class InitCommandTests: XCTestCase {
       )
 
       let actualTemplateSource = try String(contentsOfFile: packageDirectory
-        .appending(components: "Sources", package, "main.swift").pathString)
+        .appending(components: "Sources", package, "App.swift").pathString)
 
       XCTAssertEqual(expectedTemplateSource, actualTemplateSource, "Template Sources do not match")
     }
@@ -98,6 +98,7 @@ final class InitCommandTests: XCTestCase {
     """
     import TokamakDOM
 
+    @main
     struct TokamakApp: App {
         var body: some Scene {
             WindowGroup("Tokamak App") {
@@ -111,10 +112,5 @@ final class InitCommandTests: XCTestCase {
             Text("Hello, world!")
         }
     }
-
-    // @main attribute is not supported in SwiftPM apps.
-    // See https://bugs.swift.org/browse/SR-12683 for more details.
-    TokamakApp.main()
-
     """
 }
