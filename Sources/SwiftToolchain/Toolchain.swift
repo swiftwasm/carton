@@ -350,36 +350,34 @@ public final class Toolchain {
 
   private func basicBuildArguments(flavor: BuildFlavor) -> [String] {
     var builderArguments = ["--triple", "wasm32-unknown-wasi"]
-    defer {
-      builderArguments.append(contentsOf: flavor.swiftCompilerFlags.flatMap {
-        ["-Xswiftc", $0]
-      })
-    }
 
-    guard let wasmVersion = try? Version(swiftWasmVersion: version) else {
-      return builderArguments
-    }
+    if let wasmVersion = try? Version(swiftWasmVersion: version) {
     
-    // Versions later than 5.3.x have test discovery enabled by default and the explicit flag
-    // deprecated.
-    if wasmVersion.major == 5, wasmVersion.minor == 3 {
-      builderArguments.append("--enable-test-discovery")
+      // Versions later than 5.3.x have test discovery enabled by default and the explicit flag
+      // deprecated.
+      if wasmVersion.major == 5, wasmVersion.minor == 3 {
+        builderArguments.append("--enable-test-discovery")
+      }
+
+      // SwiftWasm 5.5 requires explicit linking arguments in certain configurations,
+      // see https://github.com/swiftwasm/swift/issues/3891
+      if wasmVersion.major == 5, wasmVersion.minor == 5 {
+        builderArguments.append(contentsOf: ["-Xlinker", "-licuuc", "-Xlinker", "-licui18n"])
+      }
+
+      // SwiftWasm 5.6 and up requires reactor model from updated wasi-libc when not building as a command
+      // see https://github.com/WebAssembly/WASI/issues/13
+      if wasmVersion >= Version(5, 6, 0) && flavor.environment != .wasmer {
+        builderArguments.append(contentsOf: [
+          "-Xswiftc", "-Xclang-linker", "-Xswiftc", "-mexec-model=reactor",
+          "-Xlinker", "--export=main",
+        ])
+      }
     }
 
-    // SwiftWasm 5.5 requires explicit linking arguments in certain configurations,
-    // see https://github.com/swiftwasm/swift/issues/3891
-    if wasmVersion.major == 5, wasmVersion.minor == 5 {
-      builderArguments.append(contentsOf: ["-Xlinker", "-licuuc", "-Xlinker", "-licui18n"])
-    }
-
-    // SwiftWasm 5.6 and up requires reactor model from updated wasi-libc when not building as a command
-    // see https://github.com/WebAssembly/WASI/issues/13
-    if wasmVersion >= Version(5, 6, 0) && flavor.environment != .wasmer {
-      builderArguments.append(contentsOf: [
-        "-Xswiftc", "-Xclang-linker", "-Xswiftc", "-mexec-model=reactor",
-        "-Xlinker", "--export=main",
-      ])
-    }
+    builderArguments.append(contentsOf: flavor.swiftCompilerFlags.flatMap {
+      ["-Xswiftc", $0]
+    })
 
     return builderArguments
   }
