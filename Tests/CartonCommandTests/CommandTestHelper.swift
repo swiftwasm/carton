@@ -325,7 +325,8 @@ public extension XCTest {
       if expectedContains {
         XCTAssertTrue(
           finalString.contains(expected),
-          "The final string \(finalString) does not contain \(expected)"
+          "The final string \(finalString) does not contain \(expected)",
+          file: file, line: line
         )
       } else {
         AssertEqualStringsIgnoringTrailingWhitespace(
