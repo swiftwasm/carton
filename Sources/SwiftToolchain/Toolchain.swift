@@ -351,30 +351,34 @@ public final class Toolchain {
   private func basicBuildArguments(flavor: BuildFlavor) -> [String] {
     var builderArguments = ["--triple", "wasm32-unknown-wasi"]
 
-    // Versions later than 5.3.x have test discovery enabled by default and the explicit flag
-    // deprecated.
-    if ["wasm-5.3.0-RELEASE", "wasm-5.3.1-RELEASE"].contains(version) {
-      builderArguments.append("--enable-test-discovery")
-    }
+    if let wasmVersion = try? Version(swiftWasmVersion: version) {
+    
+      // Versions later than 5.3.x have test discovery enabled by default and the explicit flag
+      // deprecated.
+      if wasmVersion.major == 5, wasmVersion.minor == 3 {
+        builderArguments.append("--enable-test-discovery")
+      }
 
-    // SwiftWasm 5.5 requires explicit linking arguments in certain configurations,
-    // see https://github.com/swiftwasm/swift/issues/3891
-    if version.starts(with: "wasm-5.5") {
-      builderArguments.append(contentsOf: ["-Xlinker", "-licuuc", "-Xlinker", "-licui18n"])
-    }
+      // SwiftWasm 5.5 requires explicit linking arguments in certain configurations,
+      // see https://github.com/swiftwasm/swift/issues/3891
+      if wasmVersion.major == 5, wasmVersion.minor == 5 {
+        builderArguments.append(contentsOf: ["-Xlinker", "-licuuc", "-Xlinker", "-licui18n"])
+      }
 
-    // SwiftWasm 5.6 requires reactor model from updated wasi-libc when not building as a command
-    // see https://github.com/WebAssembly/WASI/issues/13
-    if version.starts(with: "wasm-5.6") && flavor.environment != .wasmer {
-      builderArguments.append(contentsOf: [
-        "-Xswiftc", "-Xclang-linker", "-Xswiftc", "-mexec-model=reactor",
-        "-Xlinker", "--export=main",
-      ])
+      // SwiftWasm 5.6 and up requires reactor model from updated wasi-libc when not building as a command
+      // see https://github.com/WebAssembly/WASI/issues/13
+      if wasmVersion >= Version(5, 6, 0) && flavor.environment != .wasmer {
+        builderArguments.append(contentsOf: [
+          "-Xswiftc", "-Xclang-linker", "-Xswiftc", "-mexec-model=reactor",
+          "-Xlinker", "--export=main",
+        ])
+      }
     }
 
     builderArguments.append(contentsOf: flavor.swiftCompilerFlags.flatMap {
       ["-Xswiftc", $0]
     })
+
     return builderArguments
   }
 
@@ -403,5 +407,24 @@ extension Result where Failure == Error {
     } catch {
       self = .failure(error)
     }
+  }
+}
+
+extension Version {
+  /// Initialize a numeric version from a SwiftWasm Toolchain version string, e.g.:
+  /// "wasm-5.3.1-RELEASE", "wasm-5.7-SNAPSHOT-2022-07-14-a",
+  /// **discarding all identifiers**.
+  /// Note: input toolchain name already has "swift-" prefix stripped.
+  init(swiftWasmVersion: String) throws {
+    let prefix = "wasm-"
+    guard swiftWasmVersion.hasPrefix(prefix) else {
+      throw ToolchainError.invalidVersion(version: swiftWasmVersion)
+    }
+    var swiftWasmVersion = swiftWasmVersion
+    swiftWasmVersion.removeFirst(prefix.count)
+    
+    let version = try Version(versionString: swiftWasmVersion, usesLenientParsing: true)
+    // Strip prereleaseIdentifiers
+    self.init(version.major, version.minor, version.patch)
   }
 }

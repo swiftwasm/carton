@@ -15,13 +15,14 @@
 import CartonHelpers
 @testable import CartonKit
 import class Foundation.Bundle
-import SwiftToolchain
+@testable import SwiftToolchain
 import TSCBasic
+import TSCUtility
 import XCTest
 
 final class CartonTests: XCTestCase {
   /// Returns path to the built products directory.
-  var productsDirectory: URL {
+  var productsDirectory: Foundation.URL {
     #if os(macOS)
     for bundle in Bundle.allBundles where bundle.bundlePath.hasSuffix(".xctest") {
       return bundle.bundleURL.deletingLastPathComponent()
@@ -142,5 +143,21 @@ final class CartonTests: XCTestCase {
       DestinationEnvironment(userAgent: "Opera/9.30 (Nintendo Wii; U; ; 3642; en)"),
       nil
     )
+  }
+  
+  func testSwiftWasmVersionParsing() throws {
+    let v5_6 = try Version(swiftWasmVersion: "wasm-5.6.0-RELEASE")
+    XCTAssertEqual(v5_6.major, 5)
+    XCTAssertEqual(v5_6.minor, 6)
+    XCTAssertEqual(v5_6.patch, 0)
+    XCTAssert(v5_6.prereleaseIdentifiers.isEmpty)
+    XCTAssert(v5_6 >= Version(5, 6, 0))
+    
+    let v5_7_snapshot = try Version(swiftWasmVersion: "wasm-5.7-SNAPSHOT-2022-07-14-a")
+    XCTAssertEqual(v5_7_snapshot.major, 5)
+    XCTAssertEqual(v5_7_snapshot.minor, 7)
+    XCTAssertEqual(v5_7_snapshot.patch, 0)
+    XCTAssert(v5_7_snapshot.prereleaseIdentifiers.isEmpty)
+    XCTAssert(v5_7_snapshot >= Version(5, 6, 0))
   }
 }
