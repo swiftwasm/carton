@@ -179,7 +179,7 @@ extension Templates {
           .init(
             name: "Tokamak",
             url: "https://github.com/TokamakUI/Tokamak",
-            version: .from("0.10.0")
+            version: .from("0.11.0")
           ),
         ],
         targetDepencencies: [
@@ -187,18 +187,17 @@ extension Templates {
         ],
         terminal
       )
-      
-      try fileSystem.removeFileTree(project.path.appending(
+
+      let sources = project.path.appending(
         components: "Sources",
-        project.name,
-        "main.swift"
-      ))
-      
-      try fileSystem.writeFileContents(project.path.appending(
-        components: "Sources",
-        project.name,
-        "App.swift"
-      )) {
+        project.name
+      )
+
+      for source in try fileSystem.getDirectoryContents(sources) {
+        try fileSystem.removeFileTree(sources.appending(components: source))
+      }
+
+      try fileSystem.writeFileContents(sources.appending(components: "App.swift")) {
         """
         import TokamakDOM
 
