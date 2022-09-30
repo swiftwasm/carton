@@ -1,3 +1,19 @@
+# 0.17.0 (30 September 2022)
+
+This release adds SwiftWasm 5.7 toolchain support.
+
+**Merged pull requests:**
+
+- Update SwiftPM dependencies by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/371
+- Update SwiftPM dependencies by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/372
+- Update SwiftPM dependencies by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/373
+- Update SwiftPM dependencies by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/374
+- Ignore force_try swift-lint rule where in defer. by @noppefoxwolf in https://github.com/swiftwasm/carton/pull/379
+- Use @main attributes by @noppefoxwolf in https://github.com/swiftwasm/carton/pull/378
+- Add 5.7 host toolchain matrix by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/380
+- Update SwiftPM library version to 5.7 by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/381
+- Update default toolchain version to 5.7.1 by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/383
+
 # 0.16.1 (22 July 2022)
 
 This release fixes an issue when `carton test` doesn't execute the all of async tests, and doesn't handle
