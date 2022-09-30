@@ -29,16 +29,3 @@ jobs:
           tags: |
             ghcr.io/swiftwasm/carton:${{ github.event.release.tag_name }}
             ghcr.io/swiftwasm/carton:latest
-
-  formula:
-    name: Update Homebrew formula
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Update the Homebrew formula with latest release
-        uses: NSHipster/update-homebrew-formula-action@main
-        with:
-          repository: swiftwasm/carton
-          tap: swiftwasm/homebrew-tap
-          formula: carton.rb
-        env:
-          GH_PERSONAL_ACCESS_TOKEN: ${{ secrets.PAT }}
