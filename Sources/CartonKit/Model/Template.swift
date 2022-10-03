@@ -42,7 +42,6 @@ enum TemplateError: Error {
 }
 
 struct PackageDependency: CustomStringConvertible {
-  let name: String
   let url: String
   let version: Version
 
@@ -60,7 +59,7 @@ struct PackageDependency: CustomStringConvertible {
   }
 
   var description: String {
-    #".package(name: "\#(name)", url: "\#(url)", \#(version))"#
+    #".package(url: "\#(url)", \#(version))"#
   }
 }
 
@@ -143,7 +142,6 @@ extension Templates {
         project: project,
         dependencies: [
           .init(
-            name: "JavaScriptKit",
             url: "https://github.com/swiftwasm/JavaScriptKit",
             version: .from(compatibleJSKitVersion.description)
           ),
@@ -177,7 +175,6 @@ extension Templates {
         platforms: [".macOS(.v11)", ".iOS(.v13)"],
         dependencies: [
           .init(
-            name: "Tokamak",
             url: "https://github.com/TokamakUI/Tokamak",
             version: .from("0.11.0")
           ),
