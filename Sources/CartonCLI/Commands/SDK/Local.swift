@@ -27,23 +27,22 @@ struct Local: ParsableCommand {
 
   func run() throws {
     let terminal = InteractiveWriter.stdout
-
     let toolchainSystem = ToolchainSystem(fileSystem: localFileSystem)
-    guard let localVersion = try toolchainSystem.fetchLocalSwiftVersion() else {
-      terminal.logLookup("Version file is not present: ", toolchainSystem.swiftVersionPath)
-      return
-    }
-
-    guard let version = version else {
-      terminal.write("\(localVersion)", inColor: .green)
-      return
-    }
-
-    let versions = try toolchainSystem.fetchAllSwiftVersions()
-    if versions.contains(version) {
-      _ = try toolchainSystem.setLocalSwiftVersion(version)
+    
+    if let version = version {
+      let versions = try toolchainSystem.fetchAllSwiftVersions()
+      if versions.contains(version) {
+        _ = try toolchainSystem.setLocalSwiftVersion(version)
+      } else {
+        terminal.write("The version \(version) hasn't been installed!", inColor: .red)
+      }
     } else {
-      terminal.write("The version \(version) hasn't been installed!", inColor: .red)
+      let localVersion = try toolchainSystem.fetchLocalSwiftVersion()
+      if let localVersion = localVersion {
+        terminal.write("\(localVersion)", inColor: .green)
+      } else {
+        terminal.logLookup("Version file is not present: ", toolchainSystem.swiftVersionPath)
+      }
     }
   }
 }
