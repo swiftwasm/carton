@@ -170,7 +170,11 @@ public class ToolchainSystem {
     #if arch(x86_64)
     let archSuffix = "x86_64"
     #elseif arch(arm64)
-    let archSuffix = "arm64"
+      #if os(macOS)
+      let archSuffix = "arm64"
+      #elseif os(Linux)
+      let archSuffix = "aarch64"
+      #endif
     #endif
 
     #if os(macOS)
