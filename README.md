@@ -36,6 +36,10 @@ installed and then run:
 brew install swiftwasm/tap/carton
 ```
 
+> **Note**
+> If you can't install the latest carton via `brew upgrade swiftwasm/tap/carton`, please try `rm -rf $(brew --prefix)/Library/Taps/swiftwasm/homebrew-tap/ && brew tap swiftwasm/tap` and retry again. The `master` branch was renamed to `main`, so you need to update your local tap repo.
+
+
 `carton` is also available as a Docker image for Linux. You can pull it with this command:
 
 ```
