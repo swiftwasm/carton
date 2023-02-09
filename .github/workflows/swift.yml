@@ -78,6 +78,6 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Build a Docker image on Ubuntu 20.04
-        run: docker build . -t gchr.io/swiftwasm/swiftwasm-action:latest
+        run: docker build . -t ghcr.io/swiftwasm/swiftwasm-action:latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
