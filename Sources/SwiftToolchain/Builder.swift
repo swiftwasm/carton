@@ -70,6 +70,10 @@ public final class Builder {
       })
       transformers.append(transformer.transform)
     }
+    // Strip unnecessary autolink sections, which is only used at link-time
+    transformers.append(CustomSectionStripper(stripIf: {
+      $0 == ".swift1_autolink_entries"
+    }).transform)
 
     switch flavor.sanitize {
     case .stackOverflow:
