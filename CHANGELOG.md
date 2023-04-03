@@ -1,3 +1,15 @@
+# 0.18.0 (3 April 2023)
+
+This release adds an extra size stripping optimization.
+
+**Merged pull requests:**
+
+- Fix SwiftPM dependency warning for template project by @gibachan in https://github.com/swiftwasm/carton/pull/384
+- Allow to save .swift-version even .swift-version is missing by @gibachan in https://github.com/swiftwasm/carton/pull/385
+- Fix carton sdk install on linux(aarch64) by @gibachan in https://github.com/swiftwasm/carton/pull/386
+- Fix typo in container registry domain by @p- in https://github.com/swiftwasm/carton/pull/389
+- Strip autolink custom section by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/390
+
 # 0.17.0 (30 September 2022)
 
 This release adds SwiftWasm 5.7 toolchain support.
