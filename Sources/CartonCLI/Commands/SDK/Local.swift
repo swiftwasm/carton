@@ -27,7 +27,7 @@ struct Local: ParsableCommand {
 
   func run() throws {
     let terminal = InteractiveWriter.stdout
-    let toolchainSystem = ToolchainSystem(fileSystem: localFileSystem)
+    let toolchainSystem = try ToolchainSystem(fileSystem: localFileSystem)
     
     if let version = version {
       let versions = try toolchainSystem.fetchAllSwiftVersions()

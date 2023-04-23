@@ -109,7 +109,7 @@ public final class Builder {
       return try await buildWithoutSanitizing(builderArguments: arguments)
     case .stackOverflow:
       let sanitizerFile =
-        fileSystem.homeDirectory.appending(components: ".carton", "static", "so_sanitizer.wasm")
+        try fileSystem.homeDirectory.appending(components: ".carton", "static", "so_sanitizer.wasm")
 
       var modifiedArguments = arguments
       modifiedArguments.append(contentsOf: [

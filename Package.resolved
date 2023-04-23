@@ -105,16 +105,16 @@
         "repositoryURL": "https://github.com/apple/swift-crypto.git",
         "state": {
           "branch": null,
-          "revision": "ddb07e896a2a8af79512543b1c7eb9797f8898a5",
-          "version": "1.1.7"
+          "revision": "75ec60b8b4cc0f085c3ac414f3dca5625fa3588e",
+          "version": "2.2.4"
         }
       },
       {
         "package": "swift-driver",
         "repositoryURL": "https://github.com/apple/swift-driver.git",
         "state": {
-          "branch": "release/5.7",
-          "revision": "719426df790661020de657bf38beb2a8b1de5ad3",
+          "branch": "release/5.8",
+          "revision": "7cfe0c0b6e6297efe88a3ce34e6138ee7eda969e",
           "version": null
         }
       },
@@ -122,8 +122,8 @@
         "package": "llbuild",
         "repositoryURL": "https://github.com/apple/swift-llbuild.git",
         "state": {
-          "branch": "release/5.7",
-          "revision": "564424db5fdb62dcb5d863bdf7212500ef03a87b",
+          "branch": "release/5.8",
+          "revision": "dccfc2e127a34b89a849407594cf2d604b598ba9",
           "version": null
         }
       },
@@ -203,8 +203,8 @@
         "package": "SwiftPM",
         "repositoryURL": "https://github.com/apple/swift-package-manager.git",
         "state": {
-          "branch": "release/5.7",
-          "revision": "63c14b84dc12c943a9d4c102648b7617d8b92f67",
+          "branch": "release/5.8",
+          "revision": "f708879c811fe0bdd51e5e560f2b091af1090102",
           "version": null
         }
       },
@@ -221,8 +221,8 @@
         "package": "swift-tools-support-core",
         "repositoryURL": "https://github.com/apple/swift-tools-support-core.git",
         "state": {
-          "branch": "release/5.7",
-          "revision": "184eba382f6abbb362ffc02942d790ff35019ad4",
+          "branch": "release/5.8",
+          "revision": "ac4871e01ef338cb95b5d28328cab0ec1dfae935",
           "version": null
         }
       },
@@ -258,8 +258,8 @@
         "repositoryURL": "https://github.com/jpsim/Yams.git",
         "state": {
           "branch": null,
-          "revision": "9ff1cc9327586db4e0c8f46f064b6a82ec1566fa",
-          "version": "4.0.6"
+          "revision": "f47ba4838c30dbd59998a4e4c87ab620ff959e8a",
+          "version": "5.0.5"
         }
       }
     ]

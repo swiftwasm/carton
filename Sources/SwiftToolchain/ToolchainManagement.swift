@@ -46,7 +46,7 @@ public class ToolchainSystem {
   let cartonToolchainResolver: CartonToolchainResolver
   let resolvers: [ToolchainResolver]
 
-  public init(fileSystem: FileSystem) {
+  public init(fileSystem: FileSystem) throws {
     self.fileSystem = fileSystem
 
     let userLibraryPath = NSSearchPathForDirectoriesInDomains(
@@ -69,10 +69,10 @@ public class ToolchainSystem {
       userXCToolchainResolver, rootXCToolchainResolver,
     ].compactMap { $0 }
 
-    cartonToolchainResolver = CartonToolchainResolver(fileSystem: fileSystem)
+    cartonToolchainResolver = try CartonToolchainResolver(fileSystem: fileSystem)
     resolvers = [
       cartonToolchainResolver,
-      SwiftEnvToolchainResolver(fileSystem: fileSystem),
+      try SwiftEnvToolchainResolver(fileSystem: fileSystem),
     ] + xctoolchainResolvers
   }
 
