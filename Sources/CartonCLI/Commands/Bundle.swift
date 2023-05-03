@@ -156,7 +156,7 @@ struct Bundle: AsyncParsableCommand {
     try localFileSystem.move(from: wasmOutputFilePath, to: mainModulePath)
 
     // Copy the bundle entrypoint, point to the binary, and give it a cachebuster name.
-    let (_, _, entrypointPath) = dependency.paths(on: localFileSystem)
+    let (_, _, entrypointPath) = try dependency.paths(on: localFileSystem)
     let entrypoint = try ByteString(
       encodingAsUTF8: localFileSystem.readFileContents(entrypointPath)
         .description

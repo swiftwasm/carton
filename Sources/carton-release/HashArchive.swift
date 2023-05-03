@@ -39,7 +39,7 @@ struct HashArchive: AsyncParsableCommand {
     let terminal = InteractiveWriter.stdout
     let cwd = localFileSystem.currentWorkingDirectory!
     let staticPath = AbsolutePath(cwd, "static")
-    let dotFilesStaticPath = localFileSystem.homeDirectory.appending(
+    let dotFilesStaticPath = try localFileSystem.homeDirectory.appending(
       components: ".carton",
       "static"
     )

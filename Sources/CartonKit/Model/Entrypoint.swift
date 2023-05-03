@@ -33,14 +33,14 @@ public struct Entrypoint {
   public func paths(
     on fileSystem: FileSystem
     // swiftlint:disable:next large_tuple
-  ) -> (cartonDir: AbsolutePath, staticDir: AbsolutePath, filePath: AbsolutePath) {
-    let cartonDir = fileSystem.homeDirectory.appending(component: ".carton")
+  ) throws -> (cartonDir: AbsolutePath, staticDir: AbsolutePath, filePath: AbsolutePath) {
+    let cartonDir = try fileSystem.homeDirectory.appending(component: ".carton")
     let staticDir = cartonDir.appending(component: "static")
     return (cartonDir, staticDir, staticDir.appending(component: fileName))
   }
 
   public func check(on fileSystem: FileSystem, _ terminal: InteractiveWriter) throws {
-    let (cartonDir, staticDir, filePath) = paths(on: fileSystem)
+    let (cartonDir, staticDir, filePath) = try paths(on: fileSystem)
 
     // If hash check fails, download the `static.zip` archive and unpack it
     if try !fileSystem.exists(filePath) || SHA256().hash(
