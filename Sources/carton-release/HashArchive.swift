@@ -106,7 +106,7 @@ struct HashArchive: AsyncParsableCommand {
       \(arrayString(from: $1))
       ])
       """
-    }.joined(separator: "\n\n"))
+      }.joined(separator: "\n\n"))
 
       public let staticArchiveContents = "\(staticArchiveContents.withData { $0.base64EncodedString() })"
       """
