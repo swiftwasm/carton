@@ -13,10 +13,10 @@
 // limitations under the License.
 
 import AsyncHTTPClient
+import Basics
 import CartonHelpers
 import Foundation
 import TSCBasic
-import TSCUtility
 
 public enum EntrypointError: Error {
 }
@@ -60,7 +60,8 @@ public struct Entrypoint {
 
       try fileSystem.createDirectory(staticDir)
       try tsc_await {
-        ZipArchiver().extract(from: archiveFile, to: staticDir, completion: $0)
+        ZipArchiver(fileSystem: fileSystem).extract(
+          from: archiveFile, to: staticDir, completion: $0)
       }
     }
   }

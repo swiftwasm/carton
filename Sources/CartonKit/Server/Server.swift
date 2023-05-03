@@ -342,7 +342,6 @@ public func openInSystemBrowser(url: String) -> Bool {
   let process = Process(
     arguments: [openCommand, url],
     outputRedirection: .none,
-    verbose: false,
     startNewProcessGroup: true
   )
   do {

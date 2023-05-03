@@ -106,8 +106,10 @@ extension TSCBasic.Process {
             arguments: arguments,
             environment: ProcessEnv.vars.merging(environment) { _, new in new },
             outputRedirection: .stream(stdout: stdout, stderr: stderr),
-            verbose: true,
-            startNewProcessGroup: true
+            startNewProcessGroup: true,
+            loggingHandler: {
+              terminal.write($0)
+            }
           )
 
           let result = Result<ProcessResult, Swift.Error> {
