@@ -41,7 +41,7 @@ extension HTML: ResponseEncodable {
     if let customIndexPage = path {
       let content = try localFileSystem.readFileContents(
         customIndexPage.isAbsolutePath
-          ? AbsolutePath(customIndexPage)
+          ? AbsolutePath(validating: customIndexPage)
           : AbsolutePath(localFileSystem.currentWorkingDirectory!, customIndexPage)
       ).description
 

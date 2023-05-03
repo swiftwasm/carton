@@ -77,7 +77,8 @@ extension TSCBasic.Process {
       terminal.write(environment.map { "\($0)=\($1)" }.joined(separator: " ") + " ")
     }
 
-    let processName = arguments[0].first == "/" ? AbsolutePath(arguments[0]).basename : arguments[0]
+    let processName =
+      arguments[0].first == "/" ? try AbsolutePath(validating: arguments[0]).basename : arguments[0]
 
     do {
       try await withCheckedThrowingContinuation {

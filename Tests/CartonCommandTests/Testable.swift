@@ -35,7 +35,7 @@ public var productsDirectory: AbsolutePath {
 
 public var testFixturesDirectory: AbsolutePath {
   get throws {
-    packageDirectory.appending(components: "Tests", "Fixtures")
+    try packageDirectory.appending(components: "Tests", "Fixtures")
   }
 }
 
@@ -81,9 +81,5 @@ extension AbsolutePath {
     guard let paths = try? FileManager.default.subpathsOfDirectory(atPath: pathString)
     else { return [] }
     return paths
-  }
-
-  static var home: AbsolutePath {
-    AbsolutePath(FileManager.default.homeDirectoryForCurrentUser.path)
   }
 }

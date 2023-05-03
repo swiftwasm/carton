@@ -145,7 +145,7 @@ public final class Toolchain {
       let binPath = output.first
     else { fatalError("failed to decode UTF8 output of the `swift build` invocation") }
 
-    return AbsolutePath(binPath)
+    return try AbsolutePath(validating: binPath)
   }
 
   private func inferDevProduct(hint: String?) throws -> ProductDescription? {

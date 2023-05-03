@@ -22,7 +22,7 @@ import XCTest
 
 final class SDKCommandTests: XCTestCase {
   func testInstall() throws {
-    AssertExecuteCommand(
+    try AssertExecuteCommand(
       command: "carton sdk install",
       cwd: packageDirectory.url,
       expected: "SDK successfully installed!",
@@ -31,7 +31,7 @@ final class SDKCommandTests: XCTestCase {
   }
 
   func testVersions() throws {
-    AssertExecuteCommand(
+    try AssertExecuteCommand(
       command: "carton sdk versions",
       cwd: packageDirectory.url,
       expected: "wasm-",
