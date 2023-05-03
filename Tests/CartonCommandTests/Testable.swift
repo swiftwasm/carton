@@ -22,12 +22,12 @@ import TSCTestSupport
 /// Returns path to the built products directory.
 public var productsDirectory: AbsolutePath {
   #if os(macOS)
-  for bundle in Bundle.allBundles where bundle.bundlePath.hasSuffix(".xctest") {
-    return AbsolutePath(bundle.bundleURL.deletingLastPathComponent().path)
-  }
-  fatalError("couldn't find the products directory")
+    for bundle in Bundle.allBundles where bundle.bundlePath.hasSuffix(".xctest") {
+      return AbsolutePath(bundle.bundleURL.deletingLastPathComponent().path)
+    }
+    fatalError("couldn't find the products directory")
   #else
-  return AbsolutePath(Bundle.main.bundleURL.path)
+    return AbsolutePath(Bundle.main.bundleURL.path)
   #endif
 }
 
@@ -42,7 +42,7 @@ public var packageDirectory: AbsolutePath {
     .parentDirectory
 }
 
-func withFixture(_ name: String, _ body: (AbsolutePath) throws -> ()) throws {
+func withFixture(_ name: String, _ body: (AbsolutePath) throws -> Void) throws {
   let fixtureDir = testFixturesDirectory.appending(component: name)
   try withTemporaryDirectory(prefix: name) { tmpDirPath in
     let dstDir = tmpDirPath.appending(component: name)

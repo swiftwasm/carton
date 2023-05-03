@@ -66,7 +66,8 @@ final class TestCommandTests: XCTestCase {
         cwd: packageDirectory.url
       )
       AssertExecuteCommand(
-        command: "carton test --environment node --prebuilt-test-bundle-path ./.build/wasm32-unknown-wasi/debug/NodeJSKitTestPackageTests.wasm",
+        command:
+          "carton test --environment node --prebuilt-test-bundle-path ./.build/wasm32-unknown-wasi/debug/NodeJSKitTestPackageTests.wasm",
         cwd: packageDirectory.url
       )
     }
@@ -98,7 +99,9 @@ final class TestCommandTests: XCTestCase {
     }
     try withFixture(fixture) { packageDirectory in
       try ProcessEnv.chdir(packageDirectory)
-      let process = Process(arguments: [cartonPath, "test", "--environment", "defaultBrowser", "--headless"])
+      let process = Process(arguments: [
+        cartonPath, "test", "--environment", "defaultBrowser", "--headless",
+      ])
       try process.launch()
       let result = try process.waitUntilExit()
       XCTAssertNotEqual(result.exitStatus, .terminated(code: 0))
@@ -107,28 +110,28 @@ final class TestCommandTests: XCTestCase {
 
   // This test is prone to hanging on Linux.
   #if os(macOS)
-  func testEnvironmentDefaultBrowser() throws {
-    try withFixture(Constants.testAppPackageName) { packageDirectory in
-      let expectedTestSuiteCount = 1
-      let expectedTestsCount = 1
+    func testEnvironmentDefaultBrowser() throws {
+      try withFixture(Constants.testAppPackageName) { packageDirectory in
+        let expectedTestSuiteCount = 1
+        let expectedTestsCount = 1
 
-      let expectedContent =
-        """
-        Test Suites: \(ControlCode.CSI)32m\(expectedTestSuiteCount) passed\(ControlCode
+        let expectedContent =
+          """
+          Test Suites: \(ControlCode.CSI)32m\(expectedTestSuiteCount) passed\(ControlCode
           .CSI)0m, \(expectedTestSuiteCount) total
-        Tests:       \(ControlCode.CSI)32m\(expectedTestsCount) passed\(ControlCode
+          Tests:       \(ControlCode.CSI)32m\(expectedTestsCount) passed\(ControlCode
           .CSI)0m, \(expectedTestsCount) total
-        """
+          """
 
-      // FIXME: Don't assume a specific port is available since it can be used by others or tests
-      AssertExecuteCommand(
-        command: "carton test --environment defaultBrowser --port 8082",
-        cwd: packageDirectory.url,
-        expected: expectedContent,
-        expectedContains: true
-      )
+        // FIXME: Don't assume a specific port is available since it can be used by others or tests
+        AssertExecuteCommand(
+          command: "carton test --environment defaultBrowser --port 8082",
+          cwd: packageDirectory.url,
+          expected: expectedContent,
+          expectedContains: true
+        )
+      }
     }
-  }
   #endif
 }
 

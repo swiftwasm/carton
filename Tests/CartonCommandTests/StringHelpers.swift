@@ -18,8 +18,8 @@ extension Substring {
   }
 }
 
-public extension String {
-  func trimmingLines() -> String {
+extension String {
+  public func trimmingLines() -> String {
     split(separator: "\n", omittingEmptySubsequences: false)
       .map { $0.trimmed() }
       .joined(separator: "\n")

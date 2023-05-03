@@ -15,9 +15,10 @@
 //  Created by Cavelle Benjamin on Dec/25/20.
 //
 
-@testable import CartonCLI
 import TSCBasic
 import XCTest
+
+@testable import CartonCLI
 
 final class SDKCommandTests: XCTestCase {
   func testInstall() throws {

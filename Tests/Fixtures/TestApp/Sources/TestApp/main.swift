@@ -44,21 +44,23 @@ let handler = JSClosure { _ in
 buttonNode.onclick = .object(handler)
 
 var div = document.createElement("div")
-div.innerHTML = .string(#"""
-<a href=\#(Bundle.module.path(forResource: "data", ofType: "json")!)>Link to a static resource</a>
-<br/>
-<a href=\#(Bundle.main
+div.innerHTML = .string(
+  #"""
+  <a href=\#(Bundle.module.path(forResource: "data", ofType: "json")!)>Link to a static resource</a>
+  <br/>
+  <a href=\#(Bundle.main
   .path(forResource: "data", ofType: "json")!)>Link to a <code>Bundle.main</code> resource</a>
-"""#)
+  """#)
 _ = document.body.appendChild(div)
 
 var timerElement = document.createElement("p")
 _ = document.body.appendChild(timerElement)
 let timer = JSTimer(millisecondsDelay: 1000, isRepeating: true) {
   let date = JSDate()
-  timerElement.innerHTML = .string("""
-  <p>Current date is \(date.toLocaleDateString())</p>
-  <p>Current time is \(date.toLocaleTimeString())</p>
-  <p>Current <code>Date().timeIntervalSince1970</code> is \(Date().timeIntervalSince1970)</p>
-  """)
+  timerElement.innerHTML = .string(
+    """
+    <p>Current date is \(date.toLocaleDateString())</p>
+    <p>Current time is \(date.toLocaleTimeString())</p>
+    <p>Current <code>Date().timeIntervalSince1970</code> is \(Date().timeIntervalSince1970)</p>
+    """)
 }

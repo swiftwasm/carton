@@ -16,8 +16,9 @@
 //
 
 import AsyncHTTPClient
-@testable import CartonCLI
 import XCTest
+
+@testable import CartonCLI
 
 final class DevCommandTests: XCTestCase {
   private var client: HTTPClient?
@@ -28,37 +29,41 @@ final class DevCommandTests: XCTestCase {
   }
 
   #if os(macOS)
-  func testWithNoArguments() throws {
-    // FIXME: Don't assume a specific port is available since it can be used by others or tests
-    try withFixture("EchoExecutable") { packageDirectory in
-      guard let process = executeCommand(
-        command: "carton dev --verbose",
-        shouldPrintOutput: true,
-        cwd: packageDirectory.url
-      ) else {
-        XCTFail("Could not create process")
-        return
+    func testWithNoArguments() throws {
+      // FIXME: Don't assume a specific port is available since it can be used by others or tests
+      try withFixture("EchoExecutable") { packageDirectory in
+        guard
+          let process = executeCommand(
+            command: "carton dev --verbose",
+            shouldPrintOutput: true,
+            cwd: packageDirectory.url
+          )
+        else {
+          XCTFail("Could not create process")
+          return
+        }
+
+        checkForExpectedContent(process: process, at: "http://127.0.0.1:8080")
       }
-
-      checkForExpectedContent(process: process, at: "http://127.0.0.1:8080")
     }
-  }
 
-  func testWithArguments() throws {
-    // FIXME: Don't assume a specific port is available since it can be used by others or tests
-    try withFixture("EchoExecutable") { packageDirectory in
-      guard let process = executeCommand(
-        command: "carton dev --verbose --port 8081",
-        shouldPrintOutput: true,
-        cwd: packageDirectory.url
-      ) else {
-        XCTFail("Could not create process")
-        return
+    func testWithArguments() throws {
+      // FIXME: Don't assume a specific port is available since it can be used by others or tests
+      try withFixture("EchoExecutable") { packageDirectory in
+        guard
+          let process = executeCommand(
+            command: "carton dev --verbose --port 8081",
+            shouldPrintOutput: true,
+            cwd: packageDirectory.url
+          )
+        else {
+          XCTFail("Could not create process")
+          return
+        }
+
+        checkForExpectedContent(process: process, at: "http://127.0.0.1:8081")
       }
-
-      checkForExpectedContent(process: process, at: "http://127.0.0.1:8081")
     }
-  }
   #endif
 
   func checkForExpectedContent(process: Process, at url: String) {
@@ -90,8 +95,9 @@ final class DevCommandTests: XCTestCase {
       read: .seconds(timeOut)
     )
 
-    client = HTTPClient(eventLoopGroupProvider: .createNew,
-                        configuration: HTTPClient.Configuration(timeout: timeout))
+    client = HTTPClient(
+      eventLoopGroupProvider: .createNew,
+      configuration: HTTPClient.Configuration(timeout: timeout))
 
     var response: HTTPClient.Response?
     var count = 0
