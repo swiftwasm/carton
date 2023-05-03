@@ -59,11 +59,11 @@ public class ToolchainSystem {
       .localDomainMask,
       true
     ).first
-    userXCToolchainResolver = userLibraryPath.flatMap {
-      XCToolchainResolver(libraryPath: AbsolutePath($0), fileSystem: fileSystem)
+    userXCToolchainResolver = try userLibraryPath.flatMap {
+      XCToolchainResolver(libraryPath: try AbsolutePath(validating: $0), fileSystem: fileSystem)
     }
-    let rootXCToolchainResolver = rootLibraryPath.flatMap {
-      XCToolchainResolver(libraryPath: AbsolutePath($0), fileSystem: fileSystem)
+    let rootXCToolchainResolver = try rootLibraryPath.flatMap {
+      XCToolchainResolver(libraryPath: try AbsolutePath(validating: $0), fileSystem: fileSystem)
     }
     let xctoolchainResolvers: [ToolchainResolver] = [
       userXCToolchainResolver, rootXCToolchainResolver,
@@ -78,9 +78,11 @@ public class ToolchainSystem {
   }
 
   private var libraryPaths: [AbsolutePath] {
-    NSSearchPathForDirectoriesInDomains(
-      .libraryDirectory, [.localDomainMask], true
-    ).map { AbsolutePath($0) }
+    get throws {
+      try NSSearchPathForDirectoriesInDomains(
+        .libraryDirectory, [.localDomainMask], true
+      ).map { try AbsolutePath(validating: $0) }
+    }
   }
 
   public var swiftVersionPath: AbsolutePath {

@@ -93,7 +93,8 @@ struct Test: AsyncParsableCommand {
     let toolchain = try await Toolchain(localFileSystem, terminal)
     let bundlePath: AbsolutePath
     if let preBundlePath = self.prebuiltTestBundlePath {
-      bundlePath = AbsolutePath(preBundlePath, relativeTo: localFileSystem.currentWorkingDirectory!)
+      bundlePath = try AbsolutePath(
+        validating: preBundlePath, relativeTo: localFileSystem.currentWorkingDirectory!)
       guard localFileSystem.exists(bundlePath) else {
         terminal.write(
           "No prebuilt binary found at \(bundlePath)\n",

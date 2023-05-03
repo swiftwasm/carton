@@ -52,7 +52,7 @@ struct Bundle: AsyncParsableCommand {
       Which optimizations to apply to the .wasm binary output.
       Available values: \(
       WasmOptimizations.allCases.map(\.rawValue).joined(separator: ", ")
-    )
+      )
       """
   )
   var wasmOptimizations: WasmOptimizations = .size

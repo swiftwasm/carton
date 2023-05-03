@@ -53,8 +53,9 @@ struct Init: AsyncParsableCommand {
     terminal.write("\(name)\n", inColor: .cyan)
 
     guard
-      let packagePath = self.name == nil
-        ? localFileSystem.currentWorkingDirectory : AbsolutePath(name, relativeTo: currentDir)
+      let packagePath = try self.name == nil
+        ? localFileSystem.currentWorkingDirectory
+        : AbsolutePath(validating: name, relativeTo: currentDir)
     else {
       terminal.write("Path to project could be created.\n", inColor: .red)
       return
