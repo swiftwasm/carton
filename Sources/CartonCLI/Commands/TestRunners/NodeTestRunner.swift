@@ -39,11 +39,13 @@ struct NodeTestRunner: TestRunner {
     let staticDirectory = entrypointPath.parentDirectory
 
     // Clean up existing symlinks before creating new ones.
-    for existingSymlink in try localFileSystem.resourcesDirectoryNames(relativeTo: staticDirectory) {
+    for existingSymlink in try localFileSystem.resourcesDirectoryNames(relativeTo: staticDirectory)
+    {
       try localFileSystem.removeFileTree(staticDirectory.appending(component: existingSymlink))
     }
 
-    let resourceDirectories = try localFileSystem.resourcesDirectoryNames(relativeTo: buildDirectory)
+    let resourceDirectories = try localFileSystem.resourcesDirectoryNames(
+      relativeTo: buildDirectory)
 
     // Create new symlink for each resource directory.
     for resourcesDirectoryName in resourceDirectories {

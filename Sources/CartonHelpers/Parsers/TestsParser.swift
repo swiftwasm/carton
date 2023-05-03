@@ -16,32 +16,34 @@ import Foundation
 import Splash
 import TSCBasic
 
-private extension String.StringInterpolation {
-  mutating func appendInterpolation(_ regexLabel: TestsParser.Regex.Label) {
+extension String.StringInterpolation {
+  fileprivate mutating func appendInterpolation(_ regexLabel: TestsParser.Regex.Label) {
     appendInterpolation("<\(regexLabel.rawValue)>")
   }
 }
 
-private extension StringProtocol {
-  func range(of regex: NSRegularExpression,
-             labelled label: TestsParser.Regex.Label) -> Range<String.Index>?
-  {
+extension StringProtocol {
+  fileprivate func range(
+    of regex: NSRegularExpression,
+    labelled label: TestsParser.Regex.Label
+  ) -> Range<String.Index>? {
     range(of: regex, named: label.rawValue)
   }
 
-  func match(of regex: NSRegularExpression, labelled label: TestsParser.Regex.Label) -> String
+  fileprivate func match(of regex: NSRegularExpression, labelled label: TestsParser.Regex.Label)
+    -> String
     .SubSequence?
   {
     match(of: regex, named: label.rawValue)
   }
 
-  func match(
+  fileprivate func match(
     of regex: NSRegularExpression,
     labelled labelA: TestsParser.Regex.Label,
     _ labelB: TestsParser.Regex.Label
   ) -> (String.SubSequence, String.SubSequence)? {
     guard let a = match(of: regex, named: labelA.rawValue),
-          let b = match(of: regex, named: labelB.rawValue)
+      let b = match(of: regex, named: labelB.rawValue)
     else {
       return nil
     }
@@ -76,27 +78,32 @@ public struct TestsParser: ProcessOutputParser {
     }
 
     static let suiteStarted = try! NSRegularExpression(
-      pattern: #"Test Suite '(?\#(.suite)[^']*)' started at (?\#(.timestamp)\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})"#
+      pattern:
+        #"Test Suite '(?\#(.suite)[^']*)' started at (?\#(.timestamp)\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})"#
     )
     static let suiteFinished = try! NSRegularExpression(
-      pattern: #"Test Suite '(?\#(.suite)[^']*)' (?\#(.status)(failed|passed)) at (?\#(.timestamp)\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})"#
+      pattern:
+        #"Test Suite '(?\#(.suite)[^']*)' (?\#(.status)(failed|passed)) at (?\#(.timestamp)\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})"#
     )
     static let suiteSummary = try! NSRegularExpression(
-      pattern: #"Executed (?\#(.testCount)\d+) (test|tests), with (?\#(.failCount)\d+) (failure|failures) \((?\#(.unexpectedCount)\d+) unexpected\) in (?\#(.duration)\d+\.\d+) \(\d+\.\d+\) seconds"#
+      pattern:
+        #"Executed (?\#(.testCount)\d+) (test|tests), with (?\#(.failCount)\d+) (failure|failures) \((?\#(.unexpectedCount)\d+) unexpected\) in (?\#(.duration)\d+\.\d+) \(\d+\.\d+\) seconds"#
     )
     static let caseFinished = try! NSRegularExpression(
-      pattern: #"Test Case '(?\#(.suite)[^']+)\.(?\#(.testCase)[^']+)' (?\#(.status)(failed|passed)) \((?\#(.duration)(\d+)\.(\d+)) seconds\)"#
+      pattern:
+        #"Test Case '(?\#(.suite)[^']+)\.(?\#(.testCase)[^']+)' (?\#(.status)(failed|passed)) \((?\#(.duration)(\d+)\.(\d+)) seconds\)"#
     )
     static let problem = try! NSRegularExpression(
-      pattern: #"(?\#(.path)(.+)(\/|)([^/]+)):(?\#(.line)\d+): (?\#(.status)\w+): (?\#(.suite)\w+)\.(?\#(.testCase)\w+) : "#
+      pattern:
+        #"(?\#(.path)(.+)(\/|)([^/]+)):(?\#(.line)\d+): (?\#(.status)\w+): (?\#(.suite)\w+)\.(?\#(.testCase)\w+) : "#
     )
 
     enum Assertion: String, CaseIterable {
       case equal = "Equal",
-           greaterThan = "GreaterThan",
-           lessThan = "LessThan",
-           greaterThanOrEqual = "GreaterThanOrEqual",
-           lessThanOrEqual = "LessThanOrEqual"
+        greaterThan = "GreaterThan",
+        lessThan = "LessThan",
+        greaterThanOrEqual = "GreaterThanOrEqual",
+        lessThanOrEqual = "LessThanOrEqual"
 
       var funcName: String {
         "XCTAssert\(rawValue)"
@@ -127,15 +134,18 @@ public struct TestsParser: ProcessOutputParser {
       pattern: #"XCTAssertEqual failed: (?\#(.received).*) is not equal to (?\#(.expected).*) - "#
     )
     static let xctAssertGreaterThan = try! NSRegularExpression(
-      pattern: #"XCTAssertGreaterThan failed: (?\#(.received).*) is not greater than (?\#(.expected).*) - "#
+      pattern:
+        #"XCTAssertGreaterThan failed: (?\#(.received).*) is not greater than (?\#(.expected).*) - "#
     )
     static let xctAssertLessThan = try! NSRegularExpression(
-      pattern: #"XCTAssertLessThan failed: (?\#(.received).*) is not less than (?\#(.expected).*) - "#
+      pattern:
+        #"XCTAssertLessThan failed: (?\#(.received).*) is not less than (?\#(.expected).*) - "#
     )
 
     static func xctAssert(_ assertion: Assertion) -> NSRegularExpression {
       try! NSRegularExpression(
-        pattern: #"\#(assertion.funcName) failed: \("(?\#(.received).*)"\) \#(assertion.innerMessage) \("(?\#(.expected).*)"\) - "#
+        pattern:
+          #"\#(assertion.funcName) failed: \("(?\#(.received).*)"\) \#(assertion.innerMessage) \("(?\#(.expected).*)"\) - "#
       )
     }
   }
@@ -168,30 +178,32 @@ public struct TestsParser: ProcessOutputParser {
     let lines = output.split(separator: "\n")
 
     var suites = [Suite]()
-    var unmappedProblems = [(
-      suite: String.SubSequence,
-      testCase: String.SubSequence,
-      problem: DiagnosticsParser.CustomDiagnostic
-    )]()
+    var unmappedProblems = [
+      (
+        suite: String.SubSequence,
+        testCase: String.SubSequence,
+        problem: DiagnosticsParser.CustomDiagnostic
+      )
+    ]()
 
     for line in lines {
       if let suite = line.match(of: Regex.suiteStarted, labelled: .suite) {
         suites.append(.init(name: suite, cases: []))
       } else if let testCase = line.match(of: Regex.caseFinished, labelled: .testCase),
-                let suite = line.match(of: Regex.caseFinished, labelled: .suite),
-                let suiteIdx = suites.firstIndex(where: { $0.name == suite }),
-                let status = line.match(of: Regex.caseFinished, labelled: .status),
-                let duration = line.match(of: Regex.caseFinished, labelled: .duration)
+        let suite = line.match(of: Regex.caseFinished, labelled: .suite),
+        let suiteIdx = suites.firstIndex(where: { $0.name == suite }),
+        let status = line.match(of: Regex.caseFinished, labelled: .status),
+        let duration = line.match(of: Regex.caseFinished, labelled: .duration)
       {
         suites[suiteIdx].cases.append(
           .init(name: testCase, passed: status == "passed", duration: duration, problems: [])
         )
       } else if let problem = line.matches(regex: Regex.problem),
-                let path = line.match(of: Regex.problem, labelled: .path),
-                let lineNum = line.match(of: Regex.problem, labelled: .line),
-                let status = line.match(of: Regex.problem, labelled: .status),
-                let suite = line.match(of: Regex.problem, labelled: .suite),
-                let testCase = line.match(of: Regex.problem, labelled: .testCase)
+        let path = line.match(of: Regex.problem, labelled: .path),
+        let lineNum = line.match(of: Regex.problem, labelled: .line),
+        let status = line.match(of: Regex.problem, labelled: .status),
+        let suite = line.match(of: Regex.problem, labelled: .suite),
+        let testCase = line.match(of: Regex.problem, labelled: .testCase)
       {
         let diag = DiagnosticsParser.CustomDiagnostic(
           kind: DiagnosticsParser.CustomDiagnostic.Kind(rawValue: String(status)) ?? .note,
@@ -202,7 +214,7 @@ public struct TestsParser: ProcessOutputParser {
           message: String(problem)
         )
         if let suiteIdx = suites.firstIndex(where: { $0.name == suite }),
-           let caseIdx = suites[suiteIdx].cases.firstIndex(where: { $0.name == testCase })
+          let caseIdx = suites[suiteIdx].cases.firstIndex(where: { $0.name == testCase })
         {
           suites[suiteIdx].cases[caseIdx].problems.append(diag)
         } else {
@@ -212,7 +224,7 @@ public struct TestsParser: ProcessOutputParser {
     }
     for problem in unmappedProblems {
       if let suiteIdx = suites.firstIndex(where: { $0.name == problem.suite }),
-         let caseIdx = suites[suiteIdx].cases.firstIndex(where: { $0.name == problem.testCase })
+        let caseIdx = suites[suiteIdx].cases.firstIndex(where: { $0.name == problem.testCase })
       {
         suites[suiteIdx].cases[caseIdx].problems.append(problem.problem)
       }
@@ -246,14 +258,14 @@ public struct TestsParser: ProcessOutputParser {
       terminal.write(" \(suite.name)\n")
       for testCase in suite.cases {
         if testCase.passed {
-          terminal.write("  \("✓", color: "[92m") ") // green
+          terminal.write("  \("✓", color: "[92m") ")  // green
         } else {
-          terminal.write("  \("✕", color: "[91m") ") // red
+          terminal.write("  \("✕", color: "[91m") ")  // red
         }
         terminal
           .write(
             "\(testCase.name) \("(\(Int(Double(testCase.duration)! * 1000))ms)", color: "[90m")\n"
-          ) // gray
+          )  // gray
         for problem in testCase.problems {
           terminal.write("\n    \(problem.file, color: "[90m"):\(problem.line)\n")
           terminal.write("    \(problem.message)\n\n")
@@ -269,7 +281,7 @@ public struct TestsParser: ProcessOutputParser {
           }
           // Get the line of code from the file and output it for context.
           if let lineNum = Int(problem.line),
-             lineNum > 0
+            lineNum > 0
           {
             var fileContents: String?
             if let fileBuf = fileBufs.first(where: { $0.path == problem.file })?.contents {
@@ -322,7 +334,7 @@ public struct TestsParser: ProcessOutputParser {
     terminal.write("\(String(format: "%.2f", totalDuration))s\n")
 
     if suites.contains(where: { $0.name == "All tests" }) {
-      terminal.write("\("Ran all test suites.", color: "[90m")\n") // gray
+      terminal.write("\("Ran all test suites.", color: "[90m")\n")  // gray
     }
   }
 }

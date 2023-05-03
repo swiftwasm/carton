@@ -13,9 +13,9 @@
 // limitations under the License.
 
 #if canImport(Darwin)
-import Darwin
+  import Darwin
 #elseif canImport(Glibc)
-import Glibc
+  import Glibc
 #endif
 
 @_silgen_name("swift_demangle")
@@ -40,7 +40,8 @@ func demangle(_ mangledName: String) -> String {
     if let demangledNamePtr = demangledNamePtr {
       let demangledName = String(cString: demangledNamePtr)
       free(demangledNamePtr)
-      return demangledName
+      return
+        demangledName
         .replacingOccurrences(of: " Swift.", with: " ")
         .replacingOccurrences(of: "(Swift.", with: "(")
         .replacingOccurrences(of: "<Swift.", with: "<")

@@ -70,10 +70,11 @@ public class ToolchainSystem {
     ].compactMap { $0 }
 
     cartonToolchainResolver = try CartonToolchainResolver(fileSystem: fileSystem)
-    resolvers = try [
-      cartonToolchainResolver,
-      SwiftEnvToolchainResolver(fileSystem: fileSystem),
-    ] + xctoolchainResolvers
+    resolvers =
+      try [
+        cartonToolchainResolver,
+        SwiftEnvToolchainResolver(fileSystem: fileSystem),
+      ] + xctoolchainResolvers
   }
 
   private var libraryPaths: [AbsolutePath] {
@@ -105,8 +106,8 @@ public class ToolchainSystem {
   ) throws -> String {
     if let versionSpec = versionSpec {
       if let url = URL(string: versionSpec),
-         let filename = url.pathComponents.last,
-         let match = versionRegEx.matchGroups(in: filename).first?.first
+        let filename = url.pathComponents.last,
+        let match = versionRegEx.matchGroups(in: filename).first?.first
       {
         terminal.logLookup("Inferred swift version: ", match)
         return match
@@ -146,9 +147,9 @@ public class ToolchainSystem {
     _ terminal: InteractiveWriter
   ) throws -> Foundation.URL? {
     let releaseURL = """
-    https://api.github.com/repos/swiftwasm/swift/releases/tags/\
-    swift-\(version)
-    """
+      https://api.github.com/repos/swiftwasm/swift/releases/tags/\
+      swift-\(version)
+      """
 
     terminal.logLookup("Fetching release assets from ", releaseURL)
     let decoder = JSONDecoder()
@@ -156,10 +157,11 @@ public class ToolchainSystem {
     let release = try tsc_await {
       client.execute(request: request).flatMapResult { response -> Result<Release, Error> in
         guard (200..<300).contains(response.status.code), let body = response.body else {
-          return .failure(ToolchainError.invalidResponse(
-            url: releaseURL,
-            status: response.status.code
-          ))
+          return .failure(
+            ToolchainError.invalidResponse(
+              url: releaseURL,
+              status: response.status.code
+            ))
         }
         terminal.write("Response contained body, parsing it now...\n", inColor: .green)
 
@@ -168,34 +170,34 @@ public class ToolchainSystem {
     }
 
     #if arch(x86_64)
-    let archSuffix = "x86_64"
+      let archSuffix = "x86_64"
     #elseif arch(arm64)
       #if os(macOS)
-      let archSuffix = "arm64"
+        let archSuffix = "arm64"
       #elseif os(Linux)
-      let archSuffix = "aarch64"
+        let archSuffix = "aarch64"
       #endif
     #endif
 
     #if os(macOS)
-    let platformSuffixes = ["osx", "catalina", "macos"]
+      let platformSuffixes = ["osx", "catalina", "macos"]
     #elseif os(Linux)
-    let releaseFile = AbsolutePath("/etc").appending(component: "lsb-release")
-    guard fileSystem.isFile(releaseFile) else {
-      throw ToolchainError.unsupportedOperatingSystem
-    }
+      let releaseFile = AbsolutePath("/etc").appending(component: "lsb-release")
+      guard fileSystem.isFile(releaseFile) else {
+        throw ToolchainError.unsupportedOperatingSystem
+      }
 
-    let releaseData = try fileSystem.readFileContents(releaseFile).description
-    let ubuntuSuffix: String
-    if releaseData.contains("DISTRIB_RELEASE=18.04") {
-      ubuntuSuffix = "ubuntu18.04"
-    } else if releaseData.contains("DISTRIB_RELEASE=20.04") {
-      ubuntuSuffix = "ubuntu20.04"
-    } else {
-      throw ToolchainError.unsupportedOperatingSystem
-    }
+      let releaseData = try fileSystem.readFileContents(releaseFile).description
+      let ubuntuSuffix: String
+      if releaseData.contains("DISTRIB_RELEASE=18.04") {
+        ubuntuSuffix = "ubuntu18.04"
+      } else if releaseData.contains("DISTRIB_RELEASE=20.04") {
+        ubuntuSuffix = "ubuntu20.04"
+      } else {
+        throw ToolchainError.unsupportedOperatingSystem
+      }
 
-    let platformSuffixes = ["linux", ubuntuSuffix]
+      let platformSuffixes = ["linux", ubuntuSuffix]
     #endif
 
     terminal.logLookup(
@@ -279,10 +281,10 @@ public class ToolchainSystem {
 
   public func fetchLocalSwiftVersion() throws -> String? {
     guard fileSystem.isFile(swiftVersionPath),
-          let version = try fileSystem.readFileContents(swiftVersionPath)
-          .validDescription?
-          // get the first line of the file
-          .components(separatedBy: CharacterSet.newlines).first
+      let version = try fileSystem.readFileContents(swiftVersionPath)
+        .validDescription?
+        // get the first line of the file
+        .components(separatedBy: CharacterSet.newlines).first
     else { return nil }
 
     return version

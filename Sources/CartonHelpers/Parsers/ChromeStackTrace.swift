@@ -22,16 +22,15 @@ private let webpackRegex = try! RegEx(pattern: "at (.+) \\(webpack:///(.+?)\\)")
 private let wasmRegex = try! RegEx(pattern: "at (.+) \\(<anonymous>:(.+?)\\)")
 // swiftlint:enable force_try
 
-public extension StringProtocol {
-  var chromeStackTrace: [StackTraceItem] {
+extension StringProtocol {
+  public var chromeStackTrace: [StackTraceItem] {
     split(separator: "\n").dropFirst().compactMap {
       if let webpackMatch = webpackRegex.matchGroups(in: String($0)).first,
-         let symbol = webpackMatch.first,
-         let location = webpackMatch.last
+        let symbol = webpackMatch.first,
+        let location = webpackMatch.last
       {
         return StackTraceItem(symbol: symbol, location: location, kind: .javaScript)
-      } else if
-        let wasmMatch = wasmRegex.matchGroups(in: String($0)).first,
+      } else if let wasmMatch = wasmRegex.matchGroups(in: String($0)).first,
         let symbol = wasmMatch.first,
         let location = wasmMatch.last
       {

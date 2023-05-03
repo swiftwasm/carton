@@ -35,12 +35,12 @@ enum BrowserTestRunnerError: Error, CustomStringConvertible {
     case let .invalidRemoteURL(url): return "Invalid remote URL: \(url)"
     case .failedToFindWebDriver:
       return """
-      Failed to find WebDriver executable or remote URL to a running driver process.
-      Please make sure that you are satisfied with one of the followings (in order of priority)
-      1. Set `WEBDRIVER_REMOTE_URL` with the address of remote WebDriver like `WEBDRIVER_REMOTE_URL=http://localhost:9515`.
-      2. Set `WEBDRIVER_PATH` with the path to your WebDriver executable.
-      3. `chromedriver`, `geckodriver`, `safaridriver`, or `msedgedriver` has been installed in `PATH`
-      """
+        Failed to find WebDriver executable or remote URL to a running driver process.
+        Please make sure that you are satisfied with one of the followings (in order of priority)
+        1. Set `WEBDRIVER_REMOTE_URL` with the address of remote WebDriver like `WEBDRIVER_REMOTE_URL=http://localhost:9515`.
+        2. Set `WEBDRIVER_PATH` with the path to your WebDriver executable.
+        3. `chromedriver`, `geckodriver`, `safaridriver`, or `msedgedriver` has been installed in `PATH`
+        """
     }
   }
 }
@@ -72,7 +72,7 @@ struct BrowserTestRunner: TestRunner {
     httpClient = HTTPClient(eventLoopGroupProvider: .shared(eventLoopGroup))
   }
 
-  typealias Disposer = () -> ()
+  typealias Disposer = () -> Void
 
   func findAvailablePort() async throws -> SocketAddress {
     let bootstrap = ServerBootstrap(group: eventLoopGroup)
@@ -118,8 +118,10 @@ struct BrowserTestRunner: TestRunner {
         let driverCandidates = [
           "chromedriver", "geckodriver", "safaridriver", "msedgedriver",
         ]
-        terminal.logLookup("- checking WebDriver executable in PATH: ", driverCandidates.joined(separator: ", "))
-        guard let found = driverCandidates.lazy.compactMap({ Process.findExecutable($0) }).first else {
+        terminal.logLookup(
+          "- checking WebDriver executable in PATH: ", driverCandidates.joined(separator: ", "))
+        guard let found = driverCandidates.lazy.compactMap({ Process.findExecutable($0) }).first
+        else {
           return nil
         }
         return try await launchDriver(executablePath: found.pathString)
@@ -153,11 +155,12 @@ struct BrowserTestRunner: TestRunner {
       .shared(eventLoopGroup)
     )
     let localURL = try await server.start()
-    var disposer: () async throws -> () = {}
+    var disposer: () async throws -> Void = {}
     do {
       if headless {
         let (endpoint, clientDisposer) = try await selectWebDriver()
-        let client = try await WebDriverClient.newSession(endpoint: endpoint, httpClient: httpClient)
+        let client = try await WebDriverClient.newSession(
+          endpoint: endpoint, httpClient: httpClient)
         disposer = {
           try await client.closeSession()
           clientDisposer()

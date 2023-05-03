@@ -126,7 +126,9 @@ struct Dev: AsyncParsableCommand {
         verbose: verbose,
         port: port,
         host: host,
-        customIndexPath: customIndexPage.map { AbsolutePath($0, relativeTo: localFileSystem.currentWorkingDirectory!) },
+        customIndexPath: customIndexPage.map {
+          AbsolutePath($0, relativeTo: localFileSystem.currentWorkingDirectory!)
+        },
         // swiftlint:disable:next force_try
         manifest: try! toolchain.manifest.get(),
         product: build.product,

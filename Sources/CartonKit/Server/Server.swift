@@ -284,7 +284,7 @@ extension Server {
     _ configuration: Configuration,
     in environment: DestinationEnvironment,
     terminal: InteractiveWriter
-  ) -> (WebSocket, String) -> () {
+  ) -> (WebSocket, String) -> Void {
     { [weak self] _, text in
       guard let self = self else { return }
       guard
@@ -304,9 +304,11 @@ extension Server {
           }
         } else {
           terminal.write("\nAn error occurred, here's the raw stack trace for it:\n", inColor: .red)
-          terminal.write("  Please create an issue or PR to the Carton repository\n" +
-            "  with your browser name and this raw stack trace so\n" +
-            "  we can add support for it: https://github.com/swiftwasm/carton\n", inColor: .gray)
+          terminal.write(
+            "  Please create an issue or PR to the Carton repository\n"
+              + "  with your browser name and this raw stack trace so\n"
+              + "  we can add support for it: https://github.com/swiftwasm/carton\n", inColor: .gray
+          )
           terminal.write(rawStackTrace + "\n")
         }
 
@@ -331,11 +333,11 @@ extension Server {
 @discardableResult
 public func openInSystemBrowser(url: String) -> Bool {
   #if os(macOS)
-  let openCommand = "open"
+    let openCommand = "open"
   #elseif os(Linux)
-  let openCommand = "xdg-open"
+    let openCommand = "xdg-open"
   #else
-  return false
+    return false
   #endif
   let process = Process(
     arguments: [openCommand, url],

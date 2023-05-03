@@ -46,7 +46,7 @@ struct Test: AsyncParsableCommand {
   private var environment = Environment.wasmer
 
   /// It is implemented as a separate flag instead of a `--environment` variant because `--environment`
-  /// is designed to accept specific browser names in the future like `--environment firefox`. 
+  /// is designed to accept specific browser names in the future like `--environment firefox`.
   /// Then `--headless` should be able to be used with `defaultBrowser` and other browser values.
   @Flag(help: "When running browser tests, run the browser in headless mode")
   var headless: Bool = false
@@ -83,7 +83,8 @@ struct Test: AsyncParsableCommand {
 
   func validate() throws {
     if headless && environment != .defaultBrowser {
-      throw TestError(description: "The `--headless` flag can be applied only for browser environments")
+      throw TestError(
+        description: "The `--headless` flag can be applied only for browser environments")
     }
   }
 

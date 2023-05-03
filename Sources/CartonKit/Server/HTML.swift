@@ -17,8 +17,8 @@ import Vapor
 
 enum HTMLError: String, Error {
   case customIndexPageWithoutHead = """
-  The custom `index.html` page does not have a `<head></head>` element to allow entrypoint injection
-  """
+    The custom `index.html` page does not have a `<head></head>` element to allow entrypoint injection
+    """
 }
 
 public struct HTML {
@@ -29,16 +29,21 @@ extension HTML: ResponseEncodable {
   public func encodeResponse(for request: Request) -> EventLoopFuture<Response> {
     var headers = HTTPHeaders()
     headers.add(name: .contentType, value: "text/html")
-    return request.eventLoop.makeSucceededFuture(.init(
-      status: .ok, headers: headers, body: .init(string: value)
-    ))
+    return request.eventLoop.makeSucceededFuture(
+      .init(
+        status: .ok, headers: headers, body: .init(string: value)
+      ))
   }
 
-  public static func readCustomIndexPage(at path: String?, on fileSystem: FileSystem) throws -> String? {
+  public static func readCustomIndexPage(at path: String?, on fileSystem: FileSystem) throws
+    -> String?
+  {
     if let customIndexPage = path {
-      let content = try localFileSystem.readFileContents(customIndexPage.isAbsolutePath ?
-        AbsolutePath(customIndexPage) :
-        AbsolutePath(localFileSystem.currentWorkingDirectory!, customIndexPage)).description
+      let content = try localFileSystem.readFileContents(
+        customIndexPage.isAbsolutePath
+          ? AbsolutePath(customIndexPage)
+          : AbsolutePath(localFileSystem.currentWorkingDirectory!, customIndexPage)
+      ).description
 
       guard content.contains("</head>") else {
         throw HTMLError.customIndexPageWithoutHead
@@ -60,16 +65,16 @@ extension HTML: ResponseEncodable {
     }
 
     return #"""
-    <!DOCTYPE html>
-    <html>
-      <head>
-          <meta charset="utf-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          \#(scriptTag)
-      </head>
-      <body>
-      </body>
-    </html>
-    """#
+      <!DOCTYPE html>
+      <html>
+        <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            \#(scriptTag)
+        </head>
+        <body>
+        </body>
+      </html>
+      """#
   }
 }

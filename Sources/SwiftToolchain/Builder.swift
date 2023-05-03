@@ -55,7 +55,7 @@ public final class Builder {
       String(format: "%.2f seconds", abs(buildStarted.timeIntervalSinceNow))
     )
 
-    var transformers: [(inout InputByteStream, inout InMemoryOutputWriter) throws -> ()] = []
+    var transformers: [(inout InputByteStream, inout InMemoryOutputWriter) throws -> Void] = []
     if flavor.environment == .node || flavor.environment == .defaultBrowser {
       // If building for JS-host environments,
       // - i64 params in imports are not supported without bigint-i64 feature
@@ -71,9 +71,10 @@ public final class Builder {
       transformers.append(transformer.transform)
     }
     // Strip unnecessary autolink sections, which is only used at link-time
-    transformers.append(CustomSectionStripper(stripIf: {
-      $0 == ".swift1_autolink_entries"
-    }).transform)
+    transformers.append(
+      CustomSectionStripper(stripIf: {
+        $0 == ".swift1_autolink_entries"
+      }).transform)
 
     switch flavor.sanitize {
     case .stackOverflow:

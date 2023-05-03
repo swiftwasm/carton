@@ -61,9 +61,9 @@ extension ProcessError: CustomStringConvertible {
   }
 }
 
-public extension TSCBasic.Process {
+extension TSCBasic.Process {
   // swiftlint:disable:next function_body_length
-  static func run(
+  public static func run(
     _ arguments: [String],
     environment: [String: String] = [:],
     loadingMessage: String = "Running...",
@@ -77,11 +77,11 @@ public extension TSCBasic.Process {
       terminal.write(environment.map { "\($0)=\($1)" }.joined(separator: " ") + " ")
     }
 
-    let processName = arguments[0].first == "/" ?
-      AbsolutePath(arguments[0]).basename : arguments[0]
+    let processName = arguments[0].first == "/" ? AbsolutePath(arguments[0]).basename : arguments[0]
 
     do {
-      try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<(), Swift.Error>) in
+      try await withCheckedThrowingContinuation {
+        (continuation: CheckedContinuation<(), Swift.Error>) in
         DispatchQueue.global().async {
           var stdoutBuffer = ""
 

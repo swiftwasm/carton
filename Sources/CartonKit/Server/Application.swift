@@ -28,8 +28,8 @@ extension Application {
     let manifest: Manifest
     let product: ProductDescription?
     let entrypoint: Entrypoint
-    let onWebSocketOpen: (WebSocket, DestinationEnvironment) async -> ()
-    let onWebSocketClose: (WebSocket) async -> ()
+    let onWebSocketOpen: (WebSocket, DestinationEnvironment) async -> Void
+    let onWebSocketClose: (WebSocket) async -> Void
   }
 
   func configure(_ configuration: Configuration) throws {
@@ -52,16 +52,18 @@ extension Application {
       }
 
       return customIndexContent.map {
-        HTML(value: HTML.indexPage(
-          customContent: $0,
-          entrypointName: configuration.entrypoint.fileName
-        ))
+        HTML(
+          value: HTML.indexPage(
+            customContent: $0,
+            entrypointName: configuration.entrypoint.fileName
+          ))
       }
     }
 
     // Don't limit the size of frame to accept large test outputs
     webSocket("watcher", maxFrameSize: .init(integerLiteral: Int(UInt32.max))) { request, ws in
-      let environment = request.headers["User-Agent"].compactMap(DestinationEnvironment.init).first
+      let environment =
+        request.headers["User-Agent"].compactMap(DestinationEnvironment.init).first
         ?? .other
 
       Task { await configuration.onWebSocketOpen(ws, environment) }

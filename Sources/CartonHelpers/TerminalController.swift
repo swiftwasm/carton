@@ -14,16 +14,15 @@
 
 import TSCBasic
 
-private extension String {
-  static var home = "\u{001B}[H"
-  static var clearScreen = "\u{001B}[2J\u{001B}[H\u{001B}[3J"
-  static var clear = "\u{001B}[J"
+extension String {
+  fileprivate static var home = "\u{001B}[H"
+  fileprivate static var clearScreen = "\u{001B}[2J\u{001B}[H\u{001B}[3J"
+  fileprivate static var clear = "\u{001B}[J"
 }
 
-public extension InteractiveWriter {
-  func logLookup<T>(_ description: String, _ target: T, newline: Bool = false)
-    where T: CustomStringConvertible
-  {
+extension InteractiveWriter {
+  public func logLookup<T>(_ description: String, _ target: T, newline: Bool = false)
+  where T: CustomStringConvertible {
     write(description)
     write("\(target)\n", inColor: .cyan, bold: true)
     if newline {
@@ -31,11 +30,11 @@ public extension InteractiveWriter {
     }
   }
 
-  func clearWindow() {
+  public func clearWindow() {
     write(.clearScreen)
   }
 
-  func homeAndClear() {
+  public func homeAndClear() {
     write(.home)
     write(.clear)
   }
