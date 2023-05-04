@@ -195,6 +195,8 @@ public class ToolchainSystem {
         ubuntuSuffix = "ubuntu18.04"
       } else if releaseData.contains("DISTRIB_RELEASE=20.04") {
         ubuntuSuffix = "ubuntu20.04"
+      } else if releaseData.contains("DISTRIB_RELEASE=22.04") {
+        ubuntuSuffix = "ubuntu22.04"
       } else {
         throw ToolchainError.unsupportedOperatingSystem
       }
