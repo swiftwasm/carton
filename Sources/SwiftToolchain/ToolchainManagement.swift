@@ -184,22 +184,7 @@ public class ToolchainSystem {
     #if os(macOS)
       let platformSuffixes = ["osx", "catalina", "macos"]
     #elseif os(Linux)
-      let releaseFile = AbsolutePath("/etc").appending(component: "lsb-release")
-      guard fileSystem.isFile(releaseFile) else {
-        throw ToolchainError.unsupportedOperatingSystem
-      }
-
-      let releaseData = try fileSystem.readFileContents(releaseFile).description
-      let ubuntuSuffix: String
-      if releaseData.contains("DISTRIB_RELEASE=18.04") {
-        ubuntuSuffix = "ubuntu18.04"
-      } else if releaseData.contains("DISTRIB_RELEASE=20.04") {
-        ubuntuSuffix = "ubuntu20.04"
-      } else {
-        throw ToolchainError.unsupportedOperatingSystem
-      }
-
-      let platformSuffixes = ["linux", ubuntuSuffix]
+      let platformSuffixes = ["linux", try self.inferLinuxDistributionSuffix()]
     #endif
 
     terminal.logLookup(
@@ -210,6 +195,28 @@ public class ToolchainSystem {
     return release.assets.map(\.url).filter { url in
       nameSuffixes.contains { url.absoluteString.contains($0) }
     }.first
+  }
+
+  private func inferLinuxDistributionSuffix() throws -> String {
+    guard let releaseFile = [
+      AbsolutePath.root.appending(components: "etc", "lsb-release"),
+      AbsolutePath.root.appending(components: "etc", "os-release"),
+    ].first(where: fileSystem.isFile) else {
+      throw ToolchainError.unsupportedOperatingSystem
+    }
+
+    let releaseData = try fileSystem.readFileContents(releaseFile).description
+    if releaseData.contains("DISTRIB_RELEASE=18.04") {
+      return "ubuntu18.04"
+    } else if releaseData.contains("DISTRIB_RELEASE=20.04") {
+      return "ubuntu20.04"
+    } else if releaseData.contains("DISTRIB_RELEASE=22.04") {
+      return "ubuntu22.04"
+    } else if releaseData.contains(#"PRETTY_NAME="Amazon Linux 2""#) {
+      return "amazonlinux2"
+    } else {
+      throw ToolchainError.unsupportedOperatingSystem
+    }
   }
 
   /** Infer `swift` binary path matching a given version if any is present, or infer the
