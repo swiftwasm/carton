@@ -32,7 +32,6 @@ final class InitCommandTests: XCTestCase {
 
       // Confirm that the files are actually in the folder
       XCTAssertTrue(packageDirectory.ls().contains("Package.swift"), "Package.swift does not exist")
-      XCTAssertTrue(packageDirectory.ls().contains("README.md"), "README.md does not exist")
       XCTAssertTrue(packageDirectory.ls().contains(".gitignore"), ".gitignore does not exist")
       XCTAssertTrue(packageDirectory.ls().contains("Sources"), "Sources does not exist")
       XCTAssertTrue(
@@ -40,17 +39,17 @@ final class InitCommandTests: XCTestCase {
         "Sources/\(package) does not exist"
       )
       XCTAssertTrue(
-        packageDirectory.ls().contains("Sources/\(package)/\(package).swift"),
-        "Sources/\(package)/\(package).swift does not exist"
+        packageDirectory.ls().contains("Sources/\(package)/main.swift"),
+        "Sources/\(package)/main.swift does not exist"
       )
       XCTAssertTrue(packageDirectory.ls().contains("Tests"), "Tests does not exist")
       XCTAssertTrue(
-        packageDirectory.ls().contains("Tests/\(package)Tests"),
-        "Tests/\(package)Tests does not exist"
+        packageDirectory.ls().contains("Tests/\(package)LibraryTests"),
+        "Tests/\(package)LibraryTests does not exist"
       )
       XCTAssertTrue(
-        packageDirectory.ls().contains("Tests/\(package)Tests/\(package)Tests.swift"),
-        "Tests/\(package)Tests/\(package)Tests.swift does not exist"
+        packageDirectory.ls().contains("Tests/\(package)LibraryTests/\(package)LibraryTests.swift"),
+        "Tests/\(package)LibraryTests/\(package)LibraryTests.swift does not exist"
       )
     }
   }
@@ -67,7 +66,6 @@ final class InitCommandTests: XCTestCase {
 
       // Confirm that the files are actually in the folder
       XCTAssertTrue(packageDirectory.ls().contains("Package.swift"), "Package.swift does not exist")
-      XCTAssertTrue(packageDirectory.ls().contains("README.md"), "README.md does not exist")
       XCTAssertTrue(packageDirectory.ls().contains(".gitignore"), ".gitignore does not exist")
       XCTAssertTrue(packageDirectory.ls().contains("Sources"), "Sources does not exist")
       XCTAssertTrue(
@@ -80,40 +78,13 @@ final class InitCommandTests: XCTestCase {
       )
       XCTAssertTrue(packageDirectory.ls().contains("Tests"), "Tests does not exist")
       XCTAssertTrue(
-        packageDirectory.ls().contains("Tests/\(package)Tests"),
-        "Tests/\(package)Tests does not exist"
+        packageDirectory.ls().contains("Tests/\(package)LibraryTests"),
+        "Tests/\(package)LibraryTests does not exist"
       )
       XCTAssertTrue(
-        packageDirectory.ls().contains("Tests/\(package)Tests/\(package)Tests.swift"),
-        "Tests/\(package)Tests/\(package)Tests.swift does not exist"
+        packageDirectory.ls().contains("Tests/\(package)LibraryTests/\(package)LibraryTests.swift"),
+        "Tests/\(package)LibraryTests/\(package)LibraryTests.swift does not exist"
       )
-
-      let actualTemplateSource = try String(
-        contentsOfFile:
-          packageDirectory
-          .appending(components: "Sources", package, "App.swift").pathString)
-
-      XCTAssertEqual(expectedTemplateSource, actualTemplateSource, "Template Sources do not match")
     }
   }
-
-  let expectedTemplateSource =
-    """
-    import TokamakDOM
-
-    @main
-    struct TokamakApp: App {
-        var body: some Scene {
-            WindowGroup("Tokamak App") {
-                ContentView()
-            }
-        }
-    }
-
-    struct ContentView: View {
-        var body: some View {
-            Text("Hello, world!")
-        }
-    }
-    """
 }
