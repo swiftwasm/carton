@@ -28,7 +28,7 @@ public var productsDirectory: AbsolutePath {
       }
       fatalError("couldn't find the products directory")
     #else
-      return AbsolutePath(validating: Bundle.main.bundleURL.path)
+      return try AbsolutePath(validating: Bundle.main.bundleURL.path)
     #endif
   }
 }
