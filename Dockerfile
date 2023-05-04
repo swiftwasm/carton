@@ -37,4 +37,4 @@ RUN cd carton && \
   rm -rf carton /tmp/wasmer*
 
 # Set the default command to run
-CMD ["carton --help"]
+CMD ["carton", "--help"]
