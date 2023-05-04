@@ -15,12 +15,12 @@
 import Foundation
 import TSCBasic
 
-public extension String {
-  var isAbsolutePath: Bool { first == "/" }
+extension String {
+  public var isAbsolutePath: Bool { first == "/" }
 }
 
-public extension FileSystem {
-  func traverseRecursively(_ traversalRoot: AbsolutePath) throws -> [AbsolutePath] {
+extension FileSystem {
+  public func traverseRecursively(_ traversalRoot: AbsolutePath) throws -> [AbsolutePath] {
     guard exists(traversalRoot, followSymlink: true) else {
       return []
     }
@@ -43,14 +43,14 @@ public extension FileSystem {
     return result
   }
 
-  func humanReadableFileSize(_ path: AbsolutePath) throws -> String {
+  public func humanReadableFileSize(_ path: AbsolutePath) throws -> String {
     precondition(isFile(path))
 
     // FIXME: should use `UnitInformationStorage`, but it's unavailable in open-source Foundation
     return try String(format: "%.2f MB", Double(getFileInfo(path).size) / 1024 / 1024)
   }
 
-  func resourcesDirectoryNames(relativeTo buildDirectory: AbsolutePath) throws -> [String] {
+  public func resourcesDirectoryNames(relativeTo buildDirectory: AbsolutePath) throws -> [String] {
     try getDirectoryContents(buildDirectory).filter {
       $0.hasSuffix(".resources")
     }

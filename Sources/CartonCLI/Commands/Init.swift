@@ -25,13 +25,15 @@ struct Init: AsyncParsableCommand {
     subcommands: [ListTemplates.self]
   )
 
-  @Option(name: .long,
-          help: "The template to base the project on.",
-          transform: { Templates(rawValue: $0.lowercased()) })
+  @Option(
+    name: .long,
+    help: "The template to base the project on.",
+    transform: { Templates(rawValue: $0.lowercased()) })
   var template: Templates?
 
-  @Option(name: .long,
-          help: "The name of the project") var name: String?
+  @Option(
+    name: .long,
+    help: "The name of the project") var name: String?
 
   func run() async throws {
     let terminal = InteractiveWriter.stdout
@@ -50,9 +52,10 @@ struct Init: AsyncParsableCommand {
     terminal.write(" in ")
     terminal.write("\(name)\n", inColor: .cyan)
 
-    guard let packagePath = self.name == nil ?
-      localFileSystem.currentWorkingDirectory :
-      AbsolutePath(name, relativeTo: currentDir)
+    guard
+      let packagePath = try self.name == nil
+        ? localFileSystem.currentWorkingDirectory
+        : AbsolutePath(validating: name, relativeTo: currentDir)
     else {
       terminal.write("Path to project could be created.\n", inColor: .red)
       return

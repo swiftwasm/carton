@@ -28,7 +28,8 @@ public struct InvalidResponseCode: Error {
 public final class AsyncFileDownload {
   public let progressStream: AsyncThrowingStream<FileDownloadDelegate.Progress, Error>
 
-  public init(path: String, _ url: URL, _ client: HTTPClient, onTotalBytes: @escaping (Int) -> ()) {
+  public init(path: String, _ url: URL, _ client: HTTPClient, onTotalBytes: @escaping (Int) -> Void)
+  {
     progressStream = .init { continuation in
       do {
         let request = try HTTPClient.Request.get(url: url)
@@ -37,7 +38,7 @@ public final class AsyncFileDownload {
           path: path,
           reportHead: {
             guard $0.status == .ok,
-                  let totalBytes = $0.headers.first(name: "Content-Length").flatMap(Int.init)
+              let totalBytes = $0.headers.first(name: "Content-Length").flatMap(Int.init)
             else {
               continuation
                 .finish(throwing: InvalidResponseCode(code: $0.status.code))

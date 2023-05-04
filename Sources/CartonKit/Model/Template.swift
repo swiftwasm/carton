@@ -92,33 +92,33 @@ extension Template {
   ) throws {
     try fileSystem.writeFileContents(project.path.appending(component: "Package.swift")) {
       var content = """
-      // swift-tools-version:5.6
-      import PackageDescription
-      let package = Package(
-          name: "\(project.name)",\n
-      """
+        // swift-tools-version:5.6
+        import PackageDescription
+        let package = Package(
+            name: "\(project.name)",\n
+        """
       if !platforms.isEmpty {
         content += "    platforms: [\(platforms.joined(separator: ", "))],\n"
       }
       content += """
-          products: [
-              .executable(name: "\(project.name)", targets: ["\(project.name)"])
-          ],
-          dependencies: [
-              \(dependencies.map(\.description).joined(separator: ",\n"))
-          ],
-          targets: [
-              .executableTarget(
-                  name: "\(project.name)",
-                  dependencies: [
-                      \(targetDepencencies.map(\.description).joined(separator: ",\n"))
-                  ]),
-              .testTarget(
-                  name: "\(project.name)Tests",
-                  dependencies: ["\(project.name)"]),
-          ]
-      )
-      """
+            products: [
+                .executable(name: "\(project.name)", targets: ["\(project.name)"])
+            ],
+            dependencies: [
+                \(dependencies.map(\.description).joined(separator: ",\n"))
+            ],
+            targets: [
+                .executableTarget(
+                    name: "\(project.name)",
+                    dependencies: [
+                        \(targetDepencencies.map(\.description).joined(separator: ",\n"))
+                    ]),
+                .testTarget(
+                    name: "\(project.name)Tests",
+                    dependencies: ["\(project.name)"]),
+            ]
+        )
+        """
       content.write(to: $0)
     }
   }
@@ -144,10 +144,10 @@ extension Templates {
           .init(
             url: "https://github.com/swiftwasm/JavaScriptKit",
             version: .from(compatibleJSKitVersion.description)
-          ),
+          )
         ],
         targetDepencencies: [
-          .init(name: "JavaScriptKit", package: "JavaScriptKit"),
+          .init(name: "JavaScriptKit", package: "JavaScriptKit")
         ],
         terminal
       )
@@ -165,10 +165,11 @@ extension Templates {
       _ terminal: InteractiveWriter
     ) async throws {
       try fileSystem.changeCurrentWorkingDirectory(to: project.path)
-      try await createPackage(type: .executable,
-                        fileSystem: fileSystem,
-                        project: project,
-                        terminal)
+      try await createPackage(
+        type: .executable,
+        fileSystem: fileSystem,
+        project: project,
+        terminal)
       try createManifest(
         fileSystem: fileSystem,
         project: project,
@@ -177,10 +178,10 @@ extension Templates {
           .init(
             url: "https://github.com/TokamakUI/Tokamak",
             version: .from("0.11.0")
-          ),
+          )
         ],
         targetDepencencies: [
-          .init(name: "TokamakShim", package: "Tokamak"),
+          .init(name: "TokamakShim", package: "Tokamak")
         ],
         terminal
       )

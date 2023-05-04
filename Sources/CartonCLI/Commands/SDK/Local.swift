@@ -18,17 +18,18 @@ import SwiftToolchain
 import TSCBasic
 
 struct Local: ParsableCommand {
-  static let configuration = CommandConfiguration(abstract: """
-  Prints SDK version used for the current project or saves it \
-  in the `.swift-version` file if a version is passed as an argument.
-  """)
+  static let configuration = CommandConfiguration(
+    abstract: """
+      Prints SDK version used for the current project or saves it \
+      in the `.swift-version` file if a version is passed as an argument.
+      """)
 
   @Argument() var version: String?
 
   func run() throws {
     let terminal = InteractiveWriter.stdout
-    let toolchainSystem = ToolchainSystem(fileSystem: localFileSystem)
-    
+    let toolchainSystem = try ToolchainSystem(fileSystem: localFileSystem)
+
     if let version = version {
       let versions = try toolchainSystem.fetchAllSwiftVersions()
       if versions.contains(version) {

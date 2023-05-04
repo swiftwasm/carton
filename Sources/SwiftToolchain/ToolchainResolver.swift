@@ -47,8 +47,8 @@ final class SwiftEnvToolchainResolver: ToolchainResolver {
   let versionsPath: AbsolutePath
   let fileSystem: FileSystem
 
-  init(fileSystem: FileSystem) {
-    versionsPath = fileSystem.homeDirectory.appending(components: ".swiftenv", "versions")
+  init(fileSystem: FileSystem) throws {
+    versionsPath = try fileSystem.homeDirectory.appending(components: ".swiftenv", "versions")
     self.fileSystem = fileSystem
   }
 
@@ -68,8 +68,8 @@ final class CartonToolchainResolver: ToolchainResolver {
   let cartonSDKPath: AbsolutePath
   let fileSystem: FileSystem
 
-  init(fileSystem: FileSystem) {
-    cartonSDKPath = fileSystem.homeDirectory.appending(components: ".carton", "sdk")
+  init(fileSystem: FileSystem) throws {
+    cartonSDKPath = try fileSystem.homeDirectory.appending(components: ".carton", "sdk")
     self.fileSystem = fileSystem
   }
 

@@ -15,9 +15,10 @@
 //  Created by Cavelle Benjamin on Dec/20/20.
 //
 
-@testable import CartonCLI
 import TSCBasic
 import XCTest
+
+@testable import CartonCLI
 
 final class InitCommandTests: XCTestCase {
   func testWithNoArguments() throws {
@@ -87,8 +88,10 @@ final class InitCommandTests: XCTestCase {
         "Tests/\(package)Tests/\(package)Tests.swift does not exist"
       )
 
-      let actualTemplateSource = try String(contentsOfFile: packageDirectory
-        .appending(components: "Sources", package, "App.swift").pathString)
+      let actualTemplateSource = try String(
+        contentsOfFile:
+          packageDirectory
+          .appending(components: "Sources", package, "App.swift").pathString)
 
       XCTAssertEqual(expectedTemplateSource, actualTemplateSource, "Template Sources do not match")
     }

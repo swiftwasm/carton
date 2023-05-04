@@ -20,8 +20,8 @@ import TSCUtility
 
 private let expectedArchiveSize = 891_856_371
 
-private extension FileDownloadDelegate.Progress {
-  var totalOrEstimatedBytes: Int {
+extension FileDownloadDelegate.Progress {
+  fileprivate var totalOrEstimatedBytes: Int {
     totalBytes ?? expectedArchiveSize
   }
 }

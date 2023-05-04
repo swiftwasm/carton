@@ -32,18 +32,20 @@ struct NodeTestRunner: TestRunner {
     terminal.write("\nRunning the test bundle with Node.js:\n", inColor: .yellow)
 
     try Constants.entrypoint.check(on: localFileSystem, terminal)
-    let (_, _, entrypointPath) = Constants.entrypoint.paths(on: localFileSystem)
+    let (_, _, entrypointPath) = try Constants.entrypoint.paths(on: localFileSystem)
 
     // Allow Node.js to resolve modules from resource directories by making them relative to the entrypoint path.
     let buildDirectory = testFilePath.parentDirectory
     let staticDirectory = entrypointPath.parentDirectory
 
     // Clean up existing symlinks before creating new ones.
-    for existingSymlink in try localFileSystem.resourcesDirectoryNames(relativeTo: staticDirectory) {
+    for existingSymlink in try localFileSystem.resourcesDirectoryNames(relativeTo: staticDirectory)
+    {
       try localFileSystem.removeFileTree(staticDirectory.appending(component: existingSymlink))
     }
 
-    let resourceDirectories = try localFileSystem.resourcesDirectoryNames(relativeTo: buildDirectory)
+    let resourceDirectories = try localFileSystem.resourcesDirectoryNames(
+      relativeTo: buildDirectory)
 
     // Create new symlink for each resource directory.
     for resourcesDirectoryName in resourceDirectories {

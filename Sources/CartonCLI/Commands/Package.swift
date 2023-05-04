@@ -20,9 +20,10 @@ import TSCBasic
 
 /// Proxy swift-package command to locally pinned toolchain version.
 struct Package: AsyncParsableCommand {
-  static let configuration = CommandConfiguration(abstract: """
-  Perform operations on Swift packages.
-  """)
+  static let configuration = CommandConfiguration(
+    abstract: """
+      Perform operations on Swift packages.
+      """)
 
   @Argument(wrappedValue: [], parsing: .remaining)
   var arguments: [String]

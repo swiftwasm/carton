@@ -22,19 +22,18 @@ private let jsRegex = try! RegEx(pattern: "(.+?)(?:@(?:\\[(?:native|wasm) code\\
 private let wasmRegex = try! RegEx(pattern: "<\\?>\\.wasm-function\\[(.+)\\]@\\[wasm code\\]")
 // swiftlint:enable force_try
 
-public extension StringProtocol {
-  var safariStackTrace: [StackTraceItem] {
+extension StringProtocol {
+  public var safariStackTrace: [StackTraceItem] {
     split(separator: "\n").compactMap {
       if let wasmMatch = wasmRegex.matchGroups(in: String($0)).first,
-         let symbol = wasmMatch.first
+        let symbol = wasmMatch.first
       {
         return StackTraceItem(
           symbol: demangle(symbol),
           location: nil,
           kind: .webAssembly
         )
-      } else if
-        let jsMatch = jsRegex.matchGroups(in: String($0)).first,
+      } else if let jsMatch = jsRegex.matchGroups(in: String($0)).first,
         let symbol = jsMatch.first
       {
         let loc: String?

@@ -13,10 +13,10 @@
 // limitations under the License.
 
 import AsyncHTTPClient
+import Basics
 import CartonHelpers
 import Foundation
 import TSCBasic
-import TSCUtility
 
 public enum EntrypointError: Error {
 }
@@ -32,20 +32,22 @@ public struct Entrypoint {
 
   public func paths(
     on fileSystem: FileSystem
-    // swiftlint:disable:next large_tuple
-  ) -> (cartonDir: AbsolutePath, staticDir: AbsolutePath, filePath: AbsolutePath) {
-    let cartonDir = fileSystem.homeDirectory.appending(component: ".carton")
+      // swiftlint:disable:next large_tuple
+  ) throws -> (cartonDir: AbsolutePath, staticDir: AbsolutePath, filePath: AbsolutePath) {
+    let cartonDir = try fileSystem.homeDirectory.appending(component: ".carton")
     let staticDir = cartonDir.appending(component: "static")
     return (cartonDir, staticDir, staticDir.appending(component: fileName))
   }
 
   public func check(on fileSystem: FileSystem, _ terminal: InteractiveWriter) throws {
-    let (cartonDir, staticDir, filePath) = paths(on: fileSystem)
+    let (cartonDir, staticDir, filePath) = try paths(on: fileSystem)
 
     // If hash check fails, download the `static.zip` archive and unpack it
-    if try !fileSystem.exists(filePath) || SHA256().hash(
-      fileSystem.readFileContents(filePath)
-    ) != sha256 {
+    if try !fileSystem.exists(filePath)
+      || SHA256().hash(
+        fileSystem.readFileContents(filePath)
+      ) != sha256
+    {
       terminal.logLookup("Directory doesn't exist or contains outdated polyfills: ", staticDir)
       let archiveFile = cartonDir.appending(component: "static.zip")
       try fileSystem.removeFileTree(staticDir)
@@ -58,7 +60,8 @@ public struct Entrypoint {
 
       try fileSystem.createDirectory(staticDir)
       try tsc_await {
-        ZipArchiver().extract(from: archiveFile, to: staticDir, completion: $0)
+        ZipArchiver(fileSystem: fileSystem).extract(
+          from: archiveFile, to: staticDir, completion: $0)
       }
     }
   }

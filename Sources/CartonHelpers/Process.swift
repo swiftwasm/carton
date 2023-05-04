@@ -61,9 +61,9 @@ extension ProcessError: CustomStringConvertible {
   }
 }
 
-public extension TSCBasic.Process {
+extension TSCBasic.Process {
   // swiftlint:disable:next function_body_length
-  static func run(
+  public static func run(
     _ arguments: [String],
     environment: [String: String] = [:],
     loadingMessage: String = "Running...",
@@ -77,11 +77,12 @@ public extension TSCBasic.Process {
       terminal.write(environment.map { "\($0)=\($1)" }.joined(separator: " ") + " ")
     }
 
-    let processName = arguments[0].first == "/" ?
-      AbsolutePath(arguments[0]).basename : arguments[0]
+    let processName =
+      arguments[0].first == "/" ? try AbsolutePath(validating: arguments[0]).basename : arguments[0]
 
     do {
-      try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<(), Swift.Error>) in
+      try await withCheckedThrowingContinuation {
+        (continuation: CheckedContinuation<(), Swift.Error>) in
         DispatchQueue.global().async {
           var stdoutBuffer = ""
 
@@ -105,8 +106,10 @@ public extension TSCBasic.Process {
             arguments: arguments,
             environment: ProcessEnv.vars.merging(environment) { _, new in new },
             outputRedirection: .stream(stdout: stdout, stderr: stderr),
-            verbose: true,
-            startNewProcessGroup: true
+            startNewProcessGroup: true,
+            loggingHandler: {
+              terminal.write($0)
+            }
           )
 
           let result = Result<ProcessResult, Swift.Error> {

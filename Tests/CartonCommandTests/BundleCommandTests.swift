@@ -15,9 +15,10 @@
 //  Created by Cavelle Benjamin on Dec/25/20.
 //
 
-@testable import CartonCLI
 import TSCBasic
 import XCTest
+
+@testable import CartonCLI
 
 final class BundleCommandTests: XCTestCase {
   func testWithNoArguments() throws {
@@ -63,7 +64,7 @@ final class BundleCommandTests: XCTestCase {
         return
       }
       let headers = try Process.checkNonZeroExit(arguments: [
-        "wasm-objdump", "--headers", bundleDirectory.appending(component: wasmBinary).pathString
+        "wasm-objdump", "--headers", bundleDirectory.appending(component: wasmBinary).pathString,
       ])
       XCTAssert(headers.contains("\"name\""), "name section not found: \(headers)")
     }
@@ -77,7 +78,9 @@ final class BundleCommandTests: XCTestCase {
       func getFileSizeOfWasmBinary(wasmOptimizations: WasmOptimizations) throws -> UInt64 {
         let bundleDirectory = tmpDirPath.appending(component: "Bundle")
 
-        try Process.checkNonZeroExit(arguments: [cartonPath, "bundle", "--wasm-optimizations", wasmOptimizations.rawValue])
+        try Process.checkNonZeroExit(arguments: [
+          cartonPath, "bundle", "--wasm-optimizations", wasmOptimizations.rawValue,
+        ])
 
         guard let wasmFile = (bundleDirectory.ls().filter { $0.contains("wasm") }).first else {
           XCTFail("No wasm binary found")

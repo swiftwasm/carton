@@ -16,16 +16,16 @@ import Foundation
 import Splash
 import TSCBasic
 
-private extension TokenType {
-  var color: String {
+extension TokenType {
+  fileprivate var color: String {
     // Reference on escape codes: https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
     switch self {
-    case .keyword: return "[35;1m" // magenta;bold
-    case .comment: return "[90m" // bright black
-    case .call, .dotAccess, .property, .type: return "[94m" // bright blue
-    case .number, .preprocessing: return "[33m" // yellow
-    case .string: return "[91;1m" // bright red;bold
-    default: return "[0m" // reset
+    case .keyword: return "[35;1m"  // magenta;bold
+    case .comment: return "[90m"  // bright black
+    case .call, .dotAccess, .property, .type: return "[94m"  // bright blue
+    case .number, .preprocessing: return "[33m"  // yellow
+    case .string: return "[91;1m"  // bright red;bold
+    default: return "[0m"  // reset
     }
   }
 }
@@ -85,9 +85,9 @@ public struct DiagnosticsParser: ProcessOutputParser {
       case error, warning, note
       var color: String {
         switch self {
-        case .error: return "[41;1m" // bright red background
-        case .warning: return "[43;1m" // bright yellow background
-        case .note: return "[7m" // reversed
+        case .error: return "[41;1m"  // bright red background
+        case .warning: return "[43;1m"  // bright yellow background
+        case .note: return "[7m"  // reversed
         }
       }
     }
@@ -120,15 +120,18 @@ public struct DiagnosticsParser: ProcessOutputParser {
           if components.count > 3 {
             lineIdx += 1
             let file = line.replacingOccurrences(of: message, with: "")
-            guard file.split(separator: "/").last?
-              .replacingOccurrences(of: ":", with: "") == String(currFile)
+            guard
+              file.split(separator: "/").last?
+                .replacingOccurrences(of: ":", with: "") == String(currFile)
             else { continue }
             fileMessages.append(
               .init(
-                kind: CustomDiagnostic
-                  .Kind(rawValue: String(components[2]
-                      .trimmingCharacters(in: .whitespaces))) ??
-                  .note,
+                kind:
+                  CustomDiagnostic
+                  .Kind(
+                    rawValue: String(
+                      components[2]
+                        .trimmingCharacters(in: .whitespaces))) ?? .note,
                 file: file,
                 line: components[0],
                 char: components[1],
@@ -156,15 +159,15 @@ public struct DiagnosticsParser: ProcessOutputParser {
   ) {
     for (file, messages) in diagnostics.sorted(by: { $0.key < $1.key }) {
       guard messages.count > 0 else { continue }
-      terminal.write("\(" \(file) ", color: "[1m", "[7m")") // bold, reversed
+      terminal.write("\(" \(file) ", color: "[1m", "[7m")")  // bold, reversed
       terminal.write(" \(messages.first!.file)\(messages.first!.line)\n\n", inColor: .gray)
       // Group messages that occur on sequential lines to provie a more readable output
       var groupedMessages = [[CustomDiagnostic]]()
       for message in messages {
         if let lastLineStr = groupedMessages.last?.last?.line,
-           let lastLine = Int(lastLineStr),
-           let line = Int(message.line),
-           lastLine == line - 1 || lastLine == line
+          let lastLine = Int(lastLineStr),
+          let line = Int(message.line),
+          lastLine == line - 1 || lastLine == line
         {
           groupedMessages[groupedMessages.count - 1].append(message)
         } else {
@@ -178,7 +181,7 @@ public struct DiagnosticsParser: ProcessOutputParser {
           terminal
             .write(
               "  \(" \(kind) ", color: message.kind.color, "[37;1m") \(message.message)\n"
-            ) // 37;1: bright white
+            )  // 37;1: bright white
         }
         let maxLine = messages.map(\.line.count).max() ?? 0
         for (offset, message) in messages.enumerated() {
@@ -211,7 +214,7 @@ public struct DiagnosticsParser: ProcessOutputParser {
     terminal
       .write(
         "  \("\(paddedLine) | ", color: "[36m")\(highlightedCode)\n"
-      ) // 36: cyan
+      )  // 36: cyan
     terminal.write(
       "  " + "".padding(toLength: maxLine, withPad: " ", startingAt: 0) + " | ",
       inColor: .cyan

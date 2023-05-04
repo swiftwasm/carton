@@ -15,8 +15,8 @@
 import Crypto
 import TSCBasic
 
-public extension ByteString {
-  var hexSHA256: String {
+extension ByteString {
+  public var hexSHA256: String {
     ByteString(SHA256.hash(data: contents)).hexadecimalRepresentation
   }
 }

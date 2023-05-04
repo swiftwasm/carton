@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-@testable import CartonCLI
 import TSCBasic
 import XCTest
+
+@testable import CartonCLI
 
 final class IntegrationTests: XCTestCase {
   func testTokamakBundle() throws {

@@ -49,11 +49,11 @@ struct Bundle: AsyncParsableCommand {
   @Option(
     name: .long,
     help: """
-    Which optimizations to apply to the .wasm binary output.
-    Available values: \(
+      Which optimizations to apply to the .wasm binary output.
+      Available values: \(
       WasmOptimizations.allCases.map(\.rawValue).joined(separator: ", ")
-    )
-    """
+      )
+      """
   )
   var wasmOptimizations: WasmOptimizations = .size
 
@@ -122,7 +122,9 @@ struct Bundle: AsyncParsableCommand {
     terminal.write("Bundle generation finished successfully\n", inColor: .green, bold: true)
   }
 
-  func optimize(_ inputPath: AbsolutePath, outputPath: AbsolutePath, terminal: InteractiveWriter) async throws {
+  func optimize(_ inputPath: AbsolutePath, outputPath: AbsolutePath, terminal: InteractiveWriter)
+    async throws
+  {
     var wasmOptArgs = ["wasm-opt", "-Os", inputPath.pathString, "-o", outputPath.pathString]
     if debugInfo {
       wasmOptArgs.append("--debuginfo")
@@ -156,7 +158,7 @@ struct Bundle: AsyncParsableCommand {
     try localFileSystem.move(from: wasmOutputFilePath, to: mainModulePath)
 
     // Copy the bundle entrypoint, point to the binary, and give it a cachebuster name.
-    let (_, _, entrypointPath) = dependency.paths(on: localFileSystem)
+    let (_, _, entrypointPath) = try dependency.paths(on: localFileSystem)
     let entrypoint = try ByteString(
       encodingAsUTF8: localFileSystem.readFileContents(entrypointPath)
         .description
@@ -173,10 +175,11 @@ struct Bundle: AsyncParsableCommand {
 
     try localFileSystem.writeFileContents(
       AbsolutePath(bundleDirectory, "index.html"),
-      bytes: ByteString(encodingAsUTF8: HTML.indexPage(
-        customContent: HTML.readCustomIndexPage(at: customIndexPage, on: localFileSystem),
-        entrypointName: entrypointName
-      ))
+      bytes: ByteString(
+        encodingAsUTF8: HTML.indexPage(
+          customContent: HTML.readCustomIndexPage(at: customIndexPage, on: localFileSystem),
+          entrypointName: entrypointName
+        ))
     )
 
     let manifest = try toolchain.manifest.get()

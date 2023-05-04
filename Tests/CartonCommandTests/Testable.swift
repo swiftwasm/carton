@@ -21,29 +21,35 @@ import TSCTestSupport
 
 /// Returns path to the built products directory.
 public var productsDirectory: AbsolutePath {
-  #if os(macOS)
-  for bundle in Bundle.allBundles where bundle.bundlePath.hasSuffix(".xctest") {
-    return AbsolutePath(bundle.bundleURL.deletingLastPathComponent().path)
+  get throws {
+    #if os(macOS)
+      for bundle in Bundle.allBundles where bundle.bundlePath.hasSuffix(".xctest") {
+        return try AbsolutePath(validating: bundle.bundleURL.deletingLastPathComponent().path)
+      }
+      fatalError("couldn't find the products directory")
+    #else
+      return try AbsolutePath(validating: Bundle.main.bundleURL.path)
+    #endif
   }
-  fatalError("couldn't find the products directory")
-  #else
-  return AbsolutePath(Bundle.main.bundleURL.path)
-  #endif
 }
 
 public var testFixturesDirectory: AbsolutePath {
-  packageDirectory.appending(components: "Tests", "Fixtures")
+  get throws {
+    try packageDirectory.appending(components: "Tests", "Fixtures")
+  }
 }
 
 public var packageDirectory: AbsolutePath {
-  AbsolutePath(#filePath)
-    .parentDirectory
-    .parentDirectory
-    .parentDirectory
+  get throws {
+    try AbsolutePath(validating: #filePath)
+      .parentDirectory
+      .parentDirectory
+      .parentDirectory
+  }
 }
 
-func withFixture(_ name: String, _ body: (AbsolutePath) throws -> ()) throws {
-  let fixtureDir = testFixturesDirectory.appending(component: name)
+func withFixture(_ name: String, _ body: (AbsolutePath) throws -> Void) throws {
+  let fixtureDir = try testFixturesDirectory.appending(component: name)
   try withTemporaryDirectory(prefix: name) { tmpDirPath in
     let dstDir = tmpDirPath.appending(component: name)
     try systemQuietly("cp", "-R", "-H", fixtureDir.pathString, dstDir.pathString)
@@ -75,9 +81,5 @@ extension AbsolutePath {
     guard let paths = try? FileManager.default.subpathsOfDirectory(atPath: pathString)
     else { return [] }
     return paths
-  }
-
-  static var home: AbsolutePath {
-    AbsolutePath(FileManager.default.homeDirectoryForCurrentUser.path)
   }
 }

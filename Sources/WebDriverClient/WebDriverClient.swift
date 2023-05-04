@@ -34,27 +34,28 @@ public struct WebDriverClient {
   }
 
   public static let defaultSessionRequestBody = #"""
-  {
-    "capabilities": {
-      "alwaysMatch": {
-        "goog:chromeOptions": {
-          "w3c": true,
-          "args": ["--headless", "--no-sandbox"]
-        },
-        "moz:firefoxOptions": {
-          "args": ["-headless"]
-        },
-        "ms:edgeOptions": {
-          "args": ["--headless", "--no-sandbox"]
+    {
+      "capabilities": {
+        "alwaysMatch": {
+          "goog:chromeOptions": {
+            "w3c": true,
+            "args": ["--headless", "--no-sandbox"]
+          },
+          "moz:firefoxOptions": {
+            "args": ["-headless"]
+          },
+          "ms:edgeOptions": {
+            "args": ["--headless", "--no-sandbox"]
+          }
         }
       }
     }
-  }
-  """#
+    """#
 
-  public static func newSession(endpoint: URL, body: String = defaultSessionRequestBody,
-                                httpClient: HTTPClient) async throws -> WebDriverClient
-  {
+  public static func newSession(
+    endpoint: URL, body: String = defaultSessionRequestBody,
+    httpClient: HTTPClient
+  ) async throws -> WebDriverClient {
     struct Response: Decodable {
       let sessionId: String
     }
@@ -71,13 +72,15 @@ public struct WebDriverClient {
     }
     let decoder = JSONDecoder()
     let response = try decoder.decode(ValueResponse<Response>.self, from: responseBody)
-    return WebDriverClient(client: httpClient,
-                           driverEndpoint: endpoint,
-                           sessionId: response.sessionId)
+    return WebDriverClient(
+      client: httpClient,
+      driverEndpoint: endpoint,
+      sessionId: response.sessionId)
   }
 
   private func makeSessionURL(_ components: String...) -> String {
-    var url = driverEndpoint
+    var url =
+      driverEndpoint
       .appendingPathComponent("session")
       .appendingPathComponent(sessionId)
     for component in components {

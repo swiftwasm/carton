@@ -15,13 +15,14 @@
 //  Created by Cavelle Benjamin on Dec/25/20.
 //
 
-@testable import CartonCLI
 import TSCBasic
 import XCTest
 
+@testable import CartonCLI
+
 final class SDKCommandTests: XCTestCase {
   func testInstall() throws {
-    AssertExecuteCommand(
+    try AssertExecuteCommand(
       command: "carton sdk install",
       cwd: packageDirectory.url,
       expected: "SDK successfully installed!",
@@ -30,7 +31,7 @@ final class SDKCommandTests: XCTestCase {
   }
 
   func testVersions() throws {
-    AssertExecuteCommand(
+    try AssertExecuteCommand(
       command: "carton sdk versions",
       cwd: packageDirectory.url,
       expected: "wasm-",

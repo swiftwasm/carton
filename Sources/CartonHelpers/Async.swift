@@ -14,8 +14,8 @@
 
 import ArgumentParser
 
-public extension Sequence {
-  func asyncMap<T>(
+extension Sequence {
+  public func asyncMap<T>(
     _ transform: (Element) async throws -> T
   ) async rethrows -> [T] {
     var values = [T]()
@@ -33,8 +33,8 @@ public protocol AsyncParsableCommand: ParsableCommand {
   mutating func run() async throws
 }
 
-public extension AsyncParsableCommand {
-  mutating func run() throws {
+extension AsyncParsableCommand {
+  public mutating func run() throws {
     throw CleanExit.helpRequest(self)
   }
 }
@@ -43,8 +43,8 @@ public protocol AsyncMain {
   associatedtype Command: ParsableCommand
 }
 
-public extension AsyncMain {
-  static func main() async {
+extension AsyncMain {
+  public static func main() async {
     do {
       var command = try Command.parseAsRoot()
       if var command = command as? AsyncParsableCommand {

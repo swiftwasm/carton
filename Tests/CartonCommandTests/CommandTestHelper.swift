@@ -12,8 +12,8 @@
 import ArgumentParser
 import XCTest
 
-public extension ExitCode {
-  static var quit = ExitCode(SIGQUIT)
+extension ExitCode {
+  public static var quit = ExitCode(SIGQUIT)
 }
 
 public func stop(process id: Int32, exitCode: ExitCode = .success) {
@@ -26,8 +26,8 @@ public protocol TestableParsableArguments: ParsableArguments {
   var didValidateExpectation: XCTestExpectation { get }
 }
 
-public extension TestableParsableArguments {
-  mutating func validate() throws {
+extension TestableParsableArguments {
+  public mutating func validate() throws {
     didValidateExpectation.fulfill()
   }
 }
@@ -37,14 +37,14 @@ public protocol TestableParsableCommand: ParsableCommand, TestableParsableArgume
   var didRunExpectation: XCTestExpectation { get }
 }
 
-public extension TestableParsableCommand {
-  mutating func run() throws {
+extension TestableParsableCommand {
+  public mutating func run() throws {
     didRunExpectation.fulfill()
   }
 }
 
-public extension XCTestExpectation {
-  convenience init(singleExpectation description: String) {
+extension XCTestExpectation {
+  public convenience init(singleExpectation description: String) {
     self.init(description: description)
     expectedFulfillmentCount = 1
     assertForOverFulfill = true
@@ -103,7 +103,7 @@ public func AssertParse<A>(
   _ arguments: [String],
   file: StaticString = #file,
   line: UInt = #line,
-  closure: (A) throws -> ()
+  closure: (A) throws -> Void
 ) where A: ParsableArguments {
   do {
     let parsed = try type.parse(arguments)
@@ -120,7 +120,7 @@ public func AssertParseCommand<A: ParsableCommand>(
   _ arguments: [String],
   file: StaticString = #file,
   line: UInt = #line,
-  closure: (A) throws -> ()
+  closure: (A) throws -> Void
 ) {
   do {
     let command = try rootCommand.parseAsRoot(arguments)
@@ -186,15 +186,15 @@ public func AssertHelp<T: ParsableCommand, U: ParsableCommand>(
   )
 }
 
-public extension XCTest {
-  var debugURL: URL {
+extension XCTest {
+  public var debugURL: URL {
     let bundleURL = Bundle(for: type(of: self)).bundleURL
     return bundleURL.lastPathComponent.hasSuffix("xctest")
       ? bundleURL.deletingLastPathComponent()
       : bundleURL
   }
 
-  var cartonPath: String {
+  public var cartonPath: String {
     debugURL.appendingPathComponent("carton").path
   }
 
@@ -205,10 +205,10 @@ public extension XCTest {
   /// - parameter cwd: The current working directory for executing the command.
   /// - parameter file: The file the assertion is coming from.
   /// - parameter line: The line the assertion is coming from.
-  func executeCommand(
+  public func executeCommand(
     command: String,
     shouldPrintOutput: Bool = false,
-    cwd: URL? = nil, // To allow for testing of file-based output
+    cwd: URL? = nil,  // To allow for testing of file-based output
     file: StaticString = #file, line: UInt = #line
   ) -> Process? {
     let splitCommand = command.split(separator: " ")
@@ -217,8 +217,9 @@ public extension XCTest {
     let commandName = String(splitCommand.first!)
     let commandURL = debugURL.appendingPathComponent(commandName)
     guard (try? commandURL.checkResourceIsReachable()) ?? false else {
-      XCTFail("No executable at '\(commandURL.standardizedFileURL.path)'.",
-              file: file, line: line)
+      XCTFail(
+        "No executable at '\(commandURL.standardizedFileURL.path)'.",
+        file: file, line: line)
       return nil
     }
 
@@ -261,9 +262,9 @@ public extension XCTest {
   /// - parameter debug: Debug the assertion by printing out the command string.
   /// - parameter file: The file the assertion is coming from.
   /// - parameter line: The line the assertion is coming from.
-  func AssertExecuteCommand(
+  public func AssertExecuteCommand(
     command: String,
-    cwd: URL? = nil, // To allow for testing of file based output
+    cwd: URL? = nil,  // To allow for testing of file based output
     expected: String? = nil,
     expectedContains: Bool = false,
     exitCode: ExitCode = .success,
@@ -276,8 +277,9 @@ public extension XCTest {
     let commandName = String(splitCommand.first!)
     let commandURL = debugURL.appendingPathComponent(commandName)
     guard (try? commandURL.checkResourceIsReachable()) ?? false else {
-      XCTFail("No executable at '\(commandURL.standardizedFileURL.path)'.",
-              file: file, line: line)
+      XCTFail(
+        "No executable at '\(commandURL.standardizedFileURL.path)'.",
+        file: file, line: line)
       return
     }
 

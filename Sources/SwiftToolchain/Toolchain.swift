@@ -48,9 +48,9 @@ enum ToolchainError: Error, CustomStringConvertible {
       return "Failed to build the test bundle"
     case .missingPackageManifest:
       return """
-      The `Package.swift` manifest file could not be found. Please navigate to a directory that \
-      contains `Package.swift` and restart.
-      """
+        The `Package.swift` manifest file could not be found. Please navigate to a directory that \
+        contains `Package.swift` and restart.
+        """
     case let .invalidVersion(version):
       return "Invalid version \(version)"
     case let .invalidResponse(url: url, status: status):
@@ -59,8 +59,8 @@ enum ToolchainError: Error, CustomStringConvertible {
       return "This version of the operating system is not supported"
     case let .noInstallationDirectory(path):
       return """
-      Failed to infer toolchain installation directory. Please make sure that \(path) exists.
-      """
+        Failed to infer toolchain installation directory. Please make sure that \(path) exists.
+        """
     case .noWorkingDirectory:
       return "Working directory cannot be inferred from file system"
     }
@@ -119,7 +119,7 @@ public final class Toolchain {
     _ fileSystem: FileSystem,
     _ terminal: InteractiveWriter
   ) async throws {
-    let toolchainSystem = ToolchainSystem(fileSystem: fileSystem)
+    let toolchainSystem = try ToolchainSystem(fileSystem: fileSystem)
     let (swiftPath, version) = try await toolchainSystem.inferSwiftPath(from: versionSpec, terminal)
     self.swiftPath = swiftPath
     self.version = version
@@ -128,7 +128,8 @@ public final class Toolchain {
     if let workingDirectory = fileSystem.currentWorkingDirectory {
       let swiftc = swiftPath.parentDirectory.appending(component: "swiftc")
       manifest = await Result {
-        try await Manifest.from(path: workingDirectory, swiftc: swiftc, fileSystem: fileSystem, terminal: terminal)
+        try await Manifest.from(
+          path: workingDirectory, swiftc: swiftc, fileSystem: fileSystem, terminal: terminal)
       }
     } else {
       manifest = .failure(ToolchainError.noWorkingDirectory)
@@ -144,7 +145,7 @@ public final class Toolchain {
       let binPath = output.first
     else { fatalError("failed to decode UTF8 output of the `swift build` invocation") }
 
-    return AbsolutePath(binPath)
+    return try AbsolutePath(validating: binPath)
   }
 
   private func inferDevProduct(hint: String?) throws -> ProductDescription? {
@@ -157,10 +158,11 @@ public final class Toolchain {
       candidateProducts = candidateProducts.filter { $0.name == productName }
 
       guard candidateProducts.count == 1 else {
-        terminal.write("""
-        Failed to disambiguate the executable product, \
-        make sure `\(productName)` product is present in Package.swift
-        """, inColor: .red)
+        terminal.write(
+          """
+          Failed to disambiguate the executable product, \
+          make sure `\(productName)` product is present in Package.swift
+          """, inColor: .red)
         return nil
       }
 
@@ -226,9 +228,11 @@ public final class Toolchain {
 
   private func emitJSKitWarningIfNeeded() throws {
     let manifest = try manifest.get()
-    guard let jsKit = manifest.dependencies.first(where: {
-      $0.nameForTargetDependencyResolutionOnly == "JavaScriptKit"
-    }) else {
+    guard
+      let jsKit = manifest.dependencies.first(where: {
+        $0.nameForTargetDependencyResolutionOnly == "JavaScriptKit"
+      })
+    else {
       return
     }
 
@@ -302,7 +306,9 @@ public final class Toolchain {
     return .init(arguments: builderArguments, mainWasmPath: mainWasmPath, product: product)
   }
 
-  public func getTestProduct(flavor: BuildFlavor) throws -> (name: String, artifactPath: AbsolutePath) {
+  public func getTestProduct(flavor: BuildFlavor) throws -> (
+    name: String, artifactPath: AbsolutePath
+  ) {
     let manifest = try manifest.get()
     let binPath = try inferBinPath(isRelease: flavor.isRelease)
     let testProductName = "\(manifest.displayName)PackageTests"
@@ -352,7 +358,7 @@ public final class Toolchain {
     var builderArguments = ["--triple", "wasm32-unknown-wasi"]
 
     if let wasmVersion = try? Version(swiftWasmVersion: version) {
-    
+
       // Versions later than 5.3.x have test discovery enabled by default and the explicit flag
       // deprecated.
       if wasmVersion.major == 5, wasmVersion.minor == 3 {
@@ -375,9 +381,10 @@ public final class Toolchain {
       }
     }
 
-    builderArguments.append(contentsOf: flavor.swiftCompilerFlags.flatMap {
-      ["-Xswiftc", $0]
-    })
+    builderArguments.append(
+      contentsOf: flavor.swiftCompilerFlags.flatMap {
+        ["-Xswiftc", $0]
+      })
 
     return builderArguments
   }
@@ -422,7 +429,7 @@ extension Version {
     }
     var swiftWasmVersion = swiftWasmVersion
     swiftWasmVersion.removeFirst(prefix.count)
-    
+
     let version = try Version(versionString: swiftWasmVersion, usesLenientParsing: true)
     // Strip prereleaseIdentifiers
     self.init(version.major, version.minor, version.patch)

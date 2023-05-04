@@ -22,13 +22,13 @@ public enum DestinationEnvironment {
   case edge
 }
 
-public extension String {
-  func parsedStackTrace(in environment: DestinationEnvironment) -> [StackTraceItem]? {
+extension String {
+  public func parsedStackTrace(in environment: DestinationEnvironment) -> [StackTraceItem]? {
     switch environment {
     case .safari: return safariStackTrace
     case .firefox: return firefoxStackTrace
     case .chrome: return chromeStackTrace
-    case .edge: return chromeStackTrace // TODO: return nil if on old Edge
+    case .edge: return chromeStackTrace  // TODO: return nil if on old Edge
     default: return nil
     }
   }

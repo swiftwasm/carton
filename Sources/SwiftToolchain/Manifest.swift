@@ -14,13 +14,15 @@
 
 import Basics
 import CartonHelpers
-import PackageModel
 import PackageLoading
+import PackageModel
 import TSCBasic
 import Workspace
 
 extension Manifest {
-  static func from(path: AbsolutePath, swiftc: AbsolutePath, fileSystem: FileSystem, terminal: InteractiveWriter) async throws -> Manifest {
+  static func from(
+    path: AbsolutePath, swiftc: AbsolutePath, fileSystem: FileSystem, terminal: InteractiveWriter
+  ) async throws -> Manifest {
     terminal.write("\nParsing package manifest: ", inColor: .yellow)
     let destination = try Destination.hostDestination(swiftc.parentDirectory)
     let toolchain = try UserToolchain(destination: destination)
@@ -28,7 +30,8 @@ extension Manifest {
     let observability = ObservabilitySystem { _, diagnostic in
       terminal.write("\n\(diagnostic)")
     }
-    let workspace = try Workspace(fileSystem: fileSystem, forRootPackage: path, customManifestLoader: loader)
+    let workspace = try Workspace(
+      fileSystem: fileSystem, forRootPackage: path, customManifestLoader: loader)
     let manifest = try await workspace.loadRootManifest(
       at: path,
       observabilityScope: observability.topScope

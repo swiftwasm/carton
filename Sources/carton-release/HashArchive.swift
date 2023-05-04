@@ -30,16 +30,16 @@ struct HashArchive: AsyncParsableCommand {
     precondition(commaSeparated.count == 190)
 
     return """
-      \(commaSeparated.prefix(95))
-      \(commaSeparated.suffix(94))
-    """
+        \(commaSeparated.prefix(95))
+        \(commaSeparated.suffix(94))
+      """
   }
 
   func run() async throws {
     let terminal = InteractiveWriter.stdout
     let cwd = localFileSystem.currentWorkingDirectory!
     let staticPath = AbsolutePath(cwd, "static")
-    let dotFilesStaticPath = localFileSystem.homeDirectory.appending(
+    let dotFilesStaticPath = try localFileSystem.homeDirectory.appending(
       components: ".carton",
       "static"
     )
@@ -70,8 +70,11 @@ struct HashArchive: AsyncParsableCommand {
         try localFileSystem.removeFileTree(dotFilesEntrypointPath)
         try localFileSystem.copy(from: entrypointPath, to: dotFilesEntrypointPath)
 
-        return (entrypoint, try SHA256().hash(localFileSystem.readFileContents(entrypointPath))
-          .hexadecimalRepresentation.uppercased())
+        return (
+          entrypoint,
+          try SHA256().hash(localFileSystem.readFileContents(entrypointPath))
+            .hexadecimalRepresentation.uppercased()
+        )
       }
 
     try localFileSystem.writeFileContents(
@@ -87,25 +90,26 @@ struct HashArchive: AsyncParsableCommand {
 
     try await Process.run(["zip", "-j", "static.zip"] + archiveSources, terminal)
 
-    let staticArchiveContents = try localFileSystem.readFileContents(AbsolutePath(
-      localFileSystem.currentWorkingDirectory!,
-      RelativePath("static.zip")
-    ))
+    let staticArchiveContents = try localFileSystem.readFileContents(
+      AbsolutePath(
+        localFileSystem.currentWorkingDirectory!,
+        RelativePath("static.zip")
+      ))
 
     // Base64 is not an efficient way, but too long byte array literal breaks type-checker
     let hashesFileContent = """
-    import TSCBasic
+      import TSCBasic
 
-    \(hashes.map {
+      \(hashes.map {
       """
       public let \($0)EntrypointSHA256 = ByteString([
       \(arrayString(from: $1))
       ])
       """
-    }.joined(separator: "\n\n"))
+      }.joined(separator: "\n\n"))
 
-    public let staticArchiveContents = "\(staticArchiveContents.withData { $0.base64EncodedString() })"
-    """
+      public let staticArchiveContents = "\(staticArchiveContents.withData { $0.base64EncodedString() })"
+      """
 
     try localFileSystem.writeFileContents(
       AbsolutePath(
