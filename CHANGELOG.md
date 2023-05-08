@@ -1,3 +1,15 @@
+# 0.19.0 (8 May 2023)
+
+This release adds SwiftWasm 5.8 toolchain support.
+
+**Merged pull requests:**
+
+- Update SwiftPM branch to 5.8 and fix build errors by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/395
+- Fix the default docker command arguments by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/396
+- Support jammy and amazonlinux2 for toolchain install by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/397
+- Update default toolchain version to 5.8 channel snapshot by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/398
+
+
 # 0.18.0 (3 April 2023)
 
 This release adds an extra size stripping optimization.
