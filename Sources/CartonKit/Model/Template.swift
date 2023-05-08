@@ -92,7 +92,7 @@ extension Template {
   ) throws {
     try fileSystem.writeFileContents(project.path.appending(component: "Package.swift")) {
       var content = """
-        // swift-tools-version:5.6
+        // swift-tools-version:5.8
         import PackageDescription
         let package = Package(
             name: "\(project.name)",\n
@@ -111,11 +111,15 @@ extension Template {
                 .executableTarget(
                     name: "\(project.name)",
                     dependencies: [
+                        "\(project.name)Library",
                         \(targetDepencencies.map(\.description).joined(separator: ",\n"))
                     ]),
+                .target(
+                    name: "\(project.name)Library",
+                    dependencies: []),
                 .testTarget(
-                    name: "\(project.name)Tests",
-                    dependencies: ["\(project.name)"]),
+                    name: "\(project.name)LibraryTests",
+                    dependencies: ["\(project.name)Library"]),
             ]
         )
         """
@@ -135,8 +139,15 @@ extension Templates {
       project: Project,
       _ terminal: InteractiveWriter
     ) async throws {
+      // FIXME: We now create an intermediate library target to work around
+      // an issue that prevents us from testing executable targets on Wasm.
+      // See https://github.com/swiftwasm/swift/issues/5375
       try fileSystem.changeCurrentWorkingDirectory(to: project.path)
-      try await createPackage(type: .executable, fileSystem: fileSystem, project: project, terminal)
+      try await createPackage(
+        type: .library, fileSystem: fileSystem,
+        project: Project(name: project.name + "Library", path: project.path, inPlace: true),
+        terminal
+      )
       try createManifest(
         fileSystem: fileSystem,
         project: project,
@@ -151,6 +162,17 @@ extension Templates {
         ],
         terminal
       )
+      let sources = project.path.appending(component: "Sources")
+      let executableTarget = sources.appending(component: project.name)
+      // Create the executable target
+      try fileSystem.createDirectory(executableTarget)
+      try fileSystem.writeFileContents(executableTarget.appending(component: "main.swift")) {
+        """
+        import \(project.name.spm_mangledToC99ExtendedIdentifier())Library
+        print("Hello, world!")
+        """
+        .write(to: $0)
+      }
     }
   }
 }
@@ -166,9 +188,9 @@ extension Templates {
     ) async throws {
       try fileSystem.changeCurrentWorkingDirectory(to: project.path)
       try await createPackage(
-        type: .executable,
+        type: .library,
         fileSystem: fileSystem,
-        project: project,
+        project: Project(name: project.name + "Library", path: project.path, inPlace: true),
         terminal)
       try createManifest(
         fileSystem: fileSystem,
@@ -186,18 +208,13 @@ extension Templates {
         terminal
       )
 
-      let sources = project.path.appending(
-        components: "Sources",
-        project.name
-      )
+      let sources = project.path.appending(component: "Sources")
+      let executableTarget = sources.appending(component: project.name)
 
-      for source in try fileSystem.getDirectoryContents(sources) {
-        try fileSystem.removeFileTree(sources.appending(components: source))
-      }
-
-      try fileSystem.writeFileContents(sources.appending(components: "App.swift")) {
+      try fileSystem.writeFileContents(executableTarget.appending(components: "App.swift")) {
         """
         import TokamakDOM
+        import \(project.name.spm_mangledToC99ExtendedIdentifier())Library
 
         @main
         struct TokamakApp: App {

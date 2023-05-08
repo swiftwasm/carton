@@ -390,13 +390,11 @@ public final class Toolchain {
   }
 
   public func runPackageInit(name: String, type: PackageType, inPlace: Bool) async throws {
-    var initArgs = [
+    let initArgs = [
       swiftPath.pathString, "package", "init",
       "--type", type.rawValue,
+      "--name", name
     ]
-    if !inPlace {
-      initArgs.append(contentsOf: ["--name", name])
-    }
     try await TSCBasic.Process.run(initArgs, terminal)
   }
 
