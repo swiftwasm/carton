@@ -21,17 +21,17 @@ let package = Package(
     ),
     .package(
       url: "https://github.com/apple/swift-argument-parser.git",
-      .upToNextMinor(from: "1.0.3")
+      .upToNextMinor(from: "1.2.2")
     ),
     .package(url: "https://github.com/apple/swift-nio.git", from: "2.34.0"),
     .package(
       name: "SwiftPM",
       url: "https://github.com/apple/swift-package-manager.git",
-      .branch("release/5.8")
+      .branch("release/5.9")
     ),
     .package(
       url: "https://github.com/apple/swift-tools-support-core.git",
-      .branch("release/5.8")
+      .branch("release/5.9")
     ),
     .package(url: "https://github.com/vapor/vapor.git", from: "4.57.1"),
     .package(url: "https://github.com/apple/swift-crypto.git", from: "2.2.0"),
