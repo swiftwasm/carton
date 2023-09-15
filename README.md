@@ -29,6 +29,8 @@ development workflow such as toolchain and SDK installations.
 
 ### Installation
 
+## MacOS
+
 On macOS `carton` can be installed with [Homebrew](https://brew.sh/). Make sure you have Homebrew
 installed and then run:
 
@@ -40,17 +42,22 @@ brew install swiftwasm/tap/carton
 > If you can't install the latest carton via `brew upgrade swiftwasm/tap/carton`, please try `rm -rf $(brew --prefix)/Library/Taps/swiftwasm/homebrew-tap/ && brew tap swiftwasm/tap` and retry again. The `master` branch was renamed to `main`, so you need to update your local tap repo.
 
 
+## Linux
+
+To download carton and install it, run the following in your terminal, then follow the on-screen instructions.
+Overall, this script ensures that Carton is installed or updated to the latest release on your system, making it ready for use.
+
+```
+curl -sSL https://example.com/path/to/your/carton-install.sh | bash
+```
+
+## Diocker
+
 `carton` is also available as a Docker image for Linux. You can pull it with this command:
 
 ```
 docker pull ghcr.io/swiftwasm/carton:latest
 ```
-
-If Docker images are not suitable for you, you'll have to build `carton` from sources on Ubuntu.
-Clone the repository and run `./install_ubuntu_deps.sh` in the root directory of the clone. After
-that completes successfully, run `swift build -c release`, the `carton` binary will be located in
-the `.build/release` directory after that. Unfortunately, other Linux distributions are currently
-not supported.
 
 ### Version compatibility
 
