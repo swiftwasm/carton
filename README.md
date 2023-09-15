@@ -48,7 +48,7 @@ To download carton and install it, run the following in your terminal, then foll
 Overall, this script ensures that Carton is installed or updated to the latest release on your system, making it ready for use.
 
 ```
-curl -sSL https://example.com/path/to/your/carton-install.sh | bash
+curl -sSL https://github.com/swiftwasm/carton/blob/main/carton-install.sh | bash
 ```
 
 ## Diocker
