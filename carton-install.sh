@@ -11,7 +11,7 @@ cleanup() {
 }
 
 # Check if the 'swift' command is available
-if ! command -v swift &> /dev/null; then
+if [ ! -f "$HOME/.local/bin/swift" ]; then
   echo "Swift is not installed. Installing Swift..."
   
   # Install Swift using swiftly-install.sh
@@ -19,7 +19,7 @@ if ! command -v swift &> /dev/null; then
   swiftly install latest
 
   # Check if Swift installation was successful
-  if ! command -v swift &> /dev/null; then
+if [ ! -f "$HOME/.local/bin/swift" ]; then
     echo "Failed to install Swift. Please check the installation and try again."
     cleanup
     exit 1
