@@ -21,11 +21,7 @@ jobs:
             swift_version: 5.9
             xcode: /Applications/Xcode_15.0.app/Contents/Developer
           - os: ubuntu-20.04
-            swift_version: 5.7
-          - os: ubuntu-20.04
-            swift_version: 5.8
-          - os: ubuntu-20.04
-            swift_version: 5.9
+            swift_version:
     name: Build on ${{ matrix.os }} with Swift ${{ matrix.swift_version }}
     timeout-minutes: 40
     runs-on: ${{ matrix.os }}
