@@ -11,12 +11,12 @@ jobs:
     strategy:
       matrix:
         include:
-#          - os: macos-12
-#            swift_version: 5.7
-#            xcode: /Applications/Xcode_14.0.app/Contents/Developer
-#          - os: macos-13
-#            swift_version: 5.8
-#            xcode: /Applications/Xcode_14.3.app/Contents/Developer
+          - os: macos-12
+            swift_version: 5.7
+            xcode: /Applications/Xcode_14.0.app/Contents/Developer
+          - os: macos-13
+            swift_version: 5.8
+            xcode: /Applications/Xcode_14.3.app/Contents/Developer
           - os: macos-13 # TODO: macos-14 runner expected in October-December 2023
             swift_version: 5.9
             xcode: /Applications/Xcode_15.0.app/Contents/Developer
