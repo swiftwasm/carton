@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: "*"
+    branches: "**"
 
 jobs:
   swift-test:
@@ -17,9 +17,9 @@ jobs:
           - os: macos-13
             swift_version: 5.8
             xcode: /Applications/Xcode_14.3.app/Contents/Developer
-          - os: macos-13
-            swift_version: 5.9
-            xcode: /Applications/Xcode_15.0.app/Contents/Developer
+#          - os: macos-14 # will be available October-December 2023
+#            swift_version: 5.9
+#            xcode: /Applications/Xcode_15.0.app/Contents/Developer
           - os: ubuntu-20.04
             swift_version:
     name: Build on ${{ matrix.os }} with Swift ${{ matrix.swift_version }}
@@ -27,7 +27,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Select Xcode version
         if: startsWith(matrix.os, 'macos')
@@ -73,7 +73,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Build a Docker image on Ubuntu 20.04
         run: docker build . -t ghcr.io/swiftwasm/swiftwasm-action:latest
