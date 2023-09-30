@@ -164,7 +164,9 @@ public actor Server {
             in: environment,
             terminal: configuration.terminal
           ) {
-            ws.onText(handler)
+              ws.eventLoop.execute {
+                  ws.onText(handler)
+              }
           }
 
           await self?.add(connection: ws)
@@ -284,7 +286,7 @@ extension Server {
     _ configuration: Configuration,
     in environment: DestinationEnvironment,
     terminal: InteractiveWriter
-  ) -> (WebSocket, String) -> Void {
+  ) -> @Sendable (WebSocket, String) -> Void {
     { [weak self] _, text in
       guard let self = self else { return }
       guard
