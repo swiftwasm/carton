@@ -17,10 +17,9 @@
 public let defaultToolchainVersion: String = {
     // On macOS 14 (Sonoma) it's not possible to use Xcode older then 15.0
     // Therefore Swift 5.9 is required on Sonoma
-    if #available(macOS 14, *) {
-        return "wasm-5.9-SNAPSHOT-2023-08-01-a"
-    }else{
-        // Use the latest stable release otherwise
-        return "wasm-5.8.0-RELEASE"
-    }
+    #if swift(>=5.9) && os(macOS)
+    return "wasm-5.9-SNAPSHOT-2023-08-01-a"
+    #else
+    return "wasm-5.8.0-RELEASE"
+    #endif
 }()
