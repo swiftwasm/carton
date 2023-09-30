@@ -212,8 +212,13 @@ public final class Toolchain {
         switch target.type {
         case .regular, .executable:
           return RelativePath("Sources").appending(component: target.name).pathString
+        #if swift(>=5.9)
         case .test, .system, .binary, .macro, .plugin:
           return nil
+        #else
+        case .test, .system, .binary, .plugin:
+          return nil
+        #endif
         }
       }
       return path
