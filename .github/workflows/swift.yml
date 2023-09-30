@@ -17,9 +17,9 @@ jobs:
           - os: macos-13
             swift_version: 5.8
             xcode: /Applications/Xcode_14.3.app/Contents/Developer
-#          - os: macos-14 # will be available October-December 2023
-#            swift_version: 5.9
-#            xcode: /Applications/Xcode_15.0.app/Contents/Developer
+          - os: macos-13 # TODO: macos-14 runner expected in October-December 2023
+            swift_version: 5.9
+            xcode: /Applications/Xcode_15.0.app/Contents/Developer
           - os: ubuntu-20.04
             swift_version:
     name: Build on ${{ matrix.os }} with Swift ${{ matrix.swift_version }}
