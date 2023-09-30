@@ -29,10 +29,6 @@ extension Sequence {
 }
 
 /// A type that can be executed as part of a nested tree of commands.
-public protocol AsyncParsableCommand: ParsableCommand {
-  mutating func run() async throws
-}
-
 extension AsyncParsableCommand {
   public mutating func run() throws {
     throw CleanExit.helpRequest(self)

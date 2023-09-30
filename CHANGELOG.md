@@ -1,3 +1,7 @@
+# 0.20.0 (5 Aug 2023)
+
+This release adds SwiftWasm 5.9 toolchain support.
+
 # 0.19.1 (9 May 2023)
 
 This release fixes the wrong toolchain version installed in docker image.

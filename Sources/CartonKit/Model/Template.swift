@@ -92,7 +92,7 @@ extension Template {
   ) throws {
     try fileSystem.writeFileContents(project.path.appending(component: "Package.swift")) {
       var content = """
-        // swift-tools-version:5.8
+        // swift-tools-version:5.9
         import PackageDescription
         let package = Package(
             name: "\(project.name)",\n

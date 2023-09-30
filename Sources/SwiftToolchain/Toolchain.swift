@@ -19,7 +19,7 @@ import TSCBasic
 import TSCUtility
 import WasmTransformer
 
-public let compatibleJSKitVersion = Version(0, 15, 0)
+public let compatibleJSKitVersion = Version(0, 18, 0)
 
 enum ToolchainError: Error, CustomStringConvertible {
   case directoryDoesNotExist(AbsolutePath)
@@ -212,7 +212,7 @@ public final class Toolchain {
         switch target.type {
         case .regular, .executable:
           return RelativePath("Sources").appending(component: target.name).pathString
-        case .test, .system, .binary, .plugin:
+        case .test, .system, .binary, .macro, .plugin:
           return nil
         }
       }
