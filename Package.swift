@@ -1,4 +1,4 @@
-// swift-tools-version:5.7
+// swift-tools-version:5.5
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -21,16 +21,17 @@ let package = Package(
     ),
     .package(
       url: "https://github.com/apple/swift-argument-parser.git",
-      .upToNextMinor(from: "1.2.2")
+      .upToNextMinor(from: "1.0.3")
     ),
     .package(url: "https://github.com/apple/swift-nio.git", from: "2.34.0"),
     .package(
+      name: "SwiftPM",
       url: "https://github.com/apple/swift-package-manager.git",
-      branch: "release/5.9"
+      .branch("release/5.8")
     ),
     .package(
       url: "https://github.com/apple/swift-tools-support-core.git",
-      branch: "release/5.9"
+      .branch("release/5.8")
     ),
     .package(url: "https://github.com/vapor/vapor.git", from: "4.57.1"),
     .package(url: "https://github.com/apple/swift-crypto.git", from: "2.2.0"),
@@ -70,7 +71,7 @@ let package = Package(
       dependencies: [
         .product(name: "AsyncHTTPClient", package: "async-http-client"),
         .product(name: "NIOFoundationCompat", package: "swift-nio"),
-        .product(name: "SwiftPMDataModel-auto", package: "swift-package-manager"),
+        .product(name: "SwiftPMDataModel-auto", package: "SwiftPM"),
         "CartonHelpers",
         "WasmTransformer",
       ]
