@@ -11,10 +11,15 @@ jobs:
     strategy:
       matrix:
         include:
+          - os: macos-13
+            swift_version: 5.8
+            xcode: /Applications/Xcode_14.3.app/Contents/Developer
           - os: macos-13 # TODO: macos-14 runner expected in October-December 2023
             swift_version: 5.9
             xcode: /Applications/Xcode_15.0.app/Contents/Developer
           - os: ubuntu-20.04
+            swift_version: 5.8
+          - os: ubuntu-22.04
             swift_version: 5.9
     name: Build on ${{ matrix.os }} with Swift ${{ matrix.swift_version }}
     timeout-minutes: 40
@@ -40,6 +45,14 @@ jobs:
           sudo ./install_ubuntu_deps.sh
           curl https://get.wasmer.io -sSfL | sh
 
+      - name: Install Swift Version
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          curl -o swiftly-install.sh https://swift-server.github.io/swiftly/swiftly-install.sh
+          sudo chmod 775 swiftly-install.sh
+          ./swiftly-install.sh --disable-confirmation
+          swiftly install ${{ matrix.swift_version }}
+          
       - name: Build the project
         run: |
           swift -v
@@ -63,13 +76,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  docker_image:
-    runs-on: ubuntu-20.04
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Build a Docker image on Ubuntu 20.04
-        run: docker build . -t ghcr.io/swiftwasm/swiftwasm-action:latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#  docker_image:
+#    runs-on: ubuntu-20.04
+#
+#    steps:
+#      - uses: actions/checkout@v4
+#
+#      - name: Build a Docker image on Ubuntu 20.04
+#        run: docker build . -t ghcr.io/swiftwasm/swiftwasm-action:latest
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
