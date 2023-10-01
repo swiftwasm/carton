@@ -1,8 +1,6 @@
 # 0.20.0 (30 Sep 2023)
 
-This release adds a temporary fix for macOS 14 Sonoma + Xcode 15.
-- On macOS Sonoma the default toolchain is a 5.9-SNAPSHOT.
-- On other hosts the default toolchain continues to be 5.8-RELEASE.
+This release adds SwiftWasm 5.9 toolchain support.
 
 # 0.19.1 (9 May 2023)
 

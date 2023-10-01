@@ -21,7 +21,7 @@ let package = Package(
     ),
     .package(
       url: "https://github.com/apple/swift-argument-parser.git",
-      .upToNextMinor(from: "1.2.2")
+      .upToNextMinor(from: "1.2.3")
     ),
     .package(url: "https://github.com/apple/swift-nio.git", from: "2.34.0"),
     .package(
