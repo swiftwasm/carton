@@ -1,4 +1,4 @@
-FROM ghcr.io/swiftwasm/swift:5.8-focal
+FROM ghcr.io/swiftwasm/swift:5.9-focal
 
 LABEL maintainer="SwiftWasm Maintainers <hello@swiftwasm.org>"
 LABEL Description="Carton is a watcher, bundler, and test runner for your SwiftWasm apps"
@@ -16,7 +16,7 @@ RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && ap
   rm -r /var/lib/apt/lists/*
 
 ENV CARTON_ROOT=/root/.carton
-ENV CARTON_DEFAULT_TOOLCHAIN=wasm-5.8.0-RELEASE
+ENV CARTON_DEFAULT_TOOLCHAIN=wasm-5.9-SNAPSHOT-2023-08-01-a
 
 RUN mkdir -p $CARTON_ROOT/sdk && \
   mkdir -p $CARTON_ROOT/sdk/$CARTON_DEFAULT_TOOLCHAIN && \
