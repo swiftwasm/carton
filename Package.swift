@@ -1,4 +1,4 @@
-// swift-tools-version:5.7
+// swift-tools-version:5.9
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -21,16 +21,16 @@ let package = Package(
     ),
     .package(
       url: "https://github.com/apple/swift-argument-parser.git",
-      exact: "1.0.3"
+      .upToNextMinor(from: "1.2.2")
     ),
     .package(url: "https://github.com/apple/swift-nio.git", from: "2.34.0"),
     .package(
       url: "https://github.com/apple/swift-package-manager.git",
-      branch: "release/5.8"
+      branch: "release/5.9"
     ),
     .package(
       url: "https://github.com/apple/swift-tools-support-core.git",
-      branch: "release/5.8"
+      branch: "release/5.9"
     ),
     .package(url: "https://github.com/vapor/vapor.git", from: "4.57.1"),
     .package(url: "https://github.com/apple/swift-crypto.git", from: "2.2.0"),
