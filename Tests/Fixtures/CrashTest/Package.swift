@@ -3,5 +3,6 @@ import PackageDescription
 
 let package = Package(
   name: "Test",
+  dependencies: [.package(path: "../../..")],
   targets: [.testTarget(name: "CrashTest", path: "Tests")]
 )

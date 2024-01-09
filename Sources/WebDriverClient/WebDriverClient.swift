@@ -12,16 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import AsyncHTTPClient
 import Foundation
-import NIOFoundationCompat
 
 public enum WebDriverError: Error {
-  case newSessionFailed(HTTPClient.Response)
+  case newSessionFailed
 }
 
 public struct WebDriverClient {
-  let client: HTTPClient
+  let client: URLSession
   let driverEndpoint: URL
   let sessionId: String
 
@@ -54,7 +52,7 @@ public struct WebDriverClient {
 
   public static func newSession(
     endpoint: URL, body: String = defaultSessionRequestBody,
-    httpClient: HTTPClient
+    httpClient: URLSession
   ) async throws -> WebDriverClient {
     struct Response: Decodable {
       let sessionId: String
@@ -63,15 +61,16 @@ public struct WebDriverClient {
       let capabilities: [String: String] = [:]
       let desiredCapabilities: [String: String] = [:]
     }
-    let httpResponse = try await httpClient.post(
-      url: endpoint.appendingPathComponent("session").absoluteString,
-      body: HTTPClient.Body.string(body)
-    ).get()
-    guard let responseBody = httpResponse.body else {
-      throw WebDriverError.newSessionFailed(httpResponse)
+    var request = URLRequest(url: endpoint.appendingPathComponent("session"))
+    request.httpMethod = "POST"
+    request.httpBody = body.data(using: .utf8)
+    let (body, httpResponse) = try await httpClient.data(for: request)
+    guard let httpResponse = httpResponse as? HTTPURLResponse, 200..<300 ~= httpResponse.statusCode
+    else {
+      throw WebDriverError.newSessionFailed
     }
     let decoder = JSONDecoder()
-    let response = try decoder.decode(ValueResponse<Response>.self, from: responseBody)
+    let response = try decoder.decode(ValueResponse<Response>.self, from: body)
     return WebDriverClient(
       client: httpClient,
       driverEndpoint: endpoint,
@@ -89,23 +88,24 @@ public struct WebDriverClient {
     return url.absoluteString
   }
 
-  private static func makeRequestBody<R: Encodable>(_ body: R) throws -> HTTPClient.Body {
+  private static func makeRequestBody<R: Encodable>(_ body: R) throws -> Data {
     let encoder = JSONEncoder()
-    return try HTTPClient.Body.data(encoder.encode(body))
+    return try encoder.encode(body)
   }
 
   public func goto(url: String) async throws {
     struct Request: Encodable {
       let url: String
     }
-    _ = try await client.post(
-      url: makeSessionURL("url"),
-      body: Self.makeRequestBody(Request(url: url))
-    )
-    .get()
+    var request = URLRequest(url: URL(string: makeSessionURL("url"))!)
+    request.httpMethod = "POST"
+    request.httpBody = try Self.makeRequestBody(Request(url: url))
+    _ = try await client.data(for: request)
   }
 
   public func closeSession() async throws {
-    _ = try await client.delete(url: makeSessionURL()).get()
+    var request = URLRequest(url: URL(string: makeSessionURL())!)
+    request.httpMethod = "DELETE"
+    _ = try await client.data(for: request)
   }
 }

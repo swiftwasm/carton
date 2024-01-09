@@ -12,13 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import AsyncHTTPClient
-import Basics
 import CartonHelpers
 import Foundation
-import TSCBasic
 
-public enum EntrypointError: Error {
+private struct StringError: Equatable, Codable, CustomStringConvertible, Error {
+  let description: String
+  init(_ description: String) {
+    self.description = description
+  }
+}
+
+extension StringError: CustomNSError {
+  var errorUserInfo: [String: Any] {
+    return [NSLocalizedDescriptionKey: self.description]
+  }
 }
 
 public struct Entrypoint {
@@ -43,7 +50,7 @@ public struct Entrypoint {
     let (cartonDir, staticDir, filePath) = try paths(on: fileSystem)
 
     // If hash check fails, download the `static.zip` archive and unpack it
-    if try !fileSystem.exists(filePath)
+    if try !fileSystem.exists(filePath, followSymlink: true)
       || SHA256().hash(
         fileSystem.readFileContents(filePath)
       ) != sha256
@@ -58,10 +65,11 @@ public struct Entrypoint {
       try fileSystem.writeFileContents(archiveFile, bytes: ByteString(staticArchiveBytes))
       terminal.logLookup("Unpacking the archive: ", archiveFile)
 
-      try fileSystem.createDirectory(staticDir)
-      try tsc_await {
-        ZipArchiver(fileSystem: fileSystem).extract(
-          from: archiveFile, to: staticDir, completion: $0)
+      try fileSystem.createDirectory(staticDir, recursive: false)
+      let result = try Process.popen(
+        args: "unzip", archiveFile.pathString, "-d", staticDir.pathString)
+      guard result.exitStatus == .terminated(code: 0) else {
+        throw try StringError(result.utf8stderrOutput())
       }
     }
   }

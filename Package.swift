@@ -5,105 +5,126 @@ import PackageDescription
 
 let package = Package(
   name: "carton",
-  platforms: [.macOS("10.15.4")],
+  platforms: [.macOS(.v13)],
   products: [
     .library(name: "SwiftToolchain", targets: ["SwiftToolchain"]),
     .library(name: "CartonHelpers", targets: ["CartonHelpers"]),
     .library(name: "CartonKit", targets: ["CartonKit"]),
     .library(name: "CartonCLI", targets: ["CartonCLI"]),
-    .executable(name: "carton", targets: ["Carton"]),
+    .executable(name: "carton", targets: ["carton"]),
     .executable(name: "carton-release", targets: ["carton-release"]),
+    .plugin(name: "CartonBundle", targets: ["CartonBundle"]),
+    .plugin(name: "CartonTest", targets: ["CartonTest"]),
+    .plugin(name: "CartonDev", targets: ["CartonDev"]),
+    .executable(name: "carton-plugin-helper", targets: ["carton-plugin-helper"]),
   ],
   dependencies: [
-    .package(
-      url: "https://github.com/swift-server/async-http-client.git",
-      from: "1.8.1"
-    ),
+    .package(url: "https://github.com/apple/swift-log.git", from: "1.5.4"),
     .package(
       url: "https://github.com/apple/swift-argument-parser.git",
-      .upToNextMinor(from: "1.2.3")
+      .upToNextMinor(from: "1.3.0")
     ),
     .package(url: "https://github.com/apple/swift-nio.git", from: "2.34.0"),
-    .package(
-      url: "https://github.com/apple/swift-package-manager.git",
-      branch: "release/5.9"
-    ),
-    .package(
-      url: "https://github.com/apple/swift-tools-support-core.git",
-      branch: "release/5.9"
-    ),
-    .package(url: "https://github.com/vapor/vapor.git", from: "4.57.1"),
-    .package(url: "https://github.com/apple/swift-crypto.git", from: "2.2.0"),
-    .package(url: "https://github.com/JohnSundell/Splash.git", from: "0.16.0"),
     .package(
       url: "https://github.com/swiftwasm/WasmTransformer",
       .upToNextMinor(from: "0.5.0")
     ),
   ],
   targets: [
-    // Targets are the basic building blocks of a package. A target can define a module
-    // or a test suite. Targets can depend on other targets in this package, and on
-    // products in packages which this package depends on.
     .executableTarget(
-      name: "Carton",
+      name: "carton",
+      dependencies: [
+        "SwiftToolchain",
+        "CartonHelpers",
+      ]
+    ),
+    .executableTarget(
+      name: "CartonFrontend",
       dependencies: [
         "CartonCLI",
       ]
     ),
+    .plugin(
+        name: "CartonBundle",
+        capability: .command(
+            intent: .custom(
+                verb: "carton-bundle",
+                description: "Produces an optimized app bundle for distribution."
+            )
+        ),
+        dependencies: ["CartonFrontend"],
+        exclude: ["CartonPluginShared/README.md"]
+    ),
+    .plugin(
+        name: "CartonTest",
+        capability: .command(
+            intent: .custom(
+                verb: "carton-test",
+                description: "Run the tests in a WASI environment."
+            )
+        ),
+        dependencies: ["CartonFrontend"],
+        exclude: ["CartonPluginShared/README.md"]
+    ),
+    .plugin(
+        name: "CartonDev",
+        capability: .command(
+            intent: .custom(
+                verb: "carton-dev",
+                description: "Watch the current directory, host the app, rebuild on change."
+            )
+        ),
+        dependencies: ["CartonFrontend"],
+        exclude: ["CartonPluginShared/README.md"]
+    ),
+    .executableTarget(name: "carton-plugin-helper"),
     .target(
       name: "CartonCLI",
-      dependencies: ["CartonKit"]
+      dependencies: [
+        .product(name: "Logging", package: "swift-log"),
+        "CartonKit",
+      ]
     ),
     .target(
       name: "CartonKit",
       dependencies: [
-        .product(name: "AsyncHTTPClient", package: "async-http-client"),
-        .product(name: "Crypto", package: "swift-crypto"),
-        .product(name: "Vapor", package: "vapor"),
+        .product(name: "NIOWebSocket", package: "swift-nio"),
+        .product(name: "NIOHTTP1", package: "swift-nio"),
+        .product(name: "NIO", package: "swift-nio"),
+        .product(name: "ArgumentParser", package: "swift-argument-parser"),
         "CartonHelpers",
-        "SwiftToolchain",
         "WebDriverClient",
-      ]
+        "WasmTransformer",
+      ],
+      exclude: ["Utilities/README.md"]
     ),
     .target(
       name: "SwiftToolchain",
       dependencies: [
-        .product(name: "AsyncHTTPClient", package: "async-http-client"),
-        .product(name: "NIOFoundationCompat", package: "swift-nio"),
-        .product(name: "SwiftPMDataModel-auto", package: "swift-package-manager"),
         "CartonHelpers",
-        "WasmTransformer",
-      ]
+      ],
+      exclude: ["Utilities/README.md"]
     ),
     .target(
       name: "CartonHelpers",
-      dependencies: [
-        .product(name: "AsyncHTTPClient", package: "async-http-client"),
-        .product(name: "ArgumentParser", package: "swift-argument-parser"),
-        .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
-        "Splash",
-        "WasmTransformer",
-      ]
+      dependencies: [],
+      exclude: ["Basics/README.md"]
     ),
-    .target(name: "WebDriverClient", dependencies: [
-      .product(name: "AsyncHTTPClient", package: "async-http-client"),
-      .product(name: "NIOFoundationCompat", package: "swift-nio"),
-    ]),
+    .target(name: "WebDriverClient", dependencies: []),
     // This target is used only for release automation tasks and
     // should not be installed by `carton` users.
     .executableTarget(
       name: "carton-release",
       dependencies: [
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
-        .product(name: "AsyncHTTPClient", package: "async-http-client"),
-        .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
         "CartonHelpers",
+        "WasmTransformer",
       ]
     ),
     .testTarget(
       name: "CartonTests",
       dependencies: [
-        "Carton",
+        "CartonFrontend",
         "CartonHelpers",
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
       ]
@@ -113,8 +134,6 @@ let package = Package(
       dependencies: [
         "CartonCLI",
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
-        .product(name: "AsyncHTTPClient", package: "async-http-client"),
-        .product(name: "TSCTestSupport", package: "swift-tools-support-core"),
       ]
     ),
     .testTarget(name: "WebDriverClientTests", dependencies: ["WebDriverClient"]),

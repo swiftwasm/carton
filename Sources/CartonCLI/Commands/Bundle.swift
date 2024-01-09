@@ -15,10 +15,7 @@
 import ArgumentParser
 import CartonHelpers
 import CartonKit
-import Crypto
-import PackageModel
-import SwiftToolchain
-import TSCBasic
+import Foundation
 import WasmTransformer
 
 private let dependency = Entrypoint(
@@ -31,17 +28,28 @@ enum WasmOptimizations: String, CaseIterable, ExpressibleByArgument {
 }
 
 struct Bundle: AsyncParsableCommand {
-  @Option(help: "Specify name of an executable product to produce the bundle for.")
-  var product: String?
+  @Argument(
+    help: ArgumentHelp(
+      "Internal: Path to the main WebAssembly file built by the SwiftPM Plugin process.",
+      visibility: .private
+    )
+  )
+  var mainWasmPath: String
+
+  @Option(
+    name: .long,
+    help: ArgumentHelp(
+      "Internal: Path to resources directory built by the SwiftPM Plugin process.",
+      visibility: .private
+    )
+  )
+  var resources: [String] = []
 
   @Option(
     help: "Specify a path to a custom `index.html` file to be used for your app.",
     completion: .file(extensions: [".html"])
   )
   var customIndexPage: String?
-
-  @Flag(help: "When specified, build in the debug mode.")
-  var debug = false
 
   @Flag(help: "Emit names and DWARF sections in the .wasm file.")
   var debugInfo: Bool = false
@@ -57,66 +65,62 @@ struct Bundle: AsyncParsableCommand {
   )
   var wasmOptimizations: WasmOptimizations = .size
 
-  @OptionGroup()
-  var buildOptions: BuildOptions
+  @Option
+  var output: String
 
   static let configuration = CommandConfiguration(
     abstract: "Produces an optimized app bundle for distribution."
   )
 
-  func buildFlavor() -> BuildFlavor {
-    BuildFlavor(
-      isRelease: !debug, environment: .defaultBrowser,
-      sanitize: nil, swiftCompilerFlags: buildOptions.swiftCompilerFlags
-    )
-  }
-
   func run() async throws {
-    let terminal = InteractiveWriter.stdout
+    let terminal = InteractiveWriter.stderr
 
     try dependency.check(on: localFileSystem, terminal)
 
-    let toolchain = try await Toolchain(localFileSystem, terminal)
-
-    let flavor = buildFlavor()
-    let build = try await toolchain.buildCurrentProject(
-      product: product,
-      flavor: flavor
-    )
+    var mainWasmPath = try AbsolutePath(
+      validating: mainWasmPath, relativeTo: localFileSystem.currentWorkingDirectory!)
     try terminal.logLookup(
       "Right after building the main binary size is ",
-      localFileSystem.humanReadableFileSize(build.mainWasmPath),
+      localFileSystem.humanReadableFileSize(mainWasmPath),
       newline: true
     )
 
+    let bundleDirectory = try AbsolutePath(
+      validating: output, relativeTo: localFileSystem.currentWorkingDirectory!)
+    try localFileSystem.removeFileTree(bundleDirectory)
+    try localFileSystem.createDirectory(bundleDirectory, recursive: false)
+
+    let wasmOutputFilePath = try AbsolutePath(validating: "main.wasm", relativeTo: bundleDirectory)
+
     if !debugInfo {
-      try strip(build.mainWasmPath)
+      try strip(mainWasmPath, output: wasmOutputFilePath)
+      mainWasmPath = wasmOutputFilePath
       try terminal.logLookup(
         "After stripping debug info the main binary size is ",
-        localFileSystem.humanReadableFileSize(build.mainWasmPath),
+        localFileSystem.humanReadableFileSize(mainWasmPath),
         newline: true
       )
     }
 
-    let bundleDirectory = AbsolutePath(localFileSystem.currentWorkingDirectory!, "Bundle")
-    try localFileSystem.removeFileTree(bundleDirectory)
-    try localFileSystem.createDirectory(bundleDirectory)
-
-    let wasmOutputFilePath = AbsolutePath(bundleDirectory, "main.wasm")
-
     if wasmOptimizations == .size {
-      try await optimize(build.mainWasmPath, outputPath: wasmOutputFilePath, terminal: terminal)
+      do {
+        try await optimize(mainWasmPath, outputPath: wasmOutputFilePath, terminal: terminal)
+      } catch {
+        terminal.write(
+          "Warning: wasm-opt failed to optimize the binary, falling back to the original binary\n",
+          inColor: .yellow)
+        try localFileSystem.move(from: mainWasmPath, to: wasmOutputFilePath)
+      }
     } else {
-      try localFileSystem.move(from: build.mainWasmPath, to: wasmOutputFilePath)
+      try localFileSystem.move(from: mainWasmPath, to: wasmOutputFilePath)
     }
 
     try copyToBundle(
       terminal: terminal,
       wasmOutputFilePath: wasmOutputFilePath,
-      buildDirectory: build.mainWasmPath.parentDirectory,
+      buildDirectory: mainWasmPath.parentDirectory,
       bundleDirectory: bundleDirectory,
-      toolchain: toolchain,
-      product: build.product
+      resourcesPaths: resources
     )
 
     terminal.write("Bundle generation finished successfully\n", inColor: .green, bold: true)
@@ -125,7 +129,9 @@ struct Bundle: AsyncParsableCommand {
   func optimize(_ inputPath: AbsolutePath, outputPath: AbsolutePath, terminal: InteractiveWriter)
     async throws
   {
-    var wasmOptArgs = ["wasm-opt", "-Os", inputPath.pathString, "-o", outputPath.pathString]
+    var wasmOptArgs = [
+      "wasm-opt", "-Os", "--enable-bulk-memory", inputPath.pathString, "-o", outputPath.pathString,
+    ]
     if debugInfo {
       wasmOptArgs.append("--debuginfo")
     }
@@ -137,10 +143,10 @@ struct Bundle: AsyncParsableCommand {
     )
   }
 
-  func strip(_ wasmPath: AbsolutePath) throws {
+  func strip(_ wasmPath: AbsolutePath, output: AbsolutePath) throws {
     let binary = try localFileSystem.readFileContents(wasmPath)
     let strippedBinary = try stripCustomSections(binary.contents)
-    try localFileSystem.writeFileContents(wasmPath, bytes: .init(strippedBinary))
+    try localFileSystem.writeFileContents(output, bytes: .init(strippedBinary))
   }
 
   func copyToBundle(
@@ -148,13 +154,12 @@ struct Bundle: AsyncParsableCommand {
     wasmOutputFilePath: AbsolutePath,
     buildDirectory: AbsolutePath,
     bundleDirectory: AbsolutePath,
-    toolchain: SwiftToolchain.Toolchain,
-    product: ProductDescription
+    resourcesPaths: [String]
   ) throws {
     // Rename the final binary to use a part of its hash to bust browsers and CDN caches.
-    let wasmFileHash = try localFileSystem.readFileContents(wasmOutputFilePath).hexSHA256.prefix(16)
+    let wasmFileHash = try localFileSystem.readFileContents(wasmOutputFilePath).hexChecksum
     let mainModuleName = "\(wasmFileHash).wasm"
-    let mainModulePath = AbsolutePath(bundleDirectory, mainModuleName)
+    let mainModulePath = try AbsolutePath(validating: mainModuleName, relativeTo: bundleDirectory)
     try localFileSystem.move(from: wasmOutputFilePath, to: mainModulePath)
 
     // Copy the bundle entrypoint, point to the binary, and give it a cachebuster name.
@@ -167,14 +172,14 @@ struct Bundle: AsyncParsableCommand {
           with: mainModuleName
         )
     )
-    let entrypointName = "\(entrypoint.hexSHA256.prefix(16)).js"
+    let entrypointName = "\(entrypoint.hexChecksum).js"
     try localFileSystem.writeFileContents(
-      AbsolutePath(bundleDirectory, entrypointName),
+      AbsolutePath(validating: entrypointName, relativeTo: bundleDirectory),
       bytes: entrypoint
     )
 
     try localFileSystem.writeFileContents(
-      AbsolutePath(bundleDirectory, "index.html"),
+      AbsolutePath(validating: "index.html", relativeTo: bundleDirectory),
       bytes: ByteString(
         encodingAsUTF8: HTML.indexPage(
           customContent: HTML.readCustomIndexPage(at: customIndexPage, on: localFileSystem),
@@ -182,38 +187,42 @@ struct Bundle: AsyncParsableCommand {
         ))
     )
 
-    let manifest = try toolchain.manifest.get()
-
     for directoryName in try localFileSystem.resourcesDirectoryNames(relativeTo: buildDirectory) {
       let resourcesPath = buildDirectory.appending(component: directoryName)
       let targetDirectory = bundleDirectory.appending(component: directoryName)
 
-      guard localFileSystem.exists(resourcesPath) else { continue }
+      guard localFileSystem.exists(resourcesPath, followSymlink: true) else { continue }
       terminal.logLookup("Copying resources to ", targetDirectory)
       try localFileSystem.copy(from: resourcesPath, to: targetDirectory)
     }
 
-    /* While a product may be composed of multiple targets, not sure this is widely used in
-     practice. Just assuming here that the first target of this product is an executable target,
-     at least until SwiftPM allows specifying executable targets explicitly, as proposed in
-     https://forums.swift.org/t/pitch-ability-to-declare-executable-targets-in-swiftpm-manifests-to-support-main/41968
-     */
-    let inferredMainTarget = manifest.targets.first {
-      product.targets.contains($0.name)
+    for resourcesPath in resourcesPaths {
+      let resourcesPath = try AbsolutePath(
+        validating: resourcesPath, relativeTo: localFileSystem.currentWorkingDirectory!)
+      for file in try localFileSystem.traverseRecursively(resourcesPath) {
+        let targetPath = bundleDirectory.appending(component: file.basename)
+
+        guard localFileSystem.exists(resourcesPath, followSymlink: true),
+          !localFileSystem.exists(targetPath, followSymlink: true)
+        else { continue }
+
+        terminal.logLookup("Copying this resource to the root bundle directory ", file)
+        try localFileSystem.copy(from: file, to: targetPath)
+      }
     }
+  }
+}
 
-    guard let mainTarget = inferredMainTarget else { return }
+extension ByteString {
+  fileprivate var hexChecksum: String {
+    SHA256().hash(self).hexadecimalRepresentation
+  }
+}
 
-    let targetPath = manifest.resourcesPath(for: mainTarget)
-    let resourcesPath = buildDirectory.appending(component: targetPath)
-    for file in try localFileSystem.traverseRecursively(resourcesPath) {
-      let targetPath = bundleDirectory.appending(component: file.basename)
-
-      guard localFileSystem.exists(resourcesPath) && !localFileSystem.exists(targetPath)
-      else { continue }
-
-      terminal.logLookup("Copying this resource to the root bundle directory ", file)
-      try localFileSystem.copy(from: file, to: targetPath)
-    }
+extension FileSystem {
+  fileprivate func humanReadableFileSize(_ path: AbsolutePath) throws -> String {
+    // FIXME: should use `UnitInformationStorage`, but it's unavailable in open-source Foundation
+    let attrs = try FileManager.default.attributesOfItem(atPath: path.pathString)
+    return String(format: "%.2f MB", Double(attrs[.size] as! UInt64) / 1024 / 1024)
   }
 }

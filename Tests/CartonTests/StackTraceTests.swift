@@ -18,6 +18,7 @@
 import XCTest
 
 @testable import CartonHelpers
+@testable import CartonKit
 
 final class StackTraceTests: XCTestCase {}
 extension StackTraceTests {

@@ -13,11 +13,11 @@
 // limitations under the License.
 
 import CartonHelpers
-import PackageModel
-import SwiftToolchain
-import TSCBasic
-import TSCUtility
-import Vapor
+import Foundation
+import Logging
+import NIO
+import NIOHTTP1
+import NIOWebSocket
 
 private enum Event {
   enum CodingKeys: String, CodingKey {
@@ -62,29 +62,48 @@ extension Event: Decodable {
   }
 }
 
-/// This `Hashable` conformance is required to handle simultaneous connections with `Set<WebSocket>`
-extension WebSocket: Hashable {
-  public static func == (lhs: WebSocket, rhs: WebSocket) -> Bool {
-    lhs === rhs
-  }
-
-  public func hash(into hasher: inout Hasher) {
-    hasher.combine(ObjectIdentifier(self))
-  }
+/// A protocol for a builder that can be used to build the app.
+public protocol BuilderProtocol {
+  var pathsToWatch: [AbsolutePath] { get }
+  func run() async throws
 }
 
 public actor Server {
+  final class Connection: Hashable {
+    let channel: Channel
+
+    init(channel: Channel) {
+      self.channel = channel
+    }
+
+    func close() -> EventLoopFuture<Void> {
+      channel.eventLoop.makeSucceededVoidFuture()
+    }
+
+    func reload(_ text: String = "reload") {
+      let buffer = channel.allocator.buffer(string: text)
+      let frame = WebSocketFrame(fin: true, opcode: .text, data: buffer)
+      self.channel.writeAndFlush(frame, promise: nil)
+    }
+
+    static func == (lhs: Connection, rhs: Connection) -> Bool {
+      lhs === rhs
+    }
+
+    func hash(into hasher: inout Hasher) {
+      hasher.combine(ObjectIdentifier(self))
+    }
+  }
   /// Used for decoding `Event` values sent from the WebSocket client.
   private let decoder = JSONDecoder()
 
   /// A set of connected WebSocket clients currently connected to this server.
-  private var connections = Set<WebSocket>()
+  private var connections = Set<Connection>()
 
   /// Filesystem watcher monitoring relevant source files for changes.
   private var watcher: FSWatch?
 
-  /// An instance of Vapor server application.
-  private let app: Application
+  private var serverChannel: (any Channel)!
 
   /// Local URL of this server, `https://128.0.0.1:8080/` by default.
   private let localURL: String
@@ -98,27 +117,27 @@ public actor Server {
   /// Continuation for waitUntilTestFinished, passing `hadError: Bool`
   private var onTestFinishedContinuation: CheckedContinuation<Bool, Never>?
 
+  private let configuration: Configuration
+
   public struct Configuration {
-    let builder: Builder?
+    let builder: BuilderProtocol?
     let mainWasmPath: AbsolutePath
     let verbose: Bool
     let port: Int
     let host: String
     let customIndexPath: AbsolutePath?
-    let manifest: Manifest
-    let product: ProductDescription?
+    let resourcesPaths: [String]
     let entrypoint: Entrypoint
     let terminal: InteractiveWriter
 
     public init(
-      builder: Builder?,
+      builder: BuilderProtocol?,
       mainWasmPath: AbsolutePath,
       verbose: Bool,
       port: Int,
       host: String,
       customIndexPath: AbsolutePath?,
-      manifest: Manifest,
-      product: ProductDescription?,
+      resourcesPaths: [String],
       entrypoint: Entrypoint,
       terminal: InteractiveWriter
     ) {
@@ -128,52 +147,18 @@ public actor Server {
       self.port = port
       self.host = host
       self.customIndexPath = customIndexPath
-      self.manifest = manifest
-      self.product = product
+      self.resourcesPaths = resourcesPaths
       self.entrypoint = entrypoint
       self.terminal = terminal
     }
   }
 
   public init(
-    _ configuration: Configuration,
-    _ eventLoopGroupProvider: Application.EventLoopGroupProvider = .createNew
+    _ configuration: Configuration
   ) async throws {
-    var env = Environment(
-      name: configuration.verbose ? "development" : "production",
-      arguments: ["vapor"]
-    )
     localURL = "http://\(configuration.host):\(configuration.port)/"
-
-    try LoggingSystem.bootstrap(from: &env)
-    app = Application(env, eventLoopGroupProvider)
     watcher = nil
-
-    try app.configure(
-      .init(
-        port: configuration.port,
-        host: configuration.host,
-        mainWasmPath: configuration.mainWasmPath,
-        customIndexPath: configuration.customIndexPath,
-        manifest: configuration.manifest,
-        product: configuration.product,
-        entrypoint: configuration.entrypoint,
-        onWebSocketOpen: { [weak self] ws, environment in
-          if let handler = await self?.createWSHandler(
-            configuration,
-            in: environment,
-            terminal: configuration.terminal
-          ) {
-              ws.eventLoop.execute {
-                  ws.onText(handler)
-              }
-          }
-
-          await self?.add(connection: ws)
-        },
-        onWebSocketClose: { [weak self] in await self?.remove(connection: $0) }
-      )
-    )
+    self.configuration = configuration
 
     guard let builder = configuration.builder else {
       return
@@ -196,9 +181,6 @@ public actor Server {
       return
     }
 
-    if !configuration.verbose {
-      configuration.terminal.clearWindow()
-    }
     configuration.terminal.write(
       "\nThese paths have changed, rebuilding...\n",
       inColor: .yellow
@@ -226,34 +208,88 @@ public actor Server {
 
   private func add(pendingChanges: [AbsolutePath]) {}
 
-  private func add(connection: WebSocket) {
+  private func add(connection: Connection) {
     connections.insert(connection)
   }
 
-  private func remove(connection: WebSocket) {
+  private func remove(connection: Connection) {
     connections.remove(connection)
   }
 
-  public func start() throws -> String {
-    try app.start()
+  public func start() async throws -> String {
+    let group = MultiThreadedEventLoopGroup.singleton
+    let upgrader = NIOWebSocketServerUpgrader(
+      shouldUpgrade: {
+        (channel: Channel, head: HTTPRequestHead) in
+        channel.eventLoop.makeSucceededFuture(HTTPHeaders())
+      },
+      upgradePipelineHandler: { (channel: Channel, head: HTTPRequestHead) in
+        return channel.eventLoop.makeFutureWithTask { () -> WebSocketHandler? in
+          guard head.uri == "/watcher" else {
+            return nil
+          }
+          let environment =
+            head.headers["User-Agent"].compactMap(DestinationEnvironment.init).first
+            ?? .other
+          let handler = await WebSocketHandler(
+            configuration: Server.WebSocketHandler.Configuration(
+              onText: self.createWSHandler(in: environment, terminal: self.configuration.terminal)
+            )
+          )
+          await self.add(connection: Connection(channel: channel))
+          return handler
+        }.flatMap { maybeHandler in
+          guard let handler = maybeHandler else {
+            return channel.eventLoop.makeSucceededVoidFuture()
+          }
+          return channel.pipeline.addHandler(handler)
+        }
+      }
+    )
+    let handlerConfiguration = HTTPHandler.Configuration(
+      logger: Logger(label: "org.swiftwasm.carton.dev-server"),
+      mainWasmPath: configuration.mainWasmPath,
+      customIndexPath: configuration.customIndexPath,
+      resourcesPaths: configuration.resourcesPaths,
+      entrypoint: configuration.entrypoint
+    )
+    let channel = try await ServerBootstrap(group: group)
+      // Specify backlog and enable SO_REUSEADDR for the server itself
+      .serverChannelOption(ChannelOptions.backlog, value: 256)
+      .serverChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
+      .childChannelInitializer { channel in
+        let httpHandler = HTTPHandler(configuration: handlerConfiguration)
+        let config: NIOHTTPServerUpgradeConfiguration = (
+          upgraders: [upgrader],
+          completionHandler: { _ in
+            channel.pipeline.removeHandler(httpHandler, promise: nil)
+          }
+        )
+        return channel.pipeline.configureHTTPServerPipeline(withServerUpgrade: config).flatMap {
+          channel.pipeline.addHandler(httpHandler)
+        }
+      }
+      // Enable SO_REUSEADDR for the accepted Channels
+      .childChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
+      .bind(host: configuration.host, port: configuration.port)
+      .get()
+
+    self.serverChannel = channel
     return localURL
   }
 
   /// Wait and handle the shutdown
   public func waitUntilStop() async throws {
-    defer { self.app.shutdown() }
-    try await app.running?.onStop.get()
+    try await self.serverChannel.closeFuture.get()
     try closeSockets()
   }
 
   /// Wait and handle the shutdown
   public func waitUntilTestFinished() async throws -> Bool {
-    defer { self.app.shutdown() }
     let hadError = await withCheckedContinuation { cont in
       self.onTestFinishedContinuation = cont
     }
     self.onTestFinishedContinuation = nil
-    app.running?.stop()
     try closeSockets()
     return hadError
   }
@@ -265,14 +301,14 @@ public actor Server {
   }
 
   private func run(
-    _ builder: Builder,
+    _ builder: any BuilderProtocol,
     _ terminal: InteractiveWriter
   ) async throws {
     try await builder.run()
 
     terminal.write("\nBuild completed successfully\n", inColor: .green, bold: false)
     terminal.logLookup("The app is currently hosted at ", localURL)
-    connections.forEach { $0.send("reload") }
+    connections.forEach { $0.reload() }
   }
 
   private func stopTest(hadError: Bool) {
@@ -283,11 +319,10 @@ public actor Server {
 extension Server {
   /// Returns a handler that responds to WebSocket messages coming from the browser.
   func createWSHandler(
-    _ configuration: Configuration,
     in environment: DestinationEnvironment,
     terminal: InteractiveWriter
-  ) -> @Sendable (WebSocket, String) -> Void {
-    { [weak self] _, text in
+  ) -> @Sendable (String) -> Void {
+    { [weak self] text in
       guard let self = self else { return }
       guard
         let data = text.data(using: .utf8),

@@ -12,15 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import AsyncHTTPClient
 import CartonHelpers
 import Foundation
-import TSCBasic
-import TSCUtility
 
 private let expectedArchiveSize = 891_856_371
 
-extension FileDownloadDelegate.Progress {
+extension AsyncFileDownload.Progress {
   fileprivate var totalOrEstimatedBytes: Int {
     totalBytes ?? expectedArchiveSize
   }
@@ -31,7 +28,6 @@ extension ToolchainSystem {
     version: String,
     from url: Foundation.URL,
     to sdkPath: AbsolutePath,
-    _ client: HTTPClient,
     _ terminal: InteractiveWriter
   ) async throws -> AbsolutePath {
     if !fileSystem.exists(sdkPath, followSymlink: true) {
@@ -60,7 +56,6 @@ extension ToolchainSystem {
       let fileDownload = AsyncFileDownload(
         path: archivePath.pathString,
         url,
-        client,
         onTotalBytes: {
           terminal.write("Archive size is \($0 / 1_000_000) MB\n", inColor: .yellow)
         }
@@ -112,7 +107,11 @@ extension ToolchainSystem {
       ]
     }
     terminal.logLookup("Unpacking the archive: ", arguments.joined(separator: " "))
-    _ = try processDataOutput(arguments)
+    try Foundation.Process.run(
+      URL(fileURLWithPath: arguments[0]),
+      arguments: Array(arguments.dropFirst())
+    )
+    .waitUntilExit()
 
     return installationPath
   }

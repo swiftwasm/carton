@@ -15,7 +15,6 @@
 import CartonHelpers
 import CartonKit
 import Foundation
-import TSCBasic
 
 private enum Constants {
   static let entrypoint = Entrypoint(fileName: "testNode.js", sha256: testNodeEntrypointSHA256)

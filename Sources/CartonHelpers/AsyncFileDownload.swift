@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import AsyncHTTPClient
 import Foundation
 
 public struct InvalidResponseCode: Error {
@@ -26,41 +25,78 @@ public struct InvalidResponseCode: Error {
 }
 
 public final class AsyncFileDownload {
-  public let progressStream: AsyncThrowingStream<FileDownloadDelegate.Progress, Error>
+  public struct Progress: Sendable {
+    public var totalBytes: Int?
+    public var receivedBytes: Int
+  }
+  class FileDownloadDelegate: NSObject, URLSessionDownloadDelegate {
+    let path: String
+    let onTotalBytes: (Int) -> Void
+    let continuation: AsyncThrowingStream<Progress, Error>.Continuation
+    var totalBytesToDownload: Int?
 
-  public init(path: String, _ url: URL, _ client: HTTPClient, onTotalBytes: @escaping (Int) -> Void)
-  {
-    progressStream = .init { continuation in
-      do {
-        let request = try HTTPClient.Request.get(url: url)
+    init(
+      path: String,
+      onTotalBytes: @escaping (Int) -> Void,
+      continuation: AsyncThrowingStream<Progress, Error>.Continuation
+    ) {
+      self.path = path
+      self.onTotalBytes = onTotalBytes
+      self.continuation = continuation
+    }
 
-        let delegate = try FileDownloadDelegate(
-          path: path,
-          reportHead: {
-            guard $0.status == .ok,
-              let totalBytes = $0.headers.first(name: "Content-Length").flatMap(Int.init)
-            else {
-              continuation
-                .finish(throwing: InvalidResponseCode(code: $0.status.code))
-              return
-            }
-            onTotalBytes(totalBytes)
-          },
-          reportProgress: {
-            continuation.yield($0)
-          }
+    func urlSession(
+      _ session: URLSession,
+      downloadTask: URLSessionDownloadTask,
+      didWriteData bytesWritten: Int64,
+      totalBytesWritten: Int64,
+      totalBytesExpectedToWrite: Int64
+    ) {
+      let totalBytesToDownload =
+        totalBytesExpectedToWrite != NSURLSessionTransferSizeUnknown
+        ? Int(totalBytesExpectedToWrite) : nil
+      if self.totalBytesToDownload == nil {
+        self.totalBytesToDownload = totalBytesToDownload
+        self.onTotalBytes(totalBytesToDownload ?? .max)
+      }
+      continuation.yield(
+        AsyncFileDownload.Progress(
+          totalBytes: totalBytesToDownload,
+          receivedBytes: Int(totalBytesWritten)
         )
+      )
+    }
 
-        Task {
-          _ = try await client.execute(request: request, delegate: delegate)
-            .futureResult
-            .get()
-
-          continuation.finish()
-        }
+    func urlSession(
+      _ session: URLSession, downloadTask: URLSessionDownloadTask,
+      didFinishDownloadingTo location: URL
+    ) {
+      do {
+        try FileManager.default.moveItem(atPath: location.path, toPath: self.path)
+        continuation.finish()
       } catch {
         continuation.finish(throwing: error)
       }
+    }
+  }
+
+  public var progressStream: AsyncThrowingStream<Progress, Error> {
+    _progressStream
+  }
+  private var _progressStream: AsyncThrowingStream<Progress, Error>!
+  private var client: URLSession! = nil
+
+  public init(path: String, _ url: URL, onTotalBytes: @escaping (Int) -> Void) {
+    _progressStream = .init { continuation in
+      let delegate = FileDownloadDelegate(
+        path: path,
+        onTotalBytes: onTotalBytes,
+        continuation: continuation
+      )
+      self.client = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
+      var request = URLRequest(url: url)
+      request.httpMethod = "GET"
+      client.downloadTask(with: request).resume()
     }
   }
 }

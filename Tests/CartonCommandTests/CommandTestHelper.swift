@@ -1,343 +1,89 @@
-// ===----------------------------------------------------------*- swift -*-===//
+// Copyright 2024 Carton contributors
 //
-// This source file is part of the Swift Argument Parser open source project
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// Copyright (c) 2020 Apple Inc. and the Swift project authors
-// Licensed under Apache License v2.0 with Runtime Library Exception
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
-// See https://swift.org/LICENSE.txt for license information
-//
-// ===----------------------------------------------------------------------===//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 import ArgumentParser
 import XCTest
 
-extension ExitCode {
-  public static var quit = ExitCode(SIGQUIT)
-}
-
-public func stop(process id: Int32, exitCode: ExitCode = .success) {
-  print("sending stop command")
-  kill(id, exitCode.rawValue)
-}
-
-// extensions to the ParsableArguments protocol to facilitate XCTestExpectation support
-public protocol TestableParsableArguments: ParsableArguments {
-  var didValidateExpectation: XCTestExpectation { get }
-}
-
-extension TestableParsableArguments {
-  public mutating func validate() throws {
-    didValidateExpectation.fulfill()
-  }
-}
-
-// extensions to the ParsableCommand protocol to facilitate XCTestExpectation support
-public protocol TestableParsableCommand: ParsableCommand, TestableParsableArguments {
-  var didRunExpectation: XCTestExpectation { get }
-}
-
-extension TestableParsableCommand {
-  public mutating func run() throws {
-    didRunExpectation.fulfill()
-  }
-}
-
-extension XCTestExpectation {
-  public convenience init(singleExpectation description: String) {
-    self.init(description: description)
-    expectedFulfillmentCount = 1
-    assertForOverFulfill = true
-  }
-}
-
-public func AssertResultFailure<T, U: Error>(
-  _ expression: @autoclosure () -> Result<T, U>,
-  _ message: @autoclosure () -> String = "",
-  file: StaticString = #file,
-  line: UInt = #line
-) {
-  switch expression() {
-  case .success:
-    let msg = message()
-    XCTFail(msg.isEmpty ? "Incorrectly succeeded" : msg, file: file, line: line)
-  case .failure:
-    break
-  }
-}
-
-public func AssertErrorMessage<A>(
-  _ type: A.Type,
-  _ arguments: [String],
-  _ errorMessage: String,
-  file: StaticString = #file,
-  line: UInt = #line
-) where A: ParsableArguments {
-  do {
-    _ = try A.parse(arguments)
-    XCTFail("Parsing should have failed.", file: file, line: line)
-  } catch {
-    // We expect to hit this path, i.e. getting an error:
-    XCTAssertEqual(A.message(for: error), errorMessage, file: file, line: line)
-  }
-}
-
-public func AssertFullErrorMessage<A>(
-  _ type: A.Type,
-  _ arguments: [String],
-  _ errorMessage: String,
-  file: StaticString = #file,
-  line: UInt = #line
-) where A: ParsableArguments {
-  do {
-    _ = try A.parse(arguments)
-    XCTFail("Parsing should have failed.", file: file, line: line)
-  } catch {
-    // We expect to hit this path, i.e. getting an error:
-    XCTAssertEqual(A.fullMessage(for: error), errorMessage, file: file, line: line)
-  }
-}
-
-public func AssertParse<A>(
-  _ type: A.Type,
-  _ arguments: [String],
-  file: StaticString = #file,
-  line: UInt = #line,
-  closure: (A) throws -> Void
-) where A: ParsableArguments {
-  do {
-    let parsed = try type.parse(arguments)
-    try closure(parsed)
-  } catch {
-    let message = type.message(for: error)
-    XCTFail("\"\(message)\" — \(error)", file: file, line: line)
-  }
-}
-
-public func AssertParseCommand<A: ParsableCommand>(
-  _ rootCommand: ParsableCommand.Type,
-  _ type: A.Type,
-  _ arguments: [String],
-  file: StaticString = #file,
-  line: UInt = #line,
-  closure: (A) throws -> Void
-) {
-  do {
-    let command = try rootCommand.parseAsRoot(arguments)
-    guard let aCommand = command as? A else {
-      XCTFail("Command is of unexpected type: \(command)", file: file, line: line)
-      return
-    }
-    try closure(aCommand)
-  } catch {
-    let message = rootCommand.message(for: error)
-    XCTFail("\"\(message)\" — \(error)", file: file, line: line)
-  }
-}
-
-public func AssertEqualStringsIgnoringTrailingWhitespace(
-  _ string1: String,
-  _ string2: String,
-  file: StaticString = #file,
-  line: UInt = #line
-) {
-  let lines1 = string1.split(separator: "\n", omittingEmptySubsequences: false)
-  let lines2 = string2.split(separator: "\n", omittingEmptySubsequences: false)
-
-  XCTAssertEqual(
-    lines1.count,
-    lines2.count,
-    "Strings have different numbers of lines.",
-    file: file,
-    line: line
-  )
-  for (line1, line2) in zip(lines1, lines2) {
-    XCTAssertEqual(line1.trimmed(), line2.trimmed(), file: file, line: line)
-  }
-}
-
-public func AssertHelp<T: ParsableArguments>(
-  for _: T.Type, equals expected: String,
-  file: StaticString = #file, line: UInt = #line
-) {
-  do {
-    _ = try T.parse(["-h"])
-    XCTFail(file: file, line: line)
-  } catch {
-    let helpString = T.fullMessage(for: error)
-    AssertEqualStringsIgnoringTrailingWhitespace(
-      helpString, expected, file: file, line: line
-    )
-  }
-
-  let helpString = T.helpMessage()
-  AssertEqualStringsIgnoringTrailingWhitespace(
-    helpString, expected, file: file, line: line
-  )
-}
-
-public func AssertHelp<T: ParsableCommand, U: ParsableCommand>(
-  for _: T.Type, root _: U.Type, equals expected: String,
-  file: StaticString = #file, line: UInt = #line
-) {
-  let helpString = U.helpMessage(for: T.self)
-  AssertEqualStringsIgnoringTrailingWhitespace(
-    helpString, expected, file: file, line: line
-  )
-}
-
 extension XCTest {
-  public var debugURL: URL {
-    let bundleURL = Bundle(for: type(of: self)).bundleURL
-    return bundleURL.lastPathComponent.hasSuffix("xctest")
-      ? bundleURL.deletingLastPathComponent()
-      : bundleURL
-  }
-
-  public var cartonPath: String {
-    debugURL.appendingPathComponent("carton").path
-  }
-
-  /// Execute shell command and return the process the command is running in
-  ///
-  /// - parameter command: The command to execute.
-  /// - paramater shouldPrintOutput: whether the command output should be printed to stdout/stderr.
-  /// - parameter cwd: The current working directory for executing the command.
-  /// - parameter file: The file the assertion is coming from.
-  /// - parameter line: The line the assertion is coming from.
-  public func executeCommand(
-    command: String,
-    shouldPrintOutput: Bool = false,
-    cwd: URL? = nil,  // To allow for testing of file-based output
-    file: StaticString = #file, line: UInt = #line
-  ) -> Process? {
-    let splitCommand = command.split(separator: " ")
-    let arguments = splitCommand.dropFirst().map(String.init)
-
-    let commandName = String(splitCommand.first!)
-    let commandURL = debugURL.appendingPathComponent(commandName)
-    guard (try? commandURL.checkResourceIsReachable()) ?? false else {
-      XCTFail(
-        "No executable at '\(commandURL.standardizedFileURL.path)'.",
-        file: file, line: line)
-      return nil
-    }
-
+  func findSwiftExecutable() throws -> String {
     let process = Process()
-    if #available(macOS 10.13, *) {
-      process.executableURL = commandURL
-    } else {
-      process.launchPath = commandURL.path
-    }
-    process.arguments = arguments
-
-    if let workingDirectory = cwd {
-      process.currentDirectoryURL = workingDirectory
-    }
-
-    let output = Pipe()
-    process.standardOutput = shouldPrintOutput ? FileHandle.standardOutput : output
-    let error = Pipe()
-    process.standardError = shouldPrintOutput ? FileHandle.standardError : error
-
-    if #available(macOS 10.13, *) {
-      guard (try? process.run()) != nil else {
-        XCTFail("Couldn't run command process.", file: file, line: line)
-        return nil
-      }
-    } else {
-      process.launch()
-    }
-
-    return process
-  }
-
-  /// Execute shell command and assert output is what is expected
-  ///
-  /// - parameter command: The command to execute.
-  /// - parameter cwd: The current working directory for executing the command.
-  /// - parameter expected: The expect string output of the command.
-  /// - parameter expectedContains: A flag for whether or not it's exact or 'contains' should be used.
-  /// - parameter exitCode: The exit code of the command. Default is 'success'
-  /// - parameter debug: Debug the assertion by printing out the command string.
-  /// - parameter file: The file the assertion is coming from.
-  /// - parameter line: The line the assertion is coming from.
-  public func AssertExecuteCommand(
-    command: String,
-    cwd: URL? = nil,  // To allow for testing of file based output
-    expected: String? = nil,
-    expectedContains: Bool = false,
-    exitCode: ExitCode = .success,
-    debug: Bool = false,
-    file: StaticString = #file, line: UInt = #line
-  ) {
-    let splitCommand = command.split(separator: " ")
-    let arguments = splitCommand.dropFirst().map(String.init)
-
-    let commandName = String(splitCommand.first!)
-    let commandURL = debugURL.appendingPathComponent(commandName)
-    guard (try? commandURL.checkResourceIsReachable()) ?? false else {
-      XCTFail(
-        "No executable at '\(commandURL.standardizedFileURL.path)'.",
-        file: file, line: line)
-      return
-    }
-
-    let process = Process()
-    if #available(macOS 10.13, *) {
-      process.executableURL = commandURL
-    } else {
-      process.launchPath = commandURL.path
-    }
-    process.arguments = arguments
-
-    if let workingDirectory = cwd {
-      process.currentDirectoryURL = workingDirectory
-    }
-
+    process.executableURL = URL(fileURLWithPath: "/usr/bin/which")
+    process.arguments = ["swift"]
     let output = Pipe()
     process.standardOutput = output
-    let error = Pipe()
-    process.standardError = error
+    try process.run()
+    process.waitUntilExit()
+    let outputData = output.fileHandleForReading.readDataToEndOfFile()
+    return String(data: outputData, encoding: .utf8)!.trimmingCharacters(
+      in: .whitespacesAndNewlines)
+  }
 
-    if #available(macOS 10.13, *) {
-      guard (try? process.run()) != nil else {
-        XCTFail("Couldn't run command process.", file: file, line: line)
-        return
-      }
-    } else {
-      process.launch()
+  struct SwiftRunResult {
+    var exitCode: Int32
+    var stdout: String
+    var stderr: String
+
+    func assertZeroExit(_ file: StaticString = #file, line: UInt = #line) {
+      XCTAssertEqual(exitCode, 0, file: file, line: line)
     }
+  }
 
+  func swiftRunProcess(
+    _ arguments: [CustomStringConvertible],
+    packageDirectory: URL
+  ) throws -> (Process, stdout: Pipe, stderr: Pipe) {
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: try findSwiftExecutable())
+    process.arguments = ["run"] + arguments.map(\.description)
+    process.currentDirectoryURL = packageDirectory
+    let stdoutPipe = Pipe()
+    process.standardOutput = stdoutPipe
+    let stderrPipe = Pipe()
+    process.standardError = stderrPipe
+
+    func setSignalForwarding(_ signalNo: Int32) {
+      signal(signalNo, SIG_IGN)
+      let signalSource = DispatchSource.makeSignalSource(signal: signalNo)
+      signalSource.setEventHandler {
+        signalSource.cancel()
+        process.interrupt()
+      }
+      signalSource.resume()
+    }
+    setSignalForwarding(SIGINT)
+    setSignalForwarding(SIGTERM)
+
+    try process.run()
+
+    return (process, stdoutPipe, stderrPipe)
+  }
+
+  @discardableResult
+  func swiftRun(_ arguments: [CustomStringConvertible], packageDirectory: URL) throws
+    -> SwiftRunResult
+  {
+    let (process, stdoutPipe, stderrPipe) = try swiftRunProcess(
+      arguments, packageDirectory: packageDirectory)
     process.waitUntilExit()
 
-    let outputData = output.fileHandleForReading.readDataToEndOfFile()
-    let outputActual = String(data: outputData, encoding: .utf8)!
+    let stdout = String(
+      data: stdoutPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)!
       .trimmingCharacters(in: .whitespacesAndNewlines)
 
-    if debug { print(outputActual) }
-
-    let errorData = error.fileHandleForReading.readDataToEndOfFile()
-    let errorActual = String(data: errorData, encoding: .utf8)!
+    let stderr = String(
+      data: stderrPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)!
       .trimmingCharacters(in: .whitespacesAndNewlines)
-
-    let finalString = errorActual + outputActual
-
-    if let expected = expected {
-      if expectedContains {
-        XCTAssertTrue(
-          finalString.contains(expected),
-          "The final string \(finalString) does not contain \(expected)",
-          file: file, line: line
-        )
-      } else {
-        AssertEqualStringsIgnoringTrailingWhitespace(
-          expected,
-          errorActual + outputActual,
-          file: file,
-          line: line
-        )
-      }
-    }
+    return SwiftRunResult(exitCode: process.terminationStatus, stdout: stdout, stderr: stderr)
   }
 }

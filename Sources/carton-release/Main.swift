@@ -15,14 +15,10 @@
 import ArgumentParser
 import CartonHelpers
 
-struct CartonRelease: ParsableCommand {
+@main
+struct CartonRelease: AsyncParsableCommand {
   static let configuration = CommandConfiguration(
     abstract: "Carton release automation utility",
-    subcommands: [Formula.self, HashArchive.self]
+    subcommands: [HashArchive.self]
   )
-}
-
-@main
-struct Main: AsyncMain {
-  typealias Command = CartonRelease
 }
