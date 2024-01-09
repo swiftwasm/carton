@@ -16,19 +16,12 @@ import ArgumentParser
 import CartonHelpers
 import CartonKit
 import Foundation
-import SwiftToolchain
-import TSCBasic
 
 struct Dev: AsyncParsableCommand {
   static let entrypoint = Entrypoint(fileName: "dev.js", sha256: devEntrypointSHA256)
 
   @Option(help: "Specify name of an executable product in development.")
   var product: String?
-
-  @Option(
-    help: "This option has no effect and will be removed in a future version of `carton`"
-  )
-  var destination: String?
 
   @Option(help: "Specify a path to a custom `index.html` file to be used for your app.")
   var customIndexPage: String?
@@ -54,54 +47,57 @@ struct Dev: AsyncParsableCommand {
   @Flag(name: .long, help: "Skip automatically opening app in system browser.")
   var skipAutoOpen = false
 
-  @OptionGroup()
-  var buildOptions: BuildOptions
+  @Option(
+    name: .customLong("watch-path"),
+    help: "Specify a path to a directory to watch for changes."
+  )
+  var watchPaths: [String] = []
+
+  @Option(
+    name: .long,
+    help: ArgumentHelp(
+      "Internal: Path to resources directory built by the SwiftPM Plugin process.",
+      visibility: .private
+    )
+  )
+  var resources: [String] = []
+
+  @Option(
+    help: ArgumentHelp(
+      "Internal: Path to the named pipe used to send build requests to the SwiftPM Plugin process.",
+      visibility: .private
+    )
+  )
+  var buildRequest: String
+
+  @Option(
+    help: ArgumentHelp(
+      "Internal: Path to the named pipe used to receive build responses from the SwiftPM Plugin process.",
+      visibility: .private
+    )
+  )
+  var buildResponse: String
+
+  @Option(
+    help: ArgumentHelp(
+      "Internal: Path to the main WebAssembly file built by the SwiftPM Plugin process.",
+      visibility: .private
+    )
+  )
+  var mainWasmPath: String
 
   static let configuration = CommandConfiguration(
     abstract: "Watch the current directory, host the app, rebuild on change."
   )
-
-  func buildFlavor() -> BuildFlavor {
-    let defaultSanitize: SanitizeVariant? = release ? nil : .stackOverflow
-    return BuildFlavor(
-      isRelease: release, environment: .defaultBrowser,
-      sanitize: sanitize ?? defaultSanitize,
-      swiftCompilerFlags: buildOptions.swiftCompilerFlags
-    )
-  }
 
   func run() async throws {
     let terminal = InteractiveWriter.stdout
 
     try Self.entrypoint.check(on: localFileSystem, terminal)
 
-    let toolchain = try await Toolchain(localFileSystem, terminal)
-
-    if !verbose {
-      terminal.clearWindow()
-      terminal.saveCursor()
+    let paths = try watchPaths.map {
+      try AbsolutePath(validating: $0, relativeTo: localFileSystem.currentWorkingDirectory!)
     }
-
-    if destination != nil {
-      terminal.write(
-        """
-        --destination option is no longer needed when using latest SwiftWasm toolchains. \
-        This option no longer has any effect and will be removed in a future version of `carton`. \
-        You should be able to link with Foundation/XCTest without passing this option. If it is \
-        still required in your build process for some reason, please report it as a bug at \
-        https://github.com/swiftwasm/swift/issues/\n
-        """,
-        inColor: .red
-      )
-    }
-
-    let flavor = buildFlavor()
-    let build = try await toolchain.buildCurrentProject(
-      product: product,
-      flavor: flavor
-    )
-
-    let paths = try toolchain.inferSourcesPaths()
 
     if !verbose {
       terminal.revertCursorAndClear()
@@ -110,28 +106,22 @@ struct Dev: AsyncParsableCommand {
     paths.forEach { terminal.logLookup("", $0) }
     terminal.write("\n")
 
-    let sources = try paths.flatMap { try localFileSystem.traverseRecursively($0) }
-
     let server = try await Server(
       .init(
-        builder: Builder(
-          arguments: build.arguments,
-          mainWasmPath: build.mainWasmPath,
-          pathsToWatch: sources,
-          flavor,
-          localFileSystem,
-          terminal
+        builder: SwiftPMPluginBuilder(
+          pathsToWatch: paths,
+          buildRequest: FileHandle(forWritingAtPath: buildRequest)!,
+          buildResponse: FileHandle(forReadingAtPath: buildResponse)!
         ),
-        mainWasmPath: build.mainWasmPath,
+        mainWasmPath: AbsolutePath(
+          validating: mainWasmPath, relativeTo: localFileSystem.currentWorkingDirectory!),
         verbose: verbose,
         port: port,
         host: host,
         customIndexPath: customIndexPage.map {
           try AbsolutePath(validating: $0, relativeTo: localFileSystem.currentWorkingDirectory!)
         },
-        // swiftlint:disable:next force_try
-        manifest: try! toolchain.manifest.get(),
-        product: build.product,
+        resourcesPaths: resources,
         entrypoint: Self.entrypoint,
         terminal: terminal
       )
@@ -141,5 +131,24 @@ struct Dev: AsyncParsableCommand {
       openInSystemBrowser(url: localURL)
     }
     try await server.waitUntilStop()
+  }
+}
+
+/// Builder for communicating with the SwiftPM Plugin process by IPC.
+struct SwiftPMPluginBuilder: BuilderProtocol {
+  let pathsToWatch: [AbsolutePath]
+  let buildRequest: FileHandle
+  let buildResponse: FileHandle
+
+  init(pathsToWatch: [AbsolutePath], buildRequest: FileHandle, buildResponse: FileHandle) {
+    self.pathsToWatch = pathsToWatch
+    self.buildRequest = buildRequest
+    self.buildResponse = buildResponse
+  }
+
+  func run() async throws {
+    // We expect single response per request
+    try buildRequest.write(contentsOf: Data([1]))
+    _ = try buildResponse.read(upToCount: 1)
   }
 }

@@ -15,12 +15,20 @@
 import ArgumentParser
 import CartonHelpers
 import CartonKit
-import SwiftToolchain
-import TSCBasic
 
-extension Environment: ExpressibleByArgument {}
+/// The target environment to build for.
+/// `Environment` doesn't specify the concrete environment, but the type of environments enough for build planning.
+enum Environment: String, CaseIterable, ExpressibleByArgument {
+  public static var allCasesNames: [String] { Environment.allCases.map { $0.rawValue } }
 
-extension SanitizeVariant: ExpressibleByArgument {}
+  case command
+  case node
+  case browser
+}
+
+enum SanitizeVariant: String, CaseIterable, ExpressibleByArgument {
+  case stackOverflow
+}
 
 struct TestError: Error, CustomStringConvertible {
   let description: String
@@ -43,7 +51,7 @@ struct Test: AsyncParsableCommand {
     help:
       "Environment used to run the tests. Available values: \(Environment.allCasesNames.joined(separator: ", "))"
   )
-  private var environment = Environment.wasmer
+  private var environment = Environment.command
 
   /// It is implemented as a separate flag instead of a `--environment` variant because `--environment`
   /// is designed to accept specific browser names in the future like `--environment firefox`.
@@ -67,22 +75,19 @@ struct Test: AsyncParsableCommand {
   var host = "127.0.0.1"
 
   @Option(help: "Use the given bundle instead of building the test target")
-  var prebuiltTestBundlePath: String?
+  var prebuiltTestBundlePath: String
 
-  @OptionGroup()
-  var buildOptions: BuildOptions
-
-  private var buildFlavor: BuildFlavor {
-    BuildFlavor(
-      isRelease: release,
-      environment: environment,
-      sanitize: sanitize,
-      swiftCompilerFlags: buildOptions.swiftCompilerFlags
+  @Option(
+    name: .long,
+    help: ArgumentHelp(
+      "Internal: Path to resources directory built by the SwiftPM Plugin process.",
+      visibility: .private
     )
-  }
+  )
+  var resources: [String] = []
 
   func validate() throws {
-    if headless && environment != .defaultBrowser {
+    if headless && environment != .browser {
       throw TestError(
         description: "The `--headless` flag can be applied only for browser environments")
     }
@@ -90,38 +95,32 @@ struct Test: AsyncParsableCommand {
 
   func run() async throws {
     let terminal = InteractiveWriter.stdout
-    let toolchain = try await Toolchain(localFileSystem, terminal)
     let bundlePath: AbsolutePath
-    if let preBundlePath = self.prebuiltTestBundlePath {
-      bundlePath = try AbsolutePath(
-        validating: preBundlePath, relativeTo: localFileSystem.currentWorkingDirectory!)
-      guard localFileSystem.exists(bundlePath) else {
-        terminal.write(
-          "No prebuilt binary found at \(bundlePath)\n",
-          inColor: .red
-        )
-        throw ExitCode.failure
-      }
-    } else {
-      bundlePath = try await toolchain.buildTestBundle(flavor: buildFlavor)
+    bundlePath = try AbsolutePath(
+      validating: prebuiltTestBundlePath, relativeTo: localFileSystem.currentWorkingDirectory!)
+    guard localFileSystem.exists(bundlePath, followSymlink: true) else {
+      terminal.write(
+        "No prebuilt binary found at \(bundlePath)\n",
+        inColor: .red
+      )
+      throw ExitCode.failure
     }
 
     switch environment {
-    case .wasmer:
+    case .command:
       try await WasmerTestRunner(
         testFilePath: bundlePath,
         listTestCases: list,
         testCases: testCases,
         terminal: terminal
       ).run()
-    case .defaultBrowser:
+    case .browser:
       try await BrowserTestRunner(
         testFilePath: bundlePath,
         host: host,
         port: port,
         headless: headless,
-        // swiftlint:disable:next force_try
-        manifest: try! toolchain.manifest.get(),
+        resourcesPaths: resources,
         terminal: terminal
       ).run()
     case .node:

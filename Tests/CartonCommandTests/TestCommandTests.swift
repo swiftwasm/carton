@@ -15,8 +15,7 @@
 //  Created by Cavelle Benjamin on Dec/28/20.
 //
 
-import AsyncHTTPClient
-import TSCBasic
+import CartonHelpers
 import XCTest
 
 @testable import CartonCLI
@@ -31,45 +30,47 @@ private enum Constants {
 final class TestCommandTests: XCTestCase {
   func testWithNoArguments() throws {
     try withFixture(Constants.testAppPackageName) { packageDirectory in
-      AssertExecuteCommand(
-        command: "carton test",
-        cwd: packageDirectory.url,
-        debug: true
+      let result = try swiftRun(
+        ["carton", "test"], packageDirectory: packageDirectory.url
       )
+      result.assertZeroExit()
     }
   }
 
   func testEnvironmentNodeNoJSKit() throws {
     try withFixture(Constants.testAppPackageName) { packageDirectory in
-      AssertExecuteCommand(
-        command: "carton test --environment node",
-        cwd: packageDirectory.url,
-        debug: true
+      let result = try swiftRun(
+        ["carton", "test", "--environment", "node"], packageDirectory: packageDirectory.url
       )
+      result.assertZeroExit()
     }
   }
 
   func testEnvironmentNodeJSKit() throws {
     try withFixture(Constants.nodeJSKitPackageName) { packageDirectory in
-      AssertExecuteCommand(
-        command: "carton test --environment node",
-        cwd: packageDirectory.url,
-        debug: true
+      let result = try swiftRun(
+        ["carton", "test", "--environment", "node"], packageDirectory: packageDirectory.url
       )
+      result.assertZeroExit()
     }
   }
 
   func testSkipBuild() throws {
     try withFixture(Constants.nodeJSKitPackageName) { packageDirectory in
-      AssertExecuteCommand(
-        command: "carton test --environment node",
-        cwd: packageDirectory.url
+      var result = try swiftRun(
+        ["carton", "test", "--environment", "node"], packageDirectory: packageDirectory.url
       )
-      AssertExecuteCommand(
-        command:
-          "carton test --environment node --prebuilt-test-bundle-path ./.build/wasm32-unknown-wasi/debug/NodeJSKitTestPackageTests.wasm",
-        cwd: packageDirectory.url
+      result.assertZeroExit()
+
+      result = try swiftRun(
+        [
+          "carton", "test", "--environment", "node",
+          "--prebuilt-test-bundle-path",
+          "./.build/carton/wasm32-unknown-wasi/debug/NodeJSKitTestPackageTests.wasm",
+        ],
+        packageDirectory: packageDirectory.url
       )
+      result.assertZeroExit()
     }
   }
 
@@ -78,10 +79,11 @@ final class TestCommandTests: XCTestCase {
       throw XCTSkip("WebDriver is required")
     }
     try withFixture(Constants.testAppPackageName) { packageDirectory in
-      AssertExecuteCommand(
-        command: "carton test --environment defaultBrowser --headless",
-        cwd: packageDirectory.url
+      let result = try swiftRun(
+        ["carton", "test", "--environment", "browser", "--headless"],
+        packageDirectory: packageDirectory.url
       )
+      result.assertZeroExit()
     }
   }
 
@@ -98,13 +100,11 @@ final class TestCommandTests: XCTestCase {
       throw XCTSkip("WebDriver is required")
     }
     try withFixture(fixture) { packageDirectory in
-      try ProcessEnv.chdir(packageDirectory)
-      let process = Process(arguments: [
-        cartonPath, "test", "--environment", "defaultBrowser", "--headless",
-      ])
-      try process.launch()
-      let result = try process.waitUntilExit()
-      XCTAssertNotEqual(result.exitStatus, .terminated(code: 0))
+      let result = try swiftRun(
+        ["carton", "test", "--environment", "browser", "--headless"],
+        packageDirectory: packageDirectory.url
+      )
+      XCTAssertNotEqual(result.exitCode, 0)
     }
   }
 
@@ -124,12 +124,11 @@ final class TestCommandTests: XCTestCase {
           """
 
         // FIXME: Don't assume a specific port is available since it can be used by others or tests
-        AssertExecuteCommand(
-          command: "carton test --environment defaultBrowser --port 8082",
-          cwd: packageDirectory.url,
-          expected: expectedContent,
-          expectedContains: true
+        let result = try swiftRun(
+          ["carton", "test", "--environment", "browser", "--port", "8082"],
+          packageDirectory: packageDirectory.url
         )
+        XCTAssertTrue(result.stdout.contains(expectedContent))
       }
     }
   #endif

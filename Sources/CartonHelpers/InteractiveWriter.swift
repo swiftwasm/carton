@@ -6,8 +6,6 @@
  See http://swift.org/CONTRIBUTORS.txt for Swift project authors
  */
 
-import TSCBasic
-
 /// This class is used to write on the underlying stream.
 ///
 /// If underlying stream is a not tty, the string will be written in without any
@@ -40,7 +38,7 @@ public final class InteractiveWriter {
     if let term = term {
       term.write(string, inColor: color, bold: bold)
     } else {
-      stream <<< string
+      stream.send(string)
       stream.flush()
     }
   }
@@ -49,7 +47,7 @@ public final class InteractiveWriter {
     if let term = term {
       term.clearLine()
     } else {
-      stream <<< "\n"
+      stream.send("\n")
       stream.flush()
     }
   }

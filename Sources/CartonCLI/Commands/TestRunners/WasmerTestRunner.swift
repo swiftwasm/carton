@@ -15,7 +15,6 @@
 import CartonHelpers
 import CartonKit
 import Foundation
-import TSCBasic
 
 struct WasmerTestRunner: TestRunner {
   let testFilePath: AbsolutePath

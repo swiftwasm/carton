@@ -15,11 +15,11 @@
 import ArgumentParser
 import CartonHelpers
 
-public struct Carton: ParsableCommand {
+public struct Carton: AsyncParsableCommand {
   public static let configuration = CommandConfiguration(
     abstract: "📦 Watcher, bundler, and test runner for your SwiftWasm apps.",
     version: cartonVersion,
-    subcommands: [Bundle.self, Dev.self, Init.self, SDK.self, Test.self, Package.self]
+    subcommands: [Bundle.self, Dev.self, Test.self]
   )
 
   public init() {}

@@ -1,3 +1,53 @@
+# 1.0.0 (XX XXX 2024)
+
+**Breaking changes:**
+
+`carton` CLI is now slimmed down to be a SwiftPM Plugin.
+This means that you can now use `carton` by just declaring it as a dependency in your `Package.swift` file.
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/swiftwasm/carton", from: "1.0.0"),
+],
+```
+
+Each `carton` subcommand is now split into a separate SwiftPM plugin.
+
+| Old command     | New command               |
+| --------------- | ------------------------- |
+| `carton dev`    | `swift run carton dev`    |
+| `carton test`   | `swift run carton test`   |
+| `carton bundle` | `swift run carton bundle` |
+
+Also `carton` no longer supports the following features:
+
+- `carton init` command (use `swift package init --type executable` instead)
+
+**Internal changes:**
+
+- Reduce build time by removing unnecessary dependencies: 96.97s -> 25.26s
+- No longer directly depend on SwiftPM as a library. This means that `carton` no longer has to be updated when SwiftPM is updated (hopefully).
+
+Our new SwiftPM plugin oriented architecture is illustrated in the following diagram:
+
+```mermaid
+sequenceDiagram
+    participant SwiftRunCarton as swift run carton
+    participant SwiftPM
+    participant CartonDevPlugin as carton-dev Plugin
+    participant CartonFrontend
+    SwiftRunCarton->>SwiftPM: exec
+    SwiftPM->>CartonDevPlugin: spawn
+    CartonDevPlugin->>SwiftPM: Build product
+    SwiftPM->>CartonDevPlugin: Build artifacts
+    CartonDevPlugin->>CartonFrontend: spawn
+    note right of CartonDevPlugin: Establish IPC
+    CartonFrontend->>CartonDevPlugin: File changed
+    CartonDevPlugin->>SwiftPM: Build product
+    SwiftPM->>CartonDevPlugin: Build artifacts
+    CartonDevPlugin->>CartonFrontend: Reload browsers
+```
+
 # 0.20.1 (25 Jan 2024)
 
 This release fixes a bug in `carton test` where it reports missing `sock_accept` syscall.
@@ -12,9 +62,8 @@ This release adds SwiftWasm 5.9 toolchain support.
 - Add Swift 5.9 to Build Action by @STREGA in https://github.com/swiftwasm/carton/pull/409
 - Swift 5.9 toolchain & macOS Sonoma beta by @furby-tm in https://github.com/swiftwasm/carton/pull/402
 - Add 5.9 support by @STREGA in https://github.com/swiftwasm/carton/pull/412
-- Stop bothering WASI apps including unimplemented syscalls  by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/415
+- Stop bothering WASI apps including unimplemented syscalls by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/415
 - Update default toolchain version to 5.9.1 by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/416
-
 
 # 0.19.1 (9 May 2023)
 
@@ -31,7 +80,6 @@ This release adds SwiftWasm 5.8 toolchain support.
 - Fix the default docker command arguments by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/396
 - Support jammy and amazonlinux2 for toolchain install by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/397
 - Update default toolchain version to 5.8 channel snapshot by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/398
-
 
 # 0.18.0 (3 April 2023)
 

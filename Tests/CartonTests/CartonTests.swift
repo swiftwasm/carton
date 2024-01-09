@@ -13,8 +13,6 @@
 // limitations under the License.
 
 import CartonHelpers
-import TSCBasic
-import TSCUtility
 import XCTest
 
 import class Foundation.Bundle
@@ -84,38 +82,6 @@ final class CartonTests: XCTestCase {
     }
   }
 
-  func testDiagnosticsParser() {
-    // swiftlint:disable line_length
-    let testDiagnostics = """
-      [1/1] Compiling TokamakCore Font.swift
-      /Users/username/Project/Sources/TokamakCore/Tokens/Font.swift:58:15: error: invalid redeclaration of 'resolve(in:)'
-        public func resolve(in environment: EnvironmentValues) -> _Font {
-                    ^
-      /Users/username/Project/Sources/TokamakCore/Tokens/Font.swift:55:15: note: 'resolve(in:)' previously declared here
-        public func resolve(in environment: EnvironmentValues) -> _Font {
-                    ^
-      """
-    let expectedOutput = """
-      \u{001B}[1m\u{001B}[7m Font.swift \u{001B}[0m /Users/username/Project/Sources/TokamakCore/Tokens/Font.swift:58
-
-        \u{001B}[41;1m\u{001B}[37;1m ERROR \u{001B}[0m  invalid redeclaration of 'resolve(in:)'
-        \u{001B}[36m58 | \u{001B}[0m   \u{001B}[35;1mpublic\u{001B}[0m \u{001B}[35;1mfunc\u{001B}[0m resolve(in environment: \u{001B}[94mEnvironmentValues\u{001B}[0m) -> \u{001B}[94m_Font\u{001B}[0m {
-           |                ^
-
-        \u{001B}[7m\u{001B}[37;1m NOTE \u{001B}[0m  'resolve(in:)' previously declared here
-        \u{001B}[36m55 | \u{001B}[0m   \u{001B}[35;1mpublic\u{001B}[0m \u{001B}[35;1mfunc\u{001B}[0m resolve(in environment: \u{001B}[94mEnvironmentValues\u{001B}[0m) -> \u{001B}[94m_Font\u{001B}[0m {
-           |                ^
-
-
-
-      """
-    // swiftlint:enable line_length
-    let stream = TestOutputStream()
-    let writer = InteractiveWriter(stream: stream)
-    DiagnosticsParser().parse(testDiagnostics, writer)
-    XCTAssertEqual(stream.currentOutput, expectedOutput)
-  }
-
   func testDestinationEnvironment() {
     XCTAssertEqual(
       DestinationEnvironment(
@@ -149,21 +115,5 @@ final class CartonTests: XCTestCase {
       DestinationEnvironment(userAgent: "Opera/9.30 (Nintendo Wii; U; ; 3642; en)"),
       nil
     )
-  }
-
-  func testSwiftWasmVersionParsing() throws {
-    let v5_6 = try Version(swiftWasmVersion: "wasm-5.6.0-RELEASE")
-    XCTAssertEqual(v5_6.major, 5)
-    XCTAssertEqual(v5_6.minor, 6)
-    XCTAssertEqual(v5_6.patch, 0)
-    XCTAssert(v5_6.prereleaseIdentifiers.isEmpty)
-    XCTAssert(v5_6 >= Version(5, 6, 0))
-
-    let v5_7_snapshot = try Version(swiftWasmVersion: "wasm-5.7-SNAPSHOT-2022-07-14-a")
-    XCTAssertEqual(v5_7_snapshot.major, 5)
-    XCTAssertEqual(v5_7_snapshot.minor, 7)
-    XCTAssertEqual(v5_7_snapshot.patch, 0)
-    XCTAssert(v5_7_snapshot.prereleaseIdentifiers.isEmpty)
-    XCTAssert(v5_7_snapshot >= Version(5, 6, 0))
   }
 }

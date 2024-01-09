@@ -15,7 +15,7 @@
 //  Created by Cavelle Benjamin on Dec/25/20.
 //
 
-import TSCBasic
+import CartonHelpers
 import XCTest
 
 @testable import CartonCLI
@@ -25,7 +25,7 @@ final class BundleCommandTests: XCTestCase {
     try withFixture("EchoExecutable") { packageDirectory in
       let bundleDirectory = packageDirectory.appending(component: "Bundle")
 
-      AssertExecuteCommand(command: "carton bundle", cwd: packageDirectory.url)
+      try swiftRun(["carton", "bundle"], packageDirectory: packageDirectory.url)
 
       // Confirm that the files are actually in the folder
       XCTAssertTrue(bundleDirectory.exists, "The Bundle directory should exist")
@@ -43,22 +43,24 @@ final class BundleCommandTests: XCTestCase {
 
   func testWithXswiftc() throws {
     try withFixture("EchoExecutable") { packageDirectory in
-      AssertExecuteCommand(
-        command: "carton bundle -Xswiftc --fake-swiftc-options",
-        cwd: packageDirectory.url,
-        expected: "error: unknown argument: '--fake-swiftc-options'",
-        expectedContains: true
+      let result = try swiftRun(
+        ["carton", "bundle", "-Xswiftc", "--fake-swiftc-options"],
+        packageDirectory: packageDirectory.url
       )
+
+      XCTAssertTrue(result.stdout.contains("error: unknown argument: '--fake-swiftc-options'"))
+      XCTAssertNotEqual(result.exitCode, 0)
     }
   }
 
   func testWithDebugInfo() throws {
-    try withTemporaryDirectory { tmpDirPath in
-      try ProcessEnv.chdir(tmpDirPath)
-      try Process.checkNonZeroExit(arguments: [cartonPath, "init", "--template", "basic"])
-      try Process.checkNonZeroExit(arguments: [cartonPath, "bundle", "--debug-info"])
+    try withFixture("EchoExecutable") { packageDirectory in
+      let result = try swiftRun(
+        ["carton", "bundle", "--debug-info"], packageDirectory: packageDirectory.url
+      )
+      result.assertZeroExit()
 
-      let bundleDirectory = tmpDirPath.appending(component: "Bundle")
+      let bundleDirectory = packageDirectory.appending(component: "Bundle")
       guard let wasmBinary = (bundleDirectory.ls().filter { $0.contains("wasm") }).first else {
         XCTFail("No wasm binary found")
         return
@@ -71,16 +73,15 @@ final class BundleCommandTests: XCTestCase {
   }
 
   func testWasmOptimizationOptions() throws {
-    try withTemporaryDirectory { tmpDirPath in
-      try ProcessEnv.chdir(tmpDirPath)
-      try Process.checkNonZeroExit(arguments: [cartonPath, "init", "--template", "basic"])
-
+    try withFixture("EchoExecutable") { packageDirectory in
       func getFileSizeOfWasmBinary(wasmOptimizations: WasmOptimizations) throws -> UInt64 {
-        let bundleDirectory = tmpDirPath.appending(component: "Bundle")
+        let bundleDirectory = packageDirectory.appending(component: "Bundle")
 
-        try Process.checkNonZeroExit(arguments: [
-          cartonPath, "bundle", "--wasm-optimizations", wasmOptimizations.rawValue,
-        ])
+        let result = try swiftRun(
+          ["carton", "bundle", "--wasm-optimizations", wasmOptimizations.rawValue],
+          packageDirectory: packageDirectory.url
+        )
+        result.assertZeroExit()
 
         guard let wasmFile = (bundleDirectory.ls().filter { $0.contains("wasm") }).first else {
           XCTFail("No wasm binary found")

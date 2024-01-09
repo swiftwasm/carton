@@ -15,9 +15,8 @@
 //  Created by Cavelle Benjamin on Dec/20/20.
 //
 
+import CartonHelpers
 import Foundation
-import TSCBasic
-import TSCTestSupport
 
 /// Returns path to the built products directory.
 public var productsDirectory: AbsolutePath {
@@ -50,25 +49,15 @@ public var packageDirectory: AbsolutePath {
 
 func withFixture(_ name: String, _ body: (AbsolutePath) throws -> Void) throws {
   let fixtureDir = try testFixturesDirectory.appending(component: name)
-  try withTemporaryDirectory(prefix: name) { tmpDirPath in
-    let dstDir = tmpDirPath.appending(component: name)
-    try systemQuietly("cp", "-R", "-H", fixtureDir.pathString, dstDir.pathString)
-    try body(dstDir)
-  }
+  try body(fixtureDir)
+}
+
+func withFixture(_ name: String, _ body: (AbsolutePath) async throws -> Void) async throws {
+  let fixtureDir = try testFixturesDirectory.appending(component: name)
+  try await body(fixtureDir)
 }
 
 extension AbsolutePath {
-  func mkdir() throws {
-    _ = try FileManager.default.createDirectory(
-      atPath: pathString,
-      withIntermediateDirectories: true
-    )
-  }
-
-  func delete() throws {
-    _ = try FileManager.default.removeItem(atPath: pathString)
-  }
-
   var url: URL {
     URL(fileURLWithPath: pathString)
   }

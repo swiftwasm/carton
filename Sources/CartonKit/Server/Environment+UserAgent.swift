@@ -12,7 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import SwiftToolchain
+import CartonHelpers
+
+enum DestinationEnvironment {
+  case other
+  case safari
+  case firefox
+  case chrome
+  case edge
+}
+
+extension String {
+  func parsedStackTrace(in environment: DestinationEnvironment) -> [StackTraceItem]? {
+    switch environment {
+    case .safari: return safariStackTrace
+    case .firefox: return firefoxStackTrace
+    case .chrome: return chromeStackTrace
+    case .edge: return chromeStackTrace  // TODO: return nil if on old Edge
+    default: return nil
+    }
+  }
+}
 
 extension DestinationEnvironment {
   init?(userAgent: String) {

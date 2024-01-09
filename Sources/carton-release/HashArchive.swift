@@ -14,7 +14,6 @@
 
 import ArgumentParser
 import CartonHelpers
-import TSCBasic
 import WasmTransformer
 
 struct HashArchive: AsyncParsableCommand {
@@ -38,44 +37,45 @@ struct HashArchive: AsyncParsableCommand {
   func run() async throws {
     let terminal = InteractiveWriter.stdout
     let cwd = localFileSystem.currentWorkingDirectory!
-    let staticPath = AbsolutePath(cwd, "static")
+    let staticPath = try AbsolutePath(validating: "static", relativeTo: cwd)
     let dotFilesStaticPath = try localFileSystem.homeDirectory.appending(
       components: ".carton",
       "static"
     )
 
     try localFileSystem.createDirectory(dotFilesStaticPath, recursive: true)
-    let hashes = try await (["dev", "bundle", "test", "testNode"])
-      .asyncMap { entrypoint -> (String, String) in
-        let filename = "\(entrypoint).js"
-        var arguments = [
-          "npx", "esbuild", "--bundle", "entrypoint/\(filename)", "--outfile=static/\(filename)",
-        ]
+    var hashes: [(String, String)] = []
+    for entrypoint in ["dev", "bundle", "test", "testNode"] {
+      let filename = "\(entrypoint).js"
+      var arguments = [
+        "npx", "esbuild", "--bundle", "entrypoint/\(filename)", "--outfile=static/\(filename)",
+      ]
 
-        if entrypoint == "testNode" {
-          arguments.append(contentsOf: [
-            "--format=cjs", "--platform=node",
-            "--external:./JavaScriptKit_JavaScriptKit.resources/Runtime/index.js",
-          ])
-        } else {
-          arguments.append(contentsOf: [
-            "--format=esm",
-            "--external:./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs",
-          ])
-        }
+      if entrypoint == "testNode" {
+        arguments.append(contentsOf: [
+          "--format=cjs", "--platform=node",
+          "--external:./JavaScriptKit_JavaScriptKit.resources/Runtime/index.js",
+        ])
+      } else {
+        arguments.append(contentsOf: [
+          "--format=esm",
+          "--external:./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs",
+        ])
+      }
 
-        try await Process.run(arguments, terminal)
-        let entrypointPath = AbsolutePath(staticPath, filename)
-        let dotFilesEntrypointPath = dotFilesStaticPath.appending(component: filename)
-        try localFileSystem.removeFileTree(dotFilesEntrypointPath)
-        try localFileSystem.copy(from: entrypointPath, to: dotFilesEntrypointPath)
+      try await Process.run(arguments, terminal)
+      let entrypointPath = try AbsolutePath(validating: filename, relativeTo: staticPath)
+      let dotFilesEntrypointPath = dotFilesStaticPath.appending(component: filename)
+      try localFileSystem.removeFileTree(dotFilesEntrypointPath)
+      try localFileSystem.copy(from: entrypointPath, to: dotFilesEntrypointPath)
 
-        return (
+      hashes.append(
+        (
           entrypoint,
           try SHA256().hash(localFileSystem.readFileContents(entrypointPath))
             .hexadecimalRepresentation.uppercased()
-        )
-      }
+        ))
+    }
 
     try localFileSystem.writeFileContents(
       staticPath.appending(component: "so_sanitizer.wasm"),
@@ -83,22 +83,21 @@ struct HashArchive: AsyncParsableCommand {
     )
     print("file written to \(staticPath.appending(component: "so_sanitizer.wasm"))")
 
-    let archiveSources = try localFileSystem.traverseRecursively(staticPath)
-      // `traverseRecursively` also returns the `staticPath` directory itself, dropping it here
-      .dropFirst()
+    let archiveSources = try localFileSystem.getDirectoryContents(staticPath)
+      .map { try AbsolutePath(validating: $0, relativeTo: staticPath) }
       .map(\.pathString)
 
     try await Process.run(["zip", "-j", "static.zip"] + archiveSources, terminal)
 
     let staticArchiveContents = try localFileSystem.readFileContents(
       AbsolutePath(
-        localFileSystem.currentWorkingDirectory!,
-        RelativePath("static.zip")
+        validating: "static.zip",
+        relativeTo: localFileSystem.currentWorkingDirectory!
       ))
 
     // Base64 is not an efficient way, but too long byte array literal breaks type-checker
     let hashesFileContent = """
-      import TSCBasic
+      import CartonHelpers
 
       \(hashes.map {
       """
@@ -114,7 +113,8 @@ struct HashArchive: AsyncParsableCommand {
     try localFileSystem.writeFileContents(
       AbsolutePath(
         cwd,
-        RelativePath("Sources").appending(components: "CartonKit", "Server", "StaticArchive.swift")
+        RelativePath(validating: "Sources").appending(
+          components: "CartonKit", "Server", "StaticArchive.swift")
       ),
       bytes: ByteString(encodingAsUTF8: hashesFileContent)
     )

@@ -12,14 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import AsyncHTTPClient
 import CartonHelpers
 import CartonKit
 import Foundation
 import NIOCore
 import NIOPosix
-import PackageModel
-import TSCBasic
 import WebDriverClient
 
 private enum Constants {
@@ -50,26 +47,24 @@ struct BrowserTestRunner: TestRunner {
   let host: String
   let port: Int
   let headless: Bool
-  let manifest: Manifest
+  let resourcesPaths: [String]
   let terminal: InteractiveWriter
   let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
-  let httpClient: HTTPClient
 
   init(
     testFilePath: AbsolutePath,
     host: String,
     port: Int,
     headless: Bool,
-    manifest: Manifest,
+    resourcesPaths: [String],
     terminal: InteractiveWriter
   ) {
     self.testFilePath = testFilePath
     self.host = host
     self.port = port
     self.headless = headless
-    self.manifest = manifest
+    self.resourcesPaths = resourcesPaths
     self.terminal = terminal
-    httpClient = HTTPClient(eventLoopGroupProvider: .shared(eventLoopGroup))
   }
 
   typealias Disposer = () -> Void
@@ -108,7 +103,7 @@ struct BrowserTestRunner: TestRunner {
       },
       {
         terminal.logLookup("- checking WebDriver executable: ", "WEBDRIVER_PATH")
-        guard let executable = ProcessEnv.vars["WEBDRIVER_PATH"] else {
+        guard let executable = ProcessInfo.processInfo.environment["WEBDRIVER_PATH"] else {
           return nil
         }
         let (url, disposer) = try await launchDriver(executablePath: executable)
@@ -135,9 +130,24 @@ struct BrowserTestRunner: TestRunner {
     throw BrowserTestRunnerError.failedToFindWebDriver
   }
 
+  func makeClient(endpoint: URL) async throws -> WebDriverClient {
+    let maxRetries = 3
+    var retries = 0
+    while true {
+      do {
+        return try await WebDriverClient.newSession(
+          endpoint: endpoint, httpClient: URLSession.shared)
+      } catch {
+        if retries >= maxRetries {
+          throw error
+        }
+        retries += 1
+        try await _Concurrency.Task.sleep(nanoseconds: 1_000_000_000)
+      }
+    }
+  }
+
   func run() async throws {
-    // swiftlint:disable force_try
-    defer { try! httpClient.syncShutdown() }
     try Constants.entrypoint.check(on: localFileSystem, terminal)
     let server = try await Server(
       .init(
@@ -147,20 +157,17 @@ struct BrowserTestRunner: TestRunner {
         port: port,
         host: host,
         customIndexPath: nil,
-        manifest: manifest,
-        product: nil,
+        resourcesPaths: resourcesPaths,
         entrypoint: Constants.entrypoint,
         terminal: terminal
-      ),
-      .shared(eventLoopGroup)
+      )
     )
     let localURL = try await server.start()
     var disposer: () async throws -> Void = {}
     do {
       if headless {
         let (endpoint, clientDisposer) = try await selectWebDriver()
-        let client = try await WebDriverClient.newSession(
-          endpoint: endpoint, httpClient: httpClient)
+        let client = try await makeClient(endpoint: endpoint)
         disposer = {
           try await client.closeSession()
           clientDisposer()

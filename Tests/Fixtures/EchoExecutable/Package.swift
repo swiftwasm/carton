@@ -4,5 +4,6 @@ import PackageDescription
 let package = Package(
   name: "Foo",
   products: [.executable(name: "my-echo", targets: ["my-echo"])],
+  dependencies: [.package(path: "../../..")],
   targets: [.target(name: "my-echo")]
 )

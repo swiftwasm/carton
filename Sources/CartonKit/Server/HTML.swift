@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import TSCBasic
-import Vapor
+import CartonHelpers
 
 enum HTMLError: String, Error {
   case customIndexPageWithoutHead = """
@@ -25,16 +24,7 @@ public struct HTML {
   let value: String
 }
 
-extension HTML: ResponseEncodable {
-  public func encodeResponse(for request: Request) -> EventLoopFuture<Response> {
-    var headers = HTTPHeaders()
-    headers.add(name: .contentType, value: "text/html")
-    return request.eventLoop.makeSucceededFuture(
-      .init(
-        status: .ok, headers: headers, body: .init(string: value)
-      ))
-  }
-
+extension HTML {
   public static func readCustomIndexPage(at path: String?, on fileSystem: FileSystem) throws
     -> String?
   {
@@ -42,7 +32,8 @@ extension HTML: ResponseEncodable {
       let content = try localFileSystem.readFileContents(
         customIndexPage.isAbsolutePath
           ? AbsolutePath(validating: customIndexPage)
-          : AbsolutePath(localFileSystem.currentWorkingDirectory!, customIndexPage)
+          : AbsolutePath(
+            validating: customIndexPage, relativeTo: localFileSystem.currentWorkingDirectory!)
       ).description
 
       guard content.contains("</head>") else {

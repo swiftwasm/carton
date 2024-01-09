@@ -12,19 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import AsyncHTTPClient
 import CartonHelpers
 import Foundation
-import NIOFoundationCompat
-import TSCBasic
-import TSCUtility
 
-public func processStringOutput(_ arguments: [String]) throws -> String? {
-  try ByteString(processDataOutput(arguments)).validDescription
+internal func processStringOutput(_ arguments: [String]) throws -> String? {
+  let process = Process()
+  process.executableURL = URL(fileURLWithPath: arguments[0])
+  process.arguments = Array(arguments.dropFirst())
+  let pipe = Pipe()
+  process.standardOutput = pipe
+  try process.run()
+  process.waitUntilExit()
+  let data = pipe.fileHandleForReading.readDataToEndOfFile()
+  return String(data: data, encoding: .utf8)
 }
 
-// swiftlint:disable:next force_try
-private let versionRegEx = try! RegEx(pattern: "(?:swift-)?(.+-.)-.+\\.tar.gz")
+private let versionRegEx = #/(?:swift-)?(.+-.)-.+\\.tar.gz/#
 
 private struct Release: Decodable {
   struct Asset: Decodable {
@@ -109,10 +112,10 @@ public class ToolchainSystem {
     if let versionSpec = versionSpec {
       if let url = URL(string: versionSpec),
         let filename = url.pathComponents.last,
-        let match = versionRegEx.matchGroups(in: filename).first?.first
+        let match = try versionRegEx.firstMatch(in: filename)?.0
       {
         terminal.logLookup("Inferred swift version: ", match)
-        return match
+        return String(match)
       } else {
         return versionSpec
       }
@@ -132,7 +135,7 @@ public class ToolchainSystem {
     let swiftPath = installationPath.appending(components: "usr", "bin", "swift")
 
     terminal.logLookup("- checking Swift compiler path: ", swiftPath)
-    guard fileSystem.isFile(swiftPath) else { return nil }
+    guard fileSystem.exists(swiftPath, followSymlink: true) else { return nil }
 
     terminal.write("Inferring basic settings...\n", inColor: .yellow)
     terminal.logLookup("- swift executable: ", swiftPath)
@@ -145,9 +148,9 @@ public class ToolchainSystem {
 
   private func inferDownloadURL(
     from version: String,
-    _ client: HTTPClient,
+    _ client: URLSession,
     _ terminal: InteractiveWriter
-  ) throws -> Foundation.URL? {
+  ) async throws -> Foundation.URL? {
     let releaseURL = """
       https://api.github.com/repos/swiftwasm/swift/releases/tags/\
       swift-\(version)
@@ -155,21 +158,17 @@ public class ToolchainSystem {
 
     terminal.logLookup("Fetching release assets from ", releaseURL)
     let decoder = JSONDecoder()
-    let request = try HTTPClient.Request.get(url: releaseURL)
-    let release = try tsc_await {
-      client.execute(request: request).flatMapResult { response -> Result<Release, Error> in
-        guard (200..<300).contains(response.status.code), let body = response.body else {
-          return .failure(
-            ToolchainError.invalidResponse(
-              url: releaseURL,
-              status: response.status.code
-            ))
-        }
-        terminal.write("Response contained body, parsing it now...\n", inColor: .green)
-
-        return Result { try decoder.decode(Release.self, from: body) }
-      }.whenComplete($0)
+    let request = URLRequest(url: URL(string: releaseURL)!)
+    let (data, response) = try await URLSession.shared.data(for: request)
+    guard let httpResponse = response as? HTTPURLResponse else {
+      throw ToolchainError.invalidResponse(url: releaseURL, status: -1)
     }
+    guard 200..<300 ~= httpResponse.statusCode else {
+      throw ToolchainError.invalidResponse(url: releaseURL, status: httpResponse.statusCode)
+    }
+    terminal.write("Response contained body, parsing it now...\n", inColor: .green)
+
+    let release = try decoder.decode(Release.self, from: data)
 
     #if arch(x86_64)
       let archSuffix = "x86_64"
@@ -194,14 +193,17 @@ public class ToolchainSystem {
     let nameSuffixes = platformSuffixes.map { "\($0)_\(archSuffix)" }
     return release.assets.map(\.url).filter { url in
       nameSuffixes.contains { url.absoluteString.contains($0) }
+        && !url.absoluteString.contains(".artifactbundle.")
     }.first
   }
 
   private func inferLinuxDistributionSuffix() throws -> String {
-    guard let releaseFile = [
-      AbsolutePath.root.appending(components: "etc", "lsb-release"),
-      AbsolutePath.root.appending(components: "etc", "os-release"),
-    ].first(where: fileSystem.isFile) else {
+    guard
+      let releaseFile = [
+        AbsolutePath.root.appending(components: "etc", "lsb-release"),
+        AbsolutePath.root.appending(components: "etc", "os-release"),
+      ].first(where: fileSystem.isFile)
+    else {
       throw ToolchainError.unsupportedOperatingSystem
     }
 
@@ -222,7 +224,7 @@ public class ToolchainSystem {
   /** Infer `swift` binary path matching a given version if any is present, or infer the
    version from the `.swift-version` file. If neither version is installed, download it.
    */
-  func inferSwiftPath(
+  public func inferSwiftPath(
     from versionSpec: String? = nil,
     _ terminal: InteractiveWriter
   ) async throws -> (AbsolutePath, String) {
@@ -246,15 +248,13 @@ public class ToolchainSystem {
       }
     }
 
-    let client = HTTPClient(eventLoopGroupProvider: .createNew)
-    // swiftlint:disable:next force_try
-    defer { try! client.syncShutdown() }
+    let client = URLSession.shared
 
     let downloadURL: Foundation.URL
 
     if let specURL = specURL {
       downloadURL = specURL
-    } else if let inferredURL = try inferDownloadURL(from: swiftVersion, client, terminal) {
+    } else if let inferredURL = try await inferDownloadURL(from: swiftVersion, client, terminal) {
       downloadURL = inferredURL
     } else {
       terminal.write("The Swift version \(swiftVersion) was not found\n", inColor: .red)
@@ -270,7 +270,6 @@ public class ToolchainSystem {
       version: swiftVersion,
       from: downloadURL,
       to: cartonToolchainResolver.cartonSDKPath,
-      client,
       terminal
     )
 
@@ -297,9 +296,5 @@ public class ToolchainSystem {
     else { return nil }
 
     return version
-  }
-
-  public func setLocalSwiftVersion(_ version: String) throws {
-    try fileSystem.writeFileContents(swiftVersionPath, bytes: ByteString([UInt8](version.utf8)))
   }
 }

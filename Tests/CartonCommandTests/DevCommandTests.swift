@@ -15,58 +15,45 @@
 //  Created by Cavelle Benjamin on Dec/20/20.
 //
 
-import AsyncHTTPClient
+import Foundation
 import XCTest
 
 @testable import CartonCLI
 
-final class DevCommandTests: XCTestCase {
-  private var client: HTTPClient?
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
 
-  override func tearDown() {
-    try? client?.syncShutdown()
-    client = nil
-  }
+final class DevCommandTests: XCTestCase {
+  private var client: URLSession?
 
   #if os(macOS)
-    func testWithNoArguments() throws {
+    func testWithNoArguments() async throws {
       // FIXME: Don't assume a specific port is available since it can be used by others or tests
-      try withFixture("EchoExecutable") { packageDirectory in
-        guard
-          let process = executeCommand(
-            command: "carton dev --verbose",
-            shouldPrintOutput: true,
-            cwd: packageDirectory.url
-          )
-        else {
-          XCTFail("Could not create process")
-          return
-        }
+      try await withFixture("EchoExecutable") { packageDirectory in
+        let (process, _, _) = try swiftRunProcess(
+          ["carton", "dev", "--verbose", "--skip-auto-open"],
+          packageDirectory: packageDirectory.url
+        )
 
-        checkForExpectedContent(process: process, at: "http://127.0.0.1:8080")
+        await checkForExpectedContent(process: process, at: "http://127.0.0.1:8080")
       }
     }
 
-    func testWithArguments() throws {
+    func testWithArguments() async throws {
       // FIXME: Don't assume a specific port is available since it can be used by others or tests
-      try withFixture("EchoExecutable") { packageDirectory in
-        guard
-          let process = executeCommand(
-            command: "carton dev --verbose --port 8081",
-            shouldPrintOutput: true,
-            cwd: packageDirectory.url
-          )
-        else {
-          XCTFail("Could not create process")
-          return
-        }
+      try await withFixture("EchoExecutable") { packageDirectory in
+        let (process, _, _) = try swiftRunProcess(
+          ["carton", "dev", "--verbose", "--port", "8081", "--skip-auto-open"],
+          packageDirectory: packageDirectory.url
+        )
 
-        checkForExpectedContent(process: process, at: "http://127.0.0.1:8081")
+        await checkForExpectedContent(process: process, at: "http://127.0.0.1:8081")
       }
     }
   #endif
 
-  func checkForExpectedContent(process: Process, at url: String) {
+  func checkForExpectedContent(process: Process, at url: String) async {
     // client time out for connecting and responding
     let timeOut: Int64 = 60
 
@@ -90,16 +77,10 @@ final class DevCommandTests: XCTestCase {
       </html>
       """
 
-    let timeout = HTTPClient.Configuration.Timeout(
-      connect: .seconds(timeOut),
-      read: .seconds(timeOut)
-    )
+    client = .shared
 
-    client = HTTPClient(
-      eventLoopGroupProvider: .createNew,
-      configuration: HTTPClient.Configuration(timeout: timeout))
-
-    var response: HTTPClient.Response?
+    var response: HTTPURLResponse?
+    var responseBody: Data?
     var count = 0
 
     // give the server some time to start
@@ -110,18 +91,30 @@ final class DevCommandTests: XCTestCase {
       }
 
       sleep(delay)
-      response = try? client?.get(url: url).wait()
       count += 1
+
+      guard
+        let (body, urlResponse) = try? await client?.data(
+          for: URLRequest(
+            url: URL(string: url)!,
+            cachePolicy: .reloadIgnoringCacheData,
+            timeoutInterval: TimeInterval(timeOut)
+          )
+        )
+      else {
+        continue
+      }
+      response = urlResponse as? HTTPURLResponse
+      responseBody = body
     } while count < polls && response == nil
 
     // end the process regardless of success
     process.terminate()
 
     if let response = response {
-      XCTAssertTrue(response.status == .ok, "Response was not ok")
+      XCTAssertTrue(response.statusCode == 200, "Response was not ok")
 
-      guard let data = (response.body.flatMap { $0.getData(at: 0, length: $0.readableBytes) })
-      else {
+      guard let data = responseBody else {
         XCTFail("Could not map data")
         return
       }
