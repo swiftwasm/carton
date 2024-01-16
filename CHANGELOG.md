@@ -2,6 +2,16 @@
 
 This release adds SwiftWasm 5.9 toolchain support.
 
+**Merged pull requests:**
+
+- Update CI Action by @STREGA in https://github.com/swiftwasm/carton/pull/403
+- Add Swift 5.9 to Build Action by @STREGA in https://github.com/swiftwasm/carton/pull/409
+- Swift 5.9 toolchain & macOS Sonoma beta by @furby-tm in https://github.com/swiftwasm/carton/pull/402
+- Add 5.9 support by @STREGA in https://github.com/swiftwasm/carton/pull/412
+- Stop bothering WASI apps including unimplemented syscalls  by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/415
+- Update default toolchain version to 5.9.1 by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/416
+
+
 # 0.19.1 (9 May 2023)
 
 This release fixes the wrong toolchain version installed in docker image.
