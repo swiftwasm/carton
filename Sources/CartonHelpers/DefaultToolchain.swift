@@ -12,5 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// TODO: make this `public let defaultToolchainVersion = "wasm-5.9.0-RELEASE"`
-public let defaultToolchainVersion = "wasm-5.9-SNAPSHOT-2023-12-12-a"
+public let defaultToolchainVersion = "wasm-5.9.1-RELEASE"
