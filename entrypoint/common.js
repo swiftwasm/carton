@@ -43,9 +43,9 @@ export const WasmRunner = (rawOptions, SwiftRuntime) => {
     },
   });
 
-  const createWasmImportObject = (extraWasmImports) => {
+  const createWasmImportObject = (extraWasmImports, wasmModule) => {
     const importObject = {
-      wasi_snapshot_preview1: wrapWASI(wasi),
+      wasi_snapshot_preview1: wrapWASI(wasi, wasmModule),
     };
 
     if (swift) {
@@ -72,11 +72,10 @@ export const WasmRunner = (rawOptions, SwiftRuntime) => {
           throw new Error("Detected stack buffer overflow.");
         },
       };
-      const importObject = createWasmImportObject(extraWasmImports);
-      const module = await WebAssembly.instantiate(wasmBytes, importObject);
-
-      // Node support
-      const instance = "instance" in module ? module.instance : module;
+      const module = await WebAssembly.compile(wasmBytes);
+      const importObject = createWasmImportObject(extraWasmImports, module);
+      console.log(importObject)
+      const instance = await WebAssembly.instantiate(module, importObject);
 
       if (swift && instance.exports.swjs_library_version) {
         swift.setInstance(instance);
@@ -132,7 +131,7 @@ const createWasmFS = (onStdout, onStderr) => {
   return wasmFs;
 };
 
-const wrapWASI = (wasiObject) => {
+const wrapWASI = (wasiObject, wasmModule) => {
   // PATCH: @wasmer-js/wasi@0.x forgets to call `refreshMemory` in `clock_res_get`,
   // which writes its result to memory view. Without the refresh the memory view,
   // it accesses a detached array buffer if the memory is grown by malloc.
@@ -148,5 +147,26 @@ const wrapWASI = (wasiObject) => {
     wasiObject.refreshMemory();
     return original_clock_res_get(clockId, resolution);
   };
+
+  // @wasmer-js/wasi polyfill does not support all WASI syscalls like `sock_accept`.
+  // So we need to insert a dummy function for unimplemented syscalls.
+  const __WASI_ERRNO_NOTSUP = 58;
+  for (const importEntry of WebAssembly.Module.imports(wasmModule)) {
+    const { importModule, importName, importKind } = importEntry;
+    // Skip dummy import entries for non-WASI and already implemented syscalls.
+    if (
+      importModule !== "wasi_snapshot_preview1" ||
+      importKind !== "function" ||
+      wasiObject.wasiImport[importName]
+    ) {
+      continue;
+    }
+
+    wasiObject.wasiImport[importName] = () => {
+      console.warn(`WASI syscall ${importModule}.${importName} is not supported, returning ENOTSUP.`);
+      return __WASI_ERRNO_NOTSUP;
+    }
+  }
+
   return wasiObject.wasiImport;
 };
