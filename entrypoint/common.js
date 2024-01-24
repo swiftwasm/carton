@@ -74,7 +74,6 @@ export const WasmRunner = (rawOptions, SwiftRuntime) => {
       };
       const module = await WebAssembly.compile(wasmBytes);
       const importObject = createWasmImportObject(extraWasmImports, module);
-      console.log(importObject)
       const instance = await WebAssembly.instantiate(module, importObject);
 
       if (swift && instance.exports.swjs_library_version) {
