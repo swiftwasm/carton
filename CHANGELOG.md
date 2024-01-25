@@ -1,3 +1,7 @@
+# 0.20.1 (25 Jan 2024)
+
+This release fixes a bug in `carton test` where it reports missing `sock_accept` syscall.
+
 # 0.20.0 (30 Sep 2023)
 
 This release adds SwiftWasm 5.9 toolchain support.
