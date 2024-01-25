@@ -151,7 +151,7 @@ const wrapWASI = (wasiObject, wasmModule) => {
   // So we need to insert a dummy function for unimplemented syscalls.
   const __WASI_ERRNO_NOTSUP = 58;
   for (const importEntry of WebAssembly.Module.imports(wasmModule)) {
-    const { importModule, importName, importKind } = importEntry;
+    const { module: importModule, name: importName, kind: importKind } = importEntry;
     // Skip dummy import entries for non-WASI and already implemented syscalls.
     if (
       importModule !== "wasi_snapshot_preview1" ||
