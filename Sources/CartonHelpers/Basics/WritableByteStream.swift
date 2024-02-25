@@ -9,6 +9,7 @@
 */
 
 import Dispatch
+import Foundation
 
 /// Convert an integer in 0..<16 to its hexadecimal ASCII character.
 private func hexdigit(_ value: UInt8) -> UInt8 {

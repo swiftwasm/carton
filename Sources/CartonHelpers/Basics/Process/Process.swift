@@ -375,59 +375,6 @@ public final class Process {
   ///   - arguments: The arguments for the subprocess.
   ///   - environment: The environment to pass to subprocess. By default the current process environment
   ///     will be inherited.
-  ///   - workingDirectory: The path to the directory under which to run the process.
-  ///   - outputRedirection: How process redirects its output. Default value is .collect.
-  ///   - startNewProcessGroup: If true, a new progress group is created for the child making it
-  ///     continue running even if the parent is killed or interrupted. Default value is true.
-  ///   - loggingHandler: Handler for logging messages
-  ///
-  public init(
-    arguments: [String],
-    environmentBlock: ProcessEnvironmentBlock = ProcessEnv.block,
-    workingDirectory: AbsolutePath,
-    outputRedirection: OutputRedirection = .collect,
-    startNewProcessGroup: Bool = true,
-    loggingHandler: LoggingHandler? = .none
-  ) {
-    self.arguments = arguments
-    self.environmentBlock = environmentBlock
-    self.workingDirectory = workingDirectory
-    self.outputRedirection = outputRedirection
-    self.startNewProcessGroup = startNewProcessGroup
-    self.loggingHandler = loggingHandler
-  }
-
-  @_disfavoredOverload
-  @available(macOS 10.15, *)
-  @available(
-    *, deprecated,
-    renamed:
-      "init(arguments:environmentBlock:workingDirectory:outputRedirection:startNewProcessGroup:loggingHandler:)"
-  )
-  public convenience init(
-    arguments: [String],
-    environment: [String: String] = ProcessEnv.vars,
-    workingDirectory: AbsolutePath,
-    outputRedirection: OutputRedirection = .collect,
-    startNewProcessGroup: Bool = true,
-    loggingHandler: LoggingHandler? = .none
-  ) {
-    self.init(
-      arguments: arguments,
-      environmentBlock: .init(environment),
-      workingDirectory: workingDirectory,
-      outputRedirection: outputRedirection,
-      startNewProcessGroup: startNewProcessGroup,
-      loggingHandler: loggingHandler
-    )
-  }
-
-  /// Create a new process instance.
-  ///
-  /// - Parameters:
-  ///   - arguments: The arguments for the subprocess.
-  ///   - environment: The environment to pass to subprocess. By default the current process environment
-  ///     will be inherited.
   ///   - outputRedirection: How process redirects its output. Default value is .collect.
   ///   - verbose: If true, launch() will print the arguments of the subprocess before launching it.
   ///   - startNewProcessGroup: If true, a new progress group is created for the child making it
@@ -706,25 +653,6 @@ public final class Process {
       #endif
       posix_spawn_file_actions_init(&fileActions)
       defer { posix_spawn_file_actions_destroy(&fileActions) }
-
-      if let workingDirectory = workingDirectory?.pathString {
-        #if canImport(Darwin)
-          // The only way to set a workingDirectory is using an availability-gated initializer, so we don't need
-          // to handle the case where the posix_spawn_file_actions_addchdir_np method is unavailable. This check only
-          // exists here to make the compiler happy.
-          if #available(macOS 10.15, *) {
-            posix_spawn_file_actions_addchdir_np(&fileActions, workingDirectory)
-          }
-        #elseif os(Linux)
-          guard SPM_posix_spawn_file_actions_addchdir_np_supported() else {
-            throw Process.Error.workingDirectoryNotSupported
-          }
-
-          SPM_posix_spawn_file_actions_addchdir_np(&fileActions, workingDirectory)
-        #else
-          throw Process.Error.workingDirectoryNotSupported
-        #endif
-      }
 
       var stdinPipe: [Int32] = [-1, -1]
       try open(pipe: &stdinPipe)

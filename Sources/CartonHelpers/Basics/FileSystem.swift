@@ -336,7 +336,11 @@ extension FileSystem {
 
   public func hasQuarantineAttribute(_ path: AbsolutePath) -> Bool { false }
 
-  public func hasAttribute(_ name: FileSystemAttribute, _ path: AbsolutePath) -> Bool { false }
+  public func hasAttribute(_ name: FileSystemAttribute, _ path: AbsolutePath) -> Bool {
+    #if canImport(Darwin)
+    false
+    #endif
+  }
 
   public func itemReplacementDirectories(for path: AbsolutePath) throws -> [AbsolutePath] { [] }
 }
@@ -396,8 +400,6 @@ private struct LocalFileSystem: FileSystem {
       let bufLength = getxattr(path.pathString, name.rawValue, nil, 0, 0, 0)
 
       return bufLength > 0
-    #else
-      return false
     #endif
   }
 
@@ -414,7 +416,7 @@ private struct LocalFileSystem: FileSystem {
       let fsr: UnsafePointer<Int8> = cwdStr.fileSystemRepresentation
       defer { fsr.deallocate() }
 
-      return try? AbsolutePath(String(cString: fsr))
+      return try? AbsolutePath(validating: String(cString: fsr))
     #endif
   }
 
