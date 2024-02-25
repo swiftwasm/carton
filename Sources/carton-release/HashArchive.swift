@@ -15,6 +15,7 @@
 import ArgumentParser
 import CartonHelpers
 import WasmTransformer
+import Foundation
 
 struct HashArchive: AsyncParsableCommand {
   /** Converts a hexadecimal hash string to Swift code that represents an archive of static assets.
@@ -48,7 +49,7 @@ struct HashArchive: AsyncParsableCommand {
     for entrypoint in ["dev", "bundle", "test", "testNode"] {
       let filename = "\(entrypoint).js"
       var arguments = [
-        "npx", "esbuild", "--bundle", "entrypoint/\(filename)", "--outfile=static/\(filename)",
+        "esbuild", "--bundle", "entrypoint/\(filename)", "--outfile=static/\(filename)",
       ]
 
       if entrypoint == "testNode" {
@@ -63,7 +64,10 @@ struct HashArchive: AsyncParsableCommand {
         ])
       }
 
-      try await Process.run(arguments, terminal)
+      guard let npx = Process.findExecutable("npx") else {
+        fatalError("\"npx\" command not found in PATH")
+      }
+      try Foundation.Process.run(npx.asURL, arguments: arguments).waitUntilExit()
       let entrypointPath = try AbsolutePath(validating: filename, relativeTo: staticPath)
       let dotFilesEntrypointPath = dotFilesStaticPath.appending(component: filename)
       try localFileSystem.removeFileTree(dotFilesEntrypointPath)
