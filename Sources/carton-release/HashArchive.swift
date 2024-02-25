@@ -14,8 +14,8 @@
 
 import ArgumentParser
 import CartonHelpers
-import WasmTransformer
 import Foundation
+import WasmTransformer
 
 struct HashArchive: AsyncParsableCommand {
   /** Converts a hexadecimal hash string to Swift code that represents an archive of static assets.

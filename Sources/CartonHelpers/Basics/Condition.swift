@@ -8,52 +8,52 @@
  See http://swift.org/CONTRIBUTORS.txt for Swift project authors
 */
 #if !_runtime(_ObjC)
-@preconcurrency import Foundation
+  @preconcurrency import Foundation
 #else
-import Foundation
+  import Foundation
 #endif
 
 /// Simple wrapper around NSCondition.
 /// - SeeAlso: NSCondition
 public struct Condition {
-    private let _condition = NSCondition()
+  private let _condition = NSCondition()
 
-    /// Create a new condition.
-    public init() {}
+  /// Create a new condition.
+  public init() {}
 
-    /// Wait for the condition to become available.
-    public func wait() {
-        _condition.wait()
-    }
+  /// Wait for the condition to become available.
+  public func wait() {
+    _condition.wait()
+  }
 
-    /// Blocks the current thread until the condition is signaled or the specified time limit is reached.
-    ///
-    /// - Returns: true if the condition was signaled; otherwise, false if the time limit was reached.
-    public func wait(until limit: Date) -> Bool {
-        return _condition.wait(until: limit)
-    }
+  /// Blocks the current thread until the condition is signaled or the specified time limit is reached.
+  ///
+  /// - Returns: true if the condition was signaled; otherwise, false if the time limit was reached.
+  public func wait(until limit: Date) -> Bool {
+    return _condition.wait(until: limit)
+  }
 
-    /// Signal the availability of the condition (awake one thread waiting on
-    /// the condition).
-    public func signal() {
-        _condition.signal()
-    }
+  /// Signal the availability of the condition (awake one thread waiting on
+  /// the condition).
+  public func signal() {
+    _condition.signal()
+  }
 
-    /// Broadcast the availability of the condition (awake all threads waiting
-    /// on the condition).
-    public func broadcast() {
-        _condition.broadcast()
-    }
+  /// Broadcast the availability of the condition (awake all threads waiting
+  /// on the condition).
+  public func broadcast() {
+    _condition.broadcast()
+  }
 
-    /// A helper method to execute the given body while condition is locked.
-    /// - Note: Will ensure condition unlocks even if `body` throws.
-    public func whileLocked<T>(_ body: () throws -> T) rethrows -> T {
-        _condition.lock()
-        defer { _condition.unlock() }
-        return try body()
-    }
+  /// A helper method to execute the given body while condition is locked.
+  /// - Note: Will ensure condition unlocks even if `body` throws.
+  public func whileLocked<T>(_ body: () throws -> T) rethrows -> T {
+    _condition.lock()
+    defer { _condition.unlock() }
+    return try body()
+  }
 }
 
 #if compiler(>=5.7)
-extension Condition: Sendable {}
+  extension Condition: Sendable {}
 #endif

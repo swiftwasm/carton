@@ -18,8 +18,9 @@ import Foundation
 import NIOCore
 import NIOPosix
 import WebDriverClient
+
 #if canImport(FoundationNetworking)
-import FoundationNetworking
+  import FoundationNetworking
 #endif
 
 private enum Constants {
