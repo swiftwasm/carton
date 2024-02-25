@@ -44,7 +44,7 @@ jobs:
       - name: Build the project
         run: |
           swift -v
-          swift build -Xswiftc -Xfrontend -Xswiftc -validate-tbd-against-ir=none
+          swift build
 
       - name: Build and install JavaScript and sanitizer resources
         run: |
@@ -60,7 +60,7 @@ jobs:
           if [ -e /home/runner/.wasmer/wasmer.sh ]; then
             source /home/runner/.wasmer/wasmer.sh
           fi
-          swift test -Xswiftc -Xfrontend -Xswiftc -validate-tbd-against-ir=none
+          swift test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
