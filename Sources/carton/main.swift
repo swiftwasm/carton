@@ -131,7 +131,7 @@ func makeTemporaryFile(prefix: String, suffix: String, in directory: URL) -> URL
     defer { copy.deallocate() }
     template.copyBytes(to: copy)
     copy[template.count] = 0
-    guard mkstemp(copy.baseAddress) != -1 else {
+    guard mkstemp(copy.baseAddress!) != -1 else {
       fatalError("Failed to create a temporary directory")
     }
     return String(cString: copy.baseAddress!)

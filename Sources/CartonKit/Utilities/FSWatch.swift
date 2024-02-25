@@ -151,7 +151,7 @@ private protocol _FileWatcher {
       var overlapped: OVERLAPPED
       var terminate: HANDLE
       var buffer: UnsafeMutableBufferPointer<DWORD>  // buffer must be DWORD-aligned
-      var thread: TSCBasic.Thread?
+      var thread: Thread?
 
       public init(directory handle: HANDLE, _ path: String) {
         self.hDirectory = handle
@@ -586,7 +586,7 @@ private protocol _FileWatcher {
 
     /// Spawns a thread that collects events and reports them after the settle period.
     private func startReportThread() {
-      let thread = TSCBasic.Thread {
+      let thread = Thread {
         var endLoop = false
         while !endLoop {
 

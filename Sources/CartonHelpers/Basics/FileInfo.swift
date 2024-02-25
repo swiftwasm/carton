@@ -8,7 +8,11 @@
  See http://swift.org/CONTRIBUTORS.txt for Swift project authors
  */
 
+#if !_runtime(_ObjC)
+@preconcurrency import Foundation
+#else
 import Foundation
+#endif
 
 #if swift(<5.6)
   extension FileAttributeType: UnsafeSendable {}

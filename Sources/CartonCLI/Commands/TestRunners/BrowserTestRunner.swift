@@ -18,6 +18,9 @@ import Foundation
 import NIOCore
 import NIOPosix
 import WebDriverClient
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 private enum Constants {
   static let entrypoint = Entrypoint(fileName: "test.js", sha256: testEntrypointSHA256)

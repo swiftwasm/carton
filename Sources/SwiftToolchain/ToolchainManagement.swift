@@ -14,6 +14,9 @@
 
 import CartonHelpers
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 
 internal func processStringOutput(_ arguments: [String]) throws -> String? {
   let process = Process()

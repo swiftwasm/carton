@@ -13,6 +13,25 @@
 // limitations under the License.
 
 import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+
+/// Until we get "async" implementations of URLSession in corelibs-foundation, we use our own polyfill.
+extension URLSession {
+  public func data(for request: URLRequest) async throws -> (Data, URLResponse) {
+    return try await withCheckedThrowingContinuation { continuation in
+      let task = self.dataTask(with: request) { (data, response, error) in
+        guard let data = data, let response = response else {
+          let error = error ?? URLError(.badServerResponse)
+          return continuation.resume(throwing: error)
+        }
+        continuation.resume(returning: (data, response))
+      }
+      task.resume()
+    }
+  }
+}
+#endif
 
 public enum WebDriverError: Error {
   case newSessionFailed

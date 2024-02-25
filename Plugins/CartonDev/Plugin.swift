@@ -133,7 +133,7 @@ private func createTemporaryDirectory(under directory: Path) throws -> Path {
     defer { copy.deallocate() }
     template.copyBytes(to: copy)
     copy[template.count] = 0
-    guard let result = mkdtemp(copy.baseAddress) else {
+    guard let result = mkdtemp(copy.baseAddress!) else {
       throw CartonPluginError("Failed to create a temporary directory")
     }
     return String(cString: result)
