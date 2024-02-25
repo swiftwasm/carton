@@ -15,19 +15,19 @@
 //  Created by Jed Fox on 12/6/20.
 //
 
-private let webpackRegex = #/"at (.+) \\(webpack:///(.+?)\\)/#
-private let wasmRegex = #/at (.+) \\(<anonymous>:(.+?)\\)/#
+private let webpackRegex = #/at (.+) \(webpack:///(.+?)\)/#
+private let wasmRegex = #/at (.+) \(<anonymous>:(.+?)\)/#
 
 extension StringProtocol {
   var chromeStackTrace: [StackTraceItem] {
     split(separator: "\n").dropFirst().compactMap {
-        if let webpackMatch = try? webpackRegex.firstMatch(in: String($0)) {
-          let symbol = String(webpackMatch.output.0)
-          let location = String(webpackMatch.output.3)
+      if let webpackMatch = try? webpackRegex.firstMatch(in: String($0)) {
+        let symbol = String(webpackMatch.output.1)
+        let location = String(webpackMatch.output.2)
         return StackTraceItem(symbol: symbol, location: location, kind: .javaScript)
       } else if let wasmMatch = try? wasmRegex.firstMatch(in: String($0)) {
-        let symbol = String(wasmMatch.output.0)
-        let location = String(wasmMatch.output.3)
+        let symbol = String(wasmMatch.output.1)
+        let location = String(wasmMatch.output.2)
         return StackTraceItem(
           symbol: demangle(symbol),
           location: location,
