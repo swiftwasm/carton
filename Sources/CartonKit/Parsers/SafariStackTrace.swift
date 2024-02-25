@@ -15,24 +15,24 @@
 //  Created by Jed Fox on 12/6/20.
 //
 
-private let jsRegex = #/(.+?)(?:@(?:\\[(?:native|wasm) code\\]|(.+)))?$/#
-private let wasmRegex = #/"<\\?>\\.wasm-function\\[(.+)\\]@\\[wasm code\\]/#
+private let jsRegex = #/(.+?)(?:@(?:\[(?:native|wasm) code\]|(.+)))?$/#
+private let wasmRegex = #/<\?>\.wasm-function\[(.+)\]@\[wasm code\]/#
 
 extension StringProtocol {
   var safariStackTrace: [StackTraceItem] {
     split(separator: "\n").compactMap {
       if let wasmMatch = try? wasmRegex.firstMatch(in: String($0)) {
-        let symbol = String(wasmMatch.output)
+        let symbol = String(wasmMatch.output.1)
         return StackTraceItem(
           symbol: demangle(symbol),
           location: nil,
           kind: .webAssembly
         )
       } else if let jsMatch = try? jsRegex.firstMatch(in: String($0)) {
-        let symbol = String(jsMatch.output.0)
+        let symbol = String(jsMatch.output.1)
         let loc: String?
-        if jsMatch.output.2 == nil && !jsMatch.output.1.isEmpty {
-          loc = String(jsMatch.1)
+        if let foundLoc = jsMatch.output.2, !foundLoc.isEmpty {
+          loc = String(foundLoc)
         } else {
           loc = nil
         }
