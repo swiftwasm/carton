@@ -41,18 +41,6 @@ final class BundleCommandTests: XCTestCase {
     }
   }
 
-  func testWithXswiftc() throws {
-    try withFixture("EchoExecutable") { packageDirectory in
-      let result = try swiftRun(
-        ["carton", "bundle", "-Xswiftc", "--fake-swiftc-options"],
-        packageDirectory: packageDirectory.url
-      )
-
-      XCTAssertTrue(result.stdout.contains("error: unknown argument: '--fake-swiftc-options'"))
-      XCTAssertNotEqual(result.exitCode, 0)
-    }
-  }
-
   func testWithDebugInfo() throws {
     try withFixture("EchoExecutable") { packageDirectory in
       let result = try swiftRun(

@@ -45,11 +45,22 @@ internal func deriveResourcesPaths(
   sourceTargets: [any PackagePlugin.Target],
   package: Package
 ) -> [Path] {
+  return deriveResourcesPaths(
+    buildDirectory: productArtifactPath.removingLastComponent(),
+    sourceTargets: sourceTargets, package: package
+  )
+}
+
+internal func deriveResourcesPaths(
+  buildDirectory: Path,
+  sourceTargets: [any PackagePlugin.Target],
+  package: Package
+) -> [Path] {
   sourceTargets.compactMap { target -> Path? in
     // NOTE: The resource bundle file name is constructed from `displayName` instead of `id` for some reason
     // https://github.com/apple/swift-package-manager/blob/swift-5.9.2-RELEASE/Sources/PackageLoading/PackageBuilder.swift#L908
     let bundleName = package.displayName + "_" + target.name + ".resources"
-    let resourcesPath = productArtifactPath.removingLastComponent().appending(subpath: bundleName)
+    let resourcesPath = buildDirectory.appending(subpath: bundleName)
     guard FileManager.default.fileExists(atPath: resourcesPath.string) else { return nil }
     return resourcesPath
   }

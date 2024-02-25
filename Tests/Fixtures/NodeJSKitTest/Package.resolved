@@ -64,15 +64,6 @@
       }
     },
     {
-      "identity" : "swift-tools-support-core",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-tools-support-core.git",
-      "state" : {
-        "branch" : "main",
-        "revision" : "930e82e5ae2432c71fe05f440b5d778285270bdb"
-      }
-    },
-    {
       "identity" : "wasmtransformer",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swiftwasm/WasmTransformer",

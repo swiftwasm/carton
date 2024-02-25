@@ -112,7 +112,9 @@ struct Bundle: AsyncParsableCommand {
         try localFileSystem.move(from: mainWasmPath, to: wasmOutputFilePath)
       }
     } else {
-      try localFileSystem.move(from: mainWasmPath, to: wasmOutputFilePath)
+      if mainWasmPath != wasmOutputFilePath {
+        try localFileSystem.move(from: mainWasmPath, to: wasmOutputFilePath)
+      }
     }
 
     try copyToBundle(
@@ -215,7 +217,7 @@ struct Bundle: AsyncParsableCommand {
 
 extension ByteString {
   fileprivate var hexChecksum: String {
-    SHA256().hash(self).hexadecimalRepresentation
+    String(SHA256().hash(self).hexadecimalRepresentation.prefix(16))
   }
 }
 
