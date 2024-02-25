@@ -107,11 +107,7 @@ extension ToolchainSystem {
       ]
     }
     terminal.logLookup("Unpacking the archive: ", arguments.joined(separator: " "))
-    try Foundation.Process.run(
-      URL(fileURLWithPath: arguments[0]),
-      arguments: Array(arguments.dropFirst())
-    )
-    .waitUntilExit()
+    try await Process.run(arguments, terminal)
 
     return installationPath
   }
