@@ -19,10 +19,12 @@ import PackagePlugin
 struct CartonTestPlugin: CommandPlugin {
   struct Options {
     var environment: Environment
+    var prebuiltTestBundlePath: String?
 
     static func parse(from extractor: inout ArgumentExtractor) throws -> Options {
       let environment = try Environment.parse(from: &extractor)
-      return Options(environment: environment)
+      let prebuiltTestBundlePath = extractor.extractOption(named: "prebuilt-test-bundle-path").first
+      return Options(environment: environment, prebuiltTestBundlePath: prebuiltTestBundlePath)
     }
   }
 
@@ -33,16 +35,18 @@ struct CartonTestPlugin: CommandPlugin {
     try checkHelpFlag(arguments, subcommand: "test", context: context)
 
     let productName = "\(context.package.displayName)PackageTests"
-    let wasmFileName = "\(productName).wasm"
 
     if arguments.first == "internal-get-build-command" {
       var extractor = ArgumentExtractor(Array(arguments.dropFirst()))
       let options = try Options.parse(from: &extractor)
-      var buildParameters = Environment.Parameters()
-      options.environment.applyBuildParameters(&buildParameters)
-      var buildCommand = ["build", "--product", productName]
-      buildCommand += buildParameters.otherSwiftcFlags.flatMap { ["-Xswiftc", $0] }
-      buildCommand += buildParameters.otherLinkerFlags.flatMap { ["-Xlinker", $0] }
+      var buildCommand: [String] = []
+      if options.prebuiltTestBundlePath == nil {
+        var buildParameters = Environment.Parameters()
+        options.environment.applyBuildParameters(&buildParameters)
+        buildCommand = ["build", "--product", productName]
+        buildCommand += buildParameters.otherSwiftcFlags.flatMap { ["-Xswiftc", $0] }
+        buildCommand += buildParameters.otherLinkerFlags.flatMap { ["-Xlinker", $0] }
+      }
 
       let outputFile = extractor.extractOption(named: "output").last!
       try buildCommand.joined(separator: "\n").write(
@@ -53,21 +57,25 @@ struct CartonTestPlugin: CommandPlugin {
     var extractor = ArgumentExtractor(arguments)
     let options = try Options.parse(from: &extractor)
     let buildDirectory = try self.buildDirectory(context: context)
-    let testProductArtifactPath = buildDirectory.appending(subpath: wasmFileName)
 
-    // TODO: SwiftPM does not allow to build *only tests* from plugin
-    guard FileManager.default.fileExists(atPath: testProductArtifactPath.string) else {
-      throw Error(
-        "Failed to find \"\(wasmFileName)\" in \(buildDirectory). Please build \"\(productName)\" product first"
-      )
-    }
+    let testProductArtifactPath = try options.prebuiltTestBundlePath ?? {
+      let wasmFileName = "\(productName).wasm"
+      let testProductArtifactPath = buildDirectory.appending(subpath: wasmFileName).string
+      // TODO: SwiftPM does not allow to build *only tests* from plugin
+      guard FileManager.default.fileExists(atPath: testProductArtifactPath) else {
+        throw Error(
+          "Failed to find \"\(wasmFileName)\" in \(buildDirectory). Please build \"\(productName)\" product first"
+        )
+      }
+      return testProductArtifactPath
+    }()
 
     let testTargets = context.package.targets(ofType: SwiftSourceModuleTarget.self).filter {
       $0.kind == .test
     }
 
     let resourcesPaths = deriveResourcesPaths(
-      productArtifactPath: testProductArtifactPath,
+      buildDirectory: buildDirectory,
       sourceTargets: testTargets,
       package: context.package
     )
@@ -75,7 +83,7 @@ struct CartonTestPlugin: CommandPlugin {
     let frontendArguments =
       [
         "test",
-        "--prebuilt-test-bundle-path", testProductArtifactPath.string,
+        "--prebuilt-test-bundle-path", testProductArtifactPath,
         "--environment", options.environment.rawValue,
       ]
       + resourcesPaths.flatMap {

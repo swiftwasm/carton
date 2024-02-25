@@ -35,7 +35,7 @@ extension XCTest {
     var stderr: String
 
     func assertZeroExit(_ file: StaticString = #file, line: UInt = #line) {
-      XCTAssertEqual(exitCode, 0, file: file, line: line)
+      XCTAssertEqual(exitCode, 0, "stdout: " + stdout + "\nstderr: " + stderr, file: file, line: line)
     }
   }
 

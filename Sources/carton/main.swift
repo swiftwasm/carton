@@ -107,14 +107,16 @@ func derivePackageCommandArguments(
     )
 
     // 2. Build the test product
-    let buildCommand =
-      try String(contentsOf: commandFile).split(separator: "\n").map(String.init) + [
+    let buildArguments = try String(contentsOf: commandFile).split(separator: "\n")
+    if !buildArguments.isEmpty {
+      let buildCommand = buildArguments.map(String.init) + [
         "--triple", "wasm32-unknown-wasi", "--scratch-path", scratchPath,
       ]
-    try Foundation.Process.checkRun(
-      swiftExec,
-      arguments: buildCommand
-    )
+      try Foundation.Process.checkRun(
+        swiftExec,
+        arguments: buildCommand
+      )
+    }
 
     // "--environment browser" launches a http server
     packageArguments += ["--disable-sandbox"]
