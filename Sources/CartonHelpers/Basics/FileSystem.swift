@@ -338,7 +338,7 @@ extension FileSystem {
 
   public func hasAttribute(_ name: FileSystemAttribute, _ path: AbsolutePath) -> Bool {
     #if canImport(Darwin)
-    false
+      false
     #endif
   }
 

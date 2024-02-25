@@ -9,9 +9,9 @@
  */
 
 #if !_runtime(_ObjC)
-@preconcurrency import Foundation
+  @preconcurrency import Foundation
 #else
-import Foundation
+  import Foundation
 #endif
 
 #if swift(<5.6)
