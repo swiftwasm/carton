@@ -108,7 +108,7 @@ struct Test: AsyncParsableCommand {
 
     switch environment {
     case .command:
-      try await WasmerTestRunner(
+      try await CommandTestRunner(
         testFilePath: bundlePath,
         listTestCases: list,
         testCases: testCases,
