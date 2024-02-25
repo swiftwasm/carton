@@ -110,6 +110,9 @@ func derivePackageCommandArguments(
     let buildArguments = try String(contentsOf: commandFile).split(separator: "\n")
     if !buildArguments.isEmpty {
       let buildCommand = buildArguments.map(String.init) + [
+        // NOTE: "swift-build" uses llbuild manifest cache by default even though
+        // target triple changed.
+        "--disable-build-manifest-caching",
         "--triple", "wasm32-unknown-wasi", "--scratch-path", scratchPath,
       ]
       try Foundation.Process.checkRun(
