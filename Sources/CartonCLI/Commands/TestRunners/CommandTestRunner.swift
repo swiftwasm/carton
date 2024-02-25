@@ -16,22 +16,23 @@ import CartonHelpers
 import CartonKit
 import Foundation
 
-struct WasmerTestRunner: TestRunner {
+struct CommandTestRunner: TestRunner {
   let testFilePath: AbsolutePath
   let listTestCases: Bool
   let testCases: [String]
   let terminal: InteractiveWriter
 
   func run() async throws {
-    terminal.write("\nRunning the test bundle with wasmer:\n", inColor: .yellow)
-    var wasmerArguments = ["wasmer", testFilePath.pathString]
+    let program = ProcessInfo.processInfo.environment["CARTON_TEST_RUNNER"] ?? "wasmer"
+    terminal.write("\nRunning the test bundle with \"\(program)\":\n", inColor: .yellow)
+    var arguments = [program, testFilePath.pathString]
     if listTestCases {
-      wasmerArguments.append(contentsOf: ["--", "-l"])
+      arguments.append(contentsOf: ["--", "-l"])
     } else if !testCases.isEmpty {
-      wasmerArguments.append("--")
-      wasmerArguments.append(contentsOf: testCases)
+      arguments.append("--")
+      arguments.append(contentsOf: testCases)
     }
-    try await Process.run(wasmerArguments, parser: TestsParser(), terminal)
+    try await Process.run(arguments, parser: TestsParser(), terminal)
   }
 
 }
