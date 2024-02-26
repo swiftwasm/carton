@@ -45,6 +45,10 @@ struct CartonBundlePlugin: CommandPlugin {
       configuration: options.debug ? .debug : .release,
       logging: .verbose
     )
+    #if compiler(>=5.11) || compiler(>=6)
+    parameters.echoLogs = true
+    parameters.logging = .concise
+    #endif
     applyExtraBuildFlags(from: &extractor, parameters: &parameters)
     print("Building \"\(productName)\"")
     let build = try self.packageManager.build(.product(productName), parameters: parameters)
