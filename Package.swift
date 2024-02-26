@@ -3,6 +3,10 @@
 
 import PackageDescription
 
+#if swift(<5.9.2)
+#warning("Swift 5.9.1 or earlier is not supported by carton")
+#endif
+
 let package = Package(
   name: "carton",
   platforms: [.macOS(.v13)],
