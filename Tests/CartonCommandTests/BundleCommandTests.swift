@@ -60,6 +60,22 @@ final class BundleCommandTests: XCTestCase {
     }
   }
 
+  func testWithoutContentHash() throws {
+    try withFixture("EchoExecutable") { packageDirectory in
+      let result = try swiftRun(
+        ["carton", "bundle", "--no-content-hash", "--wasm-optimizations", "none"], packageDirectory: packageDirectory.url
+      )
+      result.assertZeroExit()
+
+      let bundleDirectory = packageDirectory.appending(component: "Bundle")
+      guard let wasmBinary = (bundleDirectory.ls().filter { $0.contains("wasm") }).first else {
+        XCTFail("No wasm binary found")
+        return
+      }
+      XCTAssertEqual(wasmBinary, "my-echo.wasm")
+    }
+  }
+
   func testWasmOptimizationOptions() throws {
     try withFixture("EchoExecutable") { packageDirectory in
       func getFileSizeOfWasmBinary(wasmOptimizations: WasmOptimizations) throws -> UInt64 {

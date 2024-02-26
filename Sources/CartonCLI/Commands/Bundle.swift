@@ -65,6 +65,9 @@ struct Bundle: AsyncParsableCommand {
   )
   var wasmOptimizations: WasmOptimizations = .size
 
+  @Flag(inversion: .prefixedNo, help: "Use a content hash for the output file names.")
+  var contentHash: Bool = true
+
   @Option
   var output: String
 
@@ -160,7 +163,7 @@ struct Bundle: AsyncParsableCommand {
   ) throws {
     // Rename the final binary to use a part of its hash to bust browsers and CDN caches.
     let wasmFileHash = try localFileSystem.readFileContents(wasmOutputFilePath).hexChecksum
-    let mainModuleName = "\(wasmFileHash).wasm"
+    let mainModuleName = contentHash ? "\(wasmFileHash).wasm" : URL(fileURLWithPath: mainWasmPath).lastPathComponent
     let mainModulePath = try AbsolutePath(validating: mainModuleName, relativeTo: bundleDirectory)
     try localFileSystem.move(from: wasmOutputFilePath, to: mainModulePath)
 
@@ -174,7 +177,7 @@ struct Bundle: AsyncParsableCommand {
           with: mainModuleName
         )
     )
-    let entrypointName = "\(entrypoint.hexChecksum).js"
+    let entrypointName = contentHash ? "\(entrypoint.hexChecksum).js" : "index.js"
     try localFileSystem.writeFileContents(
       AbsolutePath(validating: entrypointName, relativeTo: bundleDirectory),
       bytes: entrypoint
