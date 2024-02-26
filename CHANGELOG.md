@@ -48,6 +48,10 @@ sequenceDiagram
     CartonDevPlugin->>CartonFrontend: Reload browsers
 ```
 
+**Additional changes:**
+
+- `--no-content-hash` option is added to `carton bundle` command. This option disables the use of content hash in the output file name.
+
 # 0.20.1 (25 Jan 2024)
 
 This release fixes a bug in `carton test` where it reports missing `sock_accept` syscall.
