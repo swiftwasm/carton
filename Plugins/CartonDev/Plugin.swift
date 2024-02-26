@@ -20,11 +20,13 @@ struct CartonDevPlugin: CommandPlugin {
   struct Options {
     var product: String?
     var release: Bool
+    var verbose: Bool
 
     static func parse(from extractor: inout ArgumentExtractor) throws -> Options {
       let product = extractor.extractOption(named: "product").last
       let release = extractor.extractFlag(named: "release")
-      return Options(product: product, release: release != 0)
+      let verbose = extractor.extractFlag(named: "verbose")
+      return Options(product: product, release: release != 0, verbose: verbose != 0)
     }
   }
 
@@ -42,8 +44,11 @@ struct CartonDevPlugin: CommandPlugin {
     // Build products
     var parameters = PackageManager.BuildParameters(
       configuration: options.release ? .release : .debug,
-      logging: .verbose
+      logging: options.verbose ? .verbose : .concise
     )
+    #if compiler(>=5.11) || compiler(>=6)
+    parameters.echoLogs = true
+    #endif
     Environment.browser.applyBuildParameters(&parameters)
     applyExtraBuildFlags(from: &extractor, parameters: &parameters)
 
@@ -77,17 +82,17 @@ struct CartonDevPlugin: CommandPlugin {
     let buildRequestPipe = try createFifo(hint: "build-request", directory: tempDirectory)
     let buildResponsePipe = try createFifo(hint: "build-response", directory: tempDirectory)
 
-    let frontend = try! makeCartonFrontendProcess(
+    let frontend = try makeCartonFrontendProcess(
       context: context,
       arguments: [
         "dev",
-        "--verbose",
         "--main-wasm-path", productArtifact.path.string,
         "--build-request", buildRequestPipe,
         "--build-response", buildResponsePipe,
       ]
         + resourcesPaths.flatMap { ["--resources", $0.string] }
         + pathsToWatch.flatMap { ["--watch-path", $0] }
+        + (options.verbose ? ["--verbose"] : [])
         + extractor.remainingArguments
     )
     frontend.forwardTerminationSignals()
