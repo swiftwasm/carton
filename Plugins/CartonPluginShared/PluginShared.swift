@@ -91,6 +91,46 @@ extension Environment {
   }
 }
 
+func applyExtraBuildFlags(from extractor: inout ArgumentExtractor, parameters: inout PackageManager.BuildParameters) {
+  parameters.otherCFlags += extractor.extractSingleDashOption(named: "Xcc")
+  parameters.otherCxxFlags += extractor.extractSingleDashOption(named: "XXcxx")
+  parameters.otherSwiftcFlags += extractor.extractSingleDashOption(named: "Xswiftc")
+  parameters.otherLinkerFlags += extractor.extractSingleDashOption(named: "Xlinker")
+}
+
+extension ArgumentExtractor {
+  fileprivate mutating func extractSingleDashOption(named name: String) -> [String] {
+    let parts = remainingArguments.split(separator: "--", maxSplits: 1, omittingEmptySubsequences: false)
+    var args = Array(parts[0])
+    let literals = Array(parts.count == 2 ? parts[1] : [])
+
+    var values: [String] = []
+    var idx = 0
+    while idx < args.count {
+      var arg = args[idx]
+      if arg == "-\(name)" {
+        args.remove(at: idx)
+        if idx < args.count {
+          let val = args[idx]
+          values.append(val)
+          args.remove(at: idx)
+        }
+      }
+      else if arg.starts(with: "-\(name)=") {
+        arg.removeFirst(2 + name.count + 1)
+        values.append(arg)
+        args.remove(at: idx)
+      }
+      else {
+        idx += 1
+      }
+    }
+
+    self = ArgumentExtractor(args + literals)
+    return values
+  }
+}
+
 extension PackageManager.BuildResult {
   /// Find `.wasm` executable artifact
   internal func findWasmArtifact(for product: String) throws

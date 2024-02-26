@@ -41,8 +41,9 @@ struct CartonTestPlugin: CommandPlugin {
       let options = try Options.parse(from: &extractor)
       var buildCommand: [String] = []
       if options.prebuiltTestBundlePath == nil {
-        var buildParameters = Environment.Parameters()
+        var buildParameters = PackageManager.BuildParameters()
         options.environment.applyBuildParameters(&buildParameters)
+        applyExtraBuildFlags(from: &extractor, parameters: &buildParameters)
         buildCommand = ["build", "--product", productName]
         buildCommand += buildParameters.otherSwiftcFlags.flatMap { ["-Xswiftc", $0] }
         buildCommand += buildParameters.otherLinkerFlags.flatMap { ["-Xlinker", $0] }

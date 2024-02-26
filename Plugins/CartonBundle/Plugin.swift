@@ -41,10 +41,11 @@ struct CartonBundlePlugin: CommandPlugin {
     let productName = try options.product ?? deriveDefaultProduct(package: context.package)
 
     // Build products
-    let parameters = PackageManager.BuildParameters(
+    var parameters = PackageManager.BuildParameters(
       configuration: options.debug ? .debug : .release,
       logging: .verbose
     )
+    applyExtraBuildFlags(from: &extractor, parameters: &parameters)
     print("Building \"\(productName)\"")
     let build = try self.packageManager.build(.product(productName), parameters: parameters)
 

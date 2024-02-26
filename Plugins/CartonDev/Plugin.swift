@@ -45,6 +45,7 @@ struct CartonDevPlugin: CommandPlugin {
       logging: .verbose
     )
     Environment.browser.applyBuildParameters(&parameters)
+    applyExtraBuildFlags(from: &extractor, parameters: &parameters)
 
     print("Building \"\(productName)\"")
     let buildSubset = PackageManager.BuildSubset.product(productName)
