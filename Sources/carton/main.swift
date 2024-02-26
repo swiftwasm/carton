@@ -89,7 +89,7 @@ func derivePackageCommandArguments(
 
   switch subcommand {
   case "bundle":
-    pluginArguments += ["--allow-writing-to-directory", "Bundle"]
+    pluginArguments += ["--allow-writing-to-package-directory"]
     // Place before user-given extra arguments to allow overriding default options
     cartonPluginArguments = ["--output", "Bundle"] + cartonPluginArguments
   case "dev":
