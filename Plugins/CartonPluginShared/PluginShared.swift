@@ -93,7 +93,7 @@ extension Environment {
 
 func applyExtraBuildFlags(from extractor: inout ArgumentExtractor, parameters: inout PackageManager.BuildParameters) {
   parameters.otherCFlags += extractor.extractSingleDashOption(named: "Xcc")
-  parameters.otherCxxFlags += extractor.extractSingleDashOption(named: "XXcxx")
+  parameters.otherCxxFlags += extractor.extractSingleDashOption(named: "Xcxx")
   parameters.otherSwiftcFlags += extractor.extractSingleDashOption(named: "Xswiftc")
   parameters.otherLinkerFlags += extractor.extractSingleDashOption(named: "Xlinker")
 }
