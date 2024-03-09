@@ -1,5 +1,4 @@
 brew "pre-commit"
 brew "swiftformat"
 brew "binaryen"
-brew "wasmer"
 brew "wabt"
