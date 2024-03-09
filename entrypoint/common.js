@@ -86,7 +86,12 @@ export const WasmRunner = (rawOptions, SwiftRuntime) => {
       // Initialize and start Reactor
       if (instance.exports._initialize) {
         instance.exports._initialize();
-        instance.exports.main();
+        if (typeof instance.exports.main === "function") {
+          instance.exports.main();
+        } else if (typeof instance.exports.__main_argc_argv === "function") {
+          // Swift 6.0 and later use `__main_argc_argv` instead of `main`.
+          instance.exports.__main_argc_argv(0, 0);
+        }
       }
     },
   };

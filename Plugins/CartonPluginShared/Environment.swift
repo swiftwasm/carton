@@ -51,7 +51,12 @@ internal enum Environment: String, CaseIterable {
     case .command: break
     case .node, .browser:
       parameters.otherSwiftcFlags += ["-Xclang-linker", "-mexec-model=reactor"]
-      parameters.otherLinkerFlags += ["--export=main"]
+      #if compiler(>=6.0) || compiler(>=5.11)
+      parameters.otherLinkerFlags += ["--export-if-defined=__main_argc_argv"]
+      #else
+      // Before Swift 6.0, the main function is defined as "main" instead of mangled "__main_argc_argv"
+      parameters.otherLinkerFlags += ["--export-if-defined=main"]
+      #endif
     }
   }
 }
