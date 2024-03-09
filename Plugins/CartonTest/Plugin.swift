@@ -59,17 +59,34 @@ struct CartonTestPlugin: CommandPlugin {
     let options = try Options.parse(from: &extractor)
     let buildDirectory = try self.buildDirectory(context: context)
 
-    let testProductArtifactPath = try options.prebuiltTestBundlePath ?? {
+    let testProductArtifactPath: String
+    if let prebuiltTestBundlePath = options.prebuiltTestBundlePath {
+      testProductArtifactPath = prebuiltTestBundlePath
+    } else {
       let wasmFileName = "\(productName).wasm"
-      let testProductArtifactPath = buildDirectory.appending(subpath: wasmFileName).string
-      // TODO: SwiftPM does not allow to build *only tests* from plugin
+      testProductArtifactPath = buildDirectory.appending(subpath: wasmFileName).string
+      #if compiler(>=5.10)
+      var buildParameters = PackageManager.BuildParameters()
+      options.environment.applyBuildParameters(&buildParameters)
+      applyExtraBuildFlags(from: &extractor, parameters: &buildParameters)
+
+      let build = try packageManager.build(.product(productName), parameters: buildParameters)
+      guard build.succeeded else {
+        throw Error("Failed to build test product: \(build.logText)")
+      }
+      guard FileManager.default.fileExists(atPath: testProductArtifactPath) else {
+        throw Error("Product \(productName) did not produce \(buildDirectory)!?")
+      }
+      #else
+      // NOTE: Old SwiftPM does not allow to build *only tests* from plugin, so we expect
+      // the test product to be built already by external wrapper command.
       guard FileManager.default.fileExists(atPath: testProductArtifactPath) else {
         throw Error(
           "Failed to find \"\(wasmFileName)\" in \(buildDirectory). Please build \"\(productName)\" product first"
         )
       }
-      return testProductArtifactPath
-    }()
+      #endif
+    }
 
     let testTargets = context.package.targets(ofType: SwiftSourceModuleTarget.self).filter {
       $0.kind == .test
@@ -95,20 +112,6 @@ struct CartonTestPlugin: CommandPlugin {
     try frontend.run()
     frontend.waitUntilExit()
     frontend.checkNonZeroExit()
-  }
-
-  private func defaultProduct(context: PluginContext) throws -> String {
-    let executableProducts = context.package.products(ofType: ExecutableProduct.self)
-    guard !executableProducts.isEmpty else {
-      throw Error("Make sure there's at least one executable product in your Package.swift")
-    }
-    guard executableProducts.count == 1 else {
-      throw Error(
-        "Failed to disambiguate the product. Pass one of \(executableProducts.map(\.name).joined(separator: ", ")) to the --product option"
-      )
-
-    }
-    return executableProducts[0].name
   }
 
   private func buildDirectory(context: PluginContext) throws -> Path {
