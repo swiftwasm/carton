@@ -110,9 +110,15 @@ struct Bundle: AsyncParsableCommand {
         try await optimize(mainWasmPath, outputPath: wasmOutputFilePath, terminal: terminal)
       } catch {
         terminal.write(
-          "Warning: wasm-opt failed to optimize the binary, falling back to the original binary\n",
+          """
+          Warning: wasm-opt failed to optimize the binary, falling back to the original binary.
+          If you don't have wasm-opt installed, you can install wasm-opt by running `brew install binaryen`, `apt-get install binaryen` or `npm install -g binaryen`
+
+          """,
           inColor: .yellow)
-        try localFileSystem.move(from: mainWasmPath, to: wasmOutputFilePath)
+        if mainWasmPath != wasmOutputFilePath {
+          try localFileSystem.move(from: mainWasmPath, to: wasmOutputFilePath)
+        }
       }
     } else {
       if mainWasmPath != wasmOutputFilePath {
