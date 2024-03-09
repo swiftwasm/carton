@@ -63,14 +63,3 @@ jobs:
           swift test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  docker_image:
-    runs-on: ubuntu-20.04
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Build a Docker image on Ubuntu 20.04
-        run: docker build . -t ghcr.io/swiftwasm/swiftwasm-action:latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

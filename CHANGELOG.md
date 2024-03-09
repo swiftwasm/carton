@@ -22,6 +22,7 @@ Each `carton` subcommand is now split into a separate SwiftPM plugin.
 Also `carton` no longer supports the following features:
 
 - `carton init` command (use `swift package init --type executable` instead)
+- Homebrew and Docker installation methods
 
 **Internal changes:**
 
