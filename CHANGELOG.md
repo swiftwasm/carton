@@ -1,4 +1,4 @@
-# 1.0.0 (XX XXX 2024)
+# 1.0.0 (9 Mar 2024)
 
 **Breaking changes:**
 
