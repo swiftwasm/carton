@@ -16,6 +16,14 @@ import CartonHelpers
 import CartonKit
 import Foundation
 
+struct CommandTestRunnerError: Error, CustomStringConvertible {
+  let description: String
+
+  init(_ description: String) {
+    self.description = description
+  }
+}
+
 struct CommandTestRunner: TestRunner {
   let testFilePath: AbsolutePath
   let listTestCases: Bool
@@ -23,7 +31,7 @@ struct CommandTestRunner: TestRunner {
   let terminal: InteractiveWriter
 
   func run() async throws {
-    let program = ProcessInfo.processInfo.environment["CARTON_TEST_RUNNER"] ?? "wasmer"
+    let program = try ProcessInfo.processInfo.environment["CARTON_TEST_RUNNER"] ?? defaultWASIRuntime()
     terminal.write("\nRunning the test bundle with \"\(program)\":\n", inColor: .yellow)
     var arguments = [program, testFilePath.pathString]
     if listTestCases {
@@ -35,4 +43,11 @@ struct CommandTestRunner: TestRunner {
     try await Process.run(arguments, parser: TestsParser(), terminal)
   }
 
+  func defaultWASIRuntime() throws -> String {
+    let candidates = ["wasmtime", "wasmer"]
+    guard let found = candidates.lazy.compactMap({ Process.findExecutable($0) }).first else {
+      throw CommandTestRunnerError("No WASI runtime found. Please install one of the following: \(candidates.joined(separator: ", "))")
+    }
+    return found.pathString
+  }
 }

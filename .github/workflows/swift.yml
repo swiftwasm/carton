@@ -37,9 +37,9 @@ jobs:
 
       - name: Install dependencies for Ubuntu
         if: startsWith(matrix.os, 'ubuntu')
-        run: |
-          sudo apt-get install wabt -y
-          curl https://get.wasmer.io -sSfL | sh
+        run: sudo apt-get install wabt -y
+
+      - uses: bytecodealliance/actions/wasmtime/setup@v1
 
       - name: Build the project
         run: |
@@ -55,11 +55,6 @@ jobs:
           cp -r static $HOME/.carton
 
       - name: Run Tests
-        run: |
-          set -ex
-          if [ -e /home/runner/.wasmer/wasmer.sh ]; then
-            source /home/runner/.wasmer/wasmer.sh
-          fi
-          swift test
+        run: swift test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
