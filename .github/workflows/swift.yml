@@ -37,7 +37,7 @@ jobs:
 
       - name: Install dependencies for Ubuntu
         if: startsWith(matrix.os, 'ubuntu')
-        run: sudo apt-get install wabt -y
+        run: sudo apt-get install wabt binaryen -y
 
       - uses: bytecodealliance/actions/wasmtime/setup@v1
 
