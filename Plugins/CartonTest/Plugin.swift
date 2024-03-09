@@ -112,8 +112,10 @@ struct CartonTestPlugin: CommandPlugin {
   }
 
   private func buildDirectory(context: PluginContext) throws -> Path {
+    var parameters = PackageManager.BuildParameters()
+    Environment.command.applyBuildParameters(&parameters)
     let build = try packageManager.build(
-      .product("carton-plugin-helper"), parameters: PackageManager.BuildParameters())
+      .product("carton-plugin-helper"), parameters: parameters)
     guard build.succeeded else {
       throw Error("Failed to build carton-plugin-helper: \(build.logText)")
     }

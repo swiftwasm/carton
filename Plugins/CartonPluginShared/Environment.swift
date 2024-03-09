@@ -42,6 +42,11 @@ internal enum Environment: String, CaseIterable {
   }
 
   func applyBuildParameters(_ parameters: inout Parameters) {
+    // NOTE: We only support static linking for now, and the new SwiftDriver
+    // does not infer `-static-stdlib` for WebAssembly targets intentionally
+    // for future dynamic linking support.
+    parameters.otherSwiftcFlags += ["-static-stdlib"]
+
     switch self {
     case .command: break
     case .node, .browser:
