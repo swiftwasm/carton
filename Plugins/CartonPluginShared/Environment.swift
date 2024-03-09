@@ -28,7 +28,7 @@ internal enum Environment: String, CaseIterable {
     // Find from deprecated names
     switch string {
     case "wasmer":
-      return (.command, "The 'wasmer' environment is renamed to 'commandLine'")
+      return (.command, "The 'wasmer' environment is renamed to 'command'")
     case "defaultBrowser":
       return (.browser, "The 'defaultBrowser' environment is renamed to 'browser'")
     default:
