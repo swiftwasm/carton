@@ -38,7 +38,6 @@ jobs:
       - name: Install dependencies for Ubuntu
         if: startsWith(matrix.os, 'ubuntu')
         run: |
-          sudo ./install_ubuntu_deps.sh
           curl https://get.wasmer.io -sSfL | sh
 
       - name: Build the project
