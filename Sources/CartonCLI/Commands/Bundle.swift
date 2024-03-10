@@ -82,6 +82,7 @@ struct Bundle: AsyncParsableCommand {
 
     var mainWasmPath = try AbsolutePath(
       validating: mainWasmPath, relativeTo: localFileSystem.currentWorkingDirectory!)
+    let buildDirectory = mainWasmPath.parentDirectory
     try terminal.logLookup(
       "Right after building the main binary size is ",
       localFileSystem.humanReadableFileSize(mainWasmPath),
@@ -129,7 +130,7 @@ struct Bundle: AsyncParsableCommand {
     try copyToBundle(
       terminal: terminal,
       wasmOutputFilePath: wasmOutputFilePath,
-      buildDirectory: mainWasmPath.parentDirectory,
+      buildDirectory: buildDirectory,
       bundleDirectory: bundleDirectory,
       resourcesPaths: resources
     )
