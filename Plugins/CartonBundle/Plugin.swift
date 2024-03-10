@@ -49,7 +49,9 @@ struct CartonBundlePlugin: CommandPlugin {
     parameters.echoLogs = true
     parameters.logging = .concise
     #endif
+    Environment.browser.applyBuildParameters(&parameters)
     applyExtraBuildFlags(from: &extractor, parameters: &parameters)
+
     print("Building \"\(productName)\"")
     let build = try self.packageManager.build(.product(productName), parameters: parameters)
 
