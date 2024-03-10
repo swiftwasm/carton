@@ -36,7 +36,8 @@ dependencies: [
 ```
 
 > [!WARNING]
-> If you already use `carton` before 0.x.x versions via Homebrew, you can remove it with `brew uninstall carton` and install the new version as a SwiftPM dependency.
+> - If you already use `carton` before 0.x.x versions via Homebrew, you can remove it with `brew uninstall carton` and install the new version as a SwiftPM dependency.
+> - Also please remove the old `.build` directory before using the new `carton`
 
 ### Usage
 
