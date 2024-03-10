@@ -1,3 +1,10 @@
+# 1.0.1 (10 Mar 2024)
+
+This release fixes several issues in version 1.0.0:
+
+- `carton bundle` command didn't use proper reactor ABI, which caused a crash when running the output bundle.
+- `carton bundle` command didn't bundle resources from dependencies when applying `wasm-opt` optimizations.
+
 # 1.0.0 (9 Mar 2024)
 
 **Breaking changes:**

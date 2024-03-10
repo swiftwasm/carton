@@ -1,6 +1,6 @@
 {
   "name": "carton",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "📦 Watcher, bundler, and test runner for your SwiftWasm apps ",
   "main": "index.js",
   "repository": {
