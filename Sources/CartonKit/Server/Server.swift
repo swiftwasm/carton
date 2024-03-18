@@ -219,6 +219,7 @@ public actor Server {
   public func start() async throws -> String {
     let group = MultiThreadedEventLoopGroup.singleton
     let upgrader = NIOWebSocketServerUpgrader(
+      maxFrameSize: Int(UInt32.max),
       shouldUpgrade: {
         (channel: Channel, head: HTTPRequestHead) in
         channel.eventLoop.makeSucceededFuture(HTTPHeaders())
