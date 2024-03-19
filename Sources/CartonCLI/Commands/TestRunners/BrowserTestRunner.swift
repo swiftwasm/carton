@@ -89,7 +89,11 @@ struct BrowserTestRunner: TestRunner {
       arguments: ["--port=\(address.port!)"]
     )
     terminal.logLookup("Launch WebDriver executable: ", executablePath)
-    let disposer = { process.interrupt() }
+    let disposer = {
+        // Seems like chromedriver doesn't respond to SIGTERM and SIGINT
+        kill(process.processIdentifier, SIGKILL)
+        process.waitUntilExit()
+    }
     return (URL(string: "http://\(address.ipAddress!):\(address.port!)")!, disposer)
   }
 
