@@ -157,7 +157,7 @@ private struct Curl: WebDriverHTTPClient {
     let pathSeparator: Character = ":"
     #endif
     for pathEntry in path.split(separator: pathSeparator) {
-      let candidate = URL(fileURLWithPath: String(pathEntry)).appending(path: "curl")
+      let candidate = URL(fileURLWithPath: String(pathEntry)).appendingPathComponent("curl")
       if FileManager.default.fileExists(atPath: candidate.path) {
         return Curl(cliPath: candidate)
       }
