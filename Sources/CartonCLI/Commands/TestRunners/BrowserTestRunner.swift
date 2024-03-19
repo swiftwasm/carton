@@ -84,12 +84,12 @@ struct BrowserTestRunner: TestRunner {
 
   func launchDriver(executablePath: String) async throws -> (URL, Disposer) {
     let address = try await findAvailablePort()
-    let process = Process(arguments: [
-      executablePath, "--port=\(address.port!)",
-    ])
+    let process = try Foundation.Process.run(
+      URL(fileURLWithPath: executablePath),
+      arguments: ["--port=\(address.port!)"]
+    )
     terminal.logLookup("Launch WebDriver executable: ", executablePath)
-    try process.launch()
-    let disposer = { process.signal(SIGKILL) }
+    let disposer = { process.interrupt() }
     return (URL(string: "http://\(address.ipAddress!):\(address.port!)")!, disposer)
   }
 

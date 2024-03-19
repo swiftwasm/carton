@@ -35,11 +35,11 @@ import Foundation
 #endif
 
 public enum WebDriverError: Error {
-  case newSessionFailed
+  case httpError(String)
 }
 
 public struct WebDriverClient {
-  let client: URLSession
+  private let client: WebDriverHTTPClient
   let driverEndpoint: URL
   let sessionId: String
 
@@ -81,14 +81,11 @@ public struct WebDriverClient {
       let capabilities: [String: String] = [:]
       let desiredCapabilities: [String: String] = [:]
     }
+    let httpClient: WebDriverHTTPClient = Curl.findExecutable() ?? httpClient
     var request = URLRequest(url: endpoint.appendingPathComponent("session"))
     request.httpMethod = "POST"
     request.httpBody = body.data(using: .utf8)
-    let (body, httpResponse) = try await httpClient.data(for: request)
-    guard let httpResponse = httpResponse as? HTTPURLResponse, 200..<300 ~= httpResponse.statusCode
-    else {
-      throw WebDriverError.newSessionFailed
-    }
+    let body = try await httpClient.data(for: request)
     let decoder = JSONDecoder()
     let response = try decoder.decode(ValueResponse<Response>.self, from: body)
     return WebDriverClient(
@@ -120,6 +117,7 @@ public struct WebDriverClient {
     var request = URLRequest(url: URL(string: makeSessionURL("url"))!)
     request.httpMethod = "POST"
     request.httpBody = try Self.makeRequestBody(Request(url: url))
+    request.addValue("carton", forHTTPHeaderField: "User-Agent")
     _ = try await client.data(for: request)
   }
 
@@ -127,5 +125,71 @@ public struct WebDriverClient {
     var request = URLRequest(url: URL(string: makeSessionURL())!)
     request.httpMethod = "DELETE"
     _ = try await client.data(for: request)
+  }
+}
+
+
+private protocol WebDriverHTTPClient {
+  func data(for request: URLRequest) async throws -> Data
+}
+
+extension URLSession: WebDriverHTTPClient {
+  func data(for request: URLRequest) async throws -> Data {
+    let (data, httpResponse) = try await self.data(for: request)
+    guard let httpResponse = httpResponse as? HTTPURLResponse, 200..<300 ~= httpResponse.statusCode
+    else {
+      throw WebDriverError.httpError(
+        "\(request.httpMethod ?? "GET") \(request.url.debugDescription) failed"
+      )
+    }
+    return data
+  }
+}
+
+private struct Curl: WebDriverHTTPClient {
+  let cliPath: URL
+
+  static func findExecutable() -> Curl? {
+    guard let path = ProcessInfo.processInfo.environment["PATH"] else { return nil }
+    #if os(Windows)
+    let pathSeparator: Character = ";"
+    #else
+    let pathSeparator: Character = ":"
+    #endif
+    for pathEntry in path.split(separator: pathSeparator) {
+      let candidate = URL(fileURLWithPath: String(pathEntry)).appending(path: "curl")
+      if FileManager.default.fileExists(atPath: candidate.path) {
+        return Curl(cliPath: candidate)
+      }
+    }
+    return nil
+  }
+
+  func data(for request: URLRequest) async throws -> Data {
+    guard let url = request.url?.absoluteString else {
+      preconditionFailure()
+    }
+    let process = Process()
+    process.executableURL = cliPath
+    process.arguments = [
+      url, "-X", request.httpMethod ?? "GET", "--silent", "--fail-with-body", "--data-binary", "@-"
+    ]
+    let stdout = Pipe()
+    let stdin = Pipe()
+    process.standardOutput = stdout
+    process.standardInput = stdin
+    if let httpBody = request.httpBody {
+      try stdin.fileHandleForWriting.write(contentsOf: httpBody)
+    }
+    try stdin.fileHandleForWriting.close()
+    try process.run()
+    process.waitUntilExit()
+    let responseBody = try stdout.fileHandleForReading.readToEnd()
+    guard process.terminationStatus == 0 else {
+      throw WebDriverError.httpError(
+        responseBody.flatMap { String(data: $0, encoding: .utf8) } ?? ""
+      )
+    }
+    return responseBody ?? Data()
   }
 }
