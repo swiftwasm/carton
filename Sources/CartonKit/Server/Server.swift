@@ -243,7 +243,12 @@ public actor Server {
           guard let handler = maybeHandler else {
             return channel.eventLoop.makeSucceededVoidFuture()
           }
-          return channel.pipeline.addHandler(handler)
+          let aggregator = NIOWebSocketFrameAggregator(
+            minNonFinalFragmentSize: 0,
+            maxAccumulatedFrameCount: .max,
+            maxAccumulatedFrameSize: .max
+          )
+          return channel.pipeline.addHandlers(aggregator, handler)
         }
       }
     )
