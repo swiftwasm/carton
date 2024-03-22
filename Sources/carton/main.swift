@@ -89,7 +89,10 @@ func derivePackageCommandArguments(
 
   switch subcommand {
   case "bundle":
-    pluginArguments += ["--allow-writing-to-package-directory"]
+    packageArguments += ["--disable-sandbox"]
+    // TODO: Uncomment this line once we stop creating .carton directory in the home directory
+    // pluginArguments += ["--allow-writing-to-package-directory"]
+
     // Place before user-given extra arguments to allow overriding default options
     cartonPluginArguments = ["--output", "Bundle"] + cartonPluginArguments
   case "dev":
