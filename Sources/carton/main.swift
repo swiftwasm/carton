@@ -84,7 +84,7 @@ func derivePackageCommandArguments(
   var packageArguments: [String] = [
     "package", "--triple", "wasm32-unknown-wasi", "--scratch-path", scratchPath,
   ]
-  var pluginArguments: [String] = ["plugin"]
+  let pluginArguments: [String] = ["plugin"]
   var cartonPluginArguments: [String] = extraArguments
 
   switch subcommand {
