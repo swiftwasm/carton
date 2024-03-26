@@ -84,16 +84,12 @@ struct BrowserTestRunner: TestRunner {
 
   func launchDriver(executablePath: String) async throws -> (URL, Disposer) {
     let address = try await findAvailablePort()
-    let process = try Foundation.Process.run(
-      URL(fileURLWithPath: executablePath),
-      arguments: ["--port=\(address.port!)"]
-    )
+    let process = Process(arguments: [
+      executablePath, "--port=\(address.port!)",
+    ])
     terminal.logLookup("Launch WebDriver executable: ", executablePath)
-    let disposer = {
-        // Seems like chromedriver doesn't respond to SIGTERM and SIGINT
-        kill(process.processIdentifier, SIGKILL)
-        process.waitUntilExit()
-    }
+    try process.launch()
+    let disposer = { process.signal(SIGKILL) }
     return (URL(string: "http://\(address.ipAddress!):\(address.port!)")!, disposer)
   }
 
