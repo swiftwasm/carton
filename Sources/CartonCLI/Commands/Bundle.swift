@@ -132,7 +132,7 @@ struct Bundle: AsyncParsableCommand {
       wasmOutputFilePath: wasmOutputFilePath,
       buildDirectory: buildDirectory,
       bundleDirectory: bundleDirectory,
-      resourcesPaths: resources
+      topLevelResourcePaths: resources
     )
 
     terminal.write("Bundle generation finished successfully\n", inColor: .green, bold: true)
@@ -166,7 +166,7 @@ struct Bundle: AsyncParsableCommand {
     wasmOutputFilePath: AbsolutePath,
     buildDirectory: AbsolutePath,
     bundleDirectory: AbsolutePath,
-    resourcesPaths: [String]
+    topLevelResourcePaths: [String]
   ) throws {
     // Rename the final binary to use a part of its hash to bust browsers and CDN caches.
     let wasmFileHash = try localFileSystem.readFileContents(wasmOutputFilePath).hexChecksum
@@ -208,18 +208,19 @@ struct Bundle: AsyncParsableCommand {
       try localFileSystem.copy(from: resourcesPath, to: targetDirectory)
     }
 
-    for resourcesPath in resourcesPaths {
+    for resourcesPath in topLevelResourcePaths {
       let resourcesPath = try AbsolutePath(
         validating: resourcesPath, relativeTo: localFileSystem.currentWorkingDirectory!)
       for file in try localFileSystem.traverseRecursively(resourcesPath) {
         let targetPath = bundleDirectory.appending(component: file.basename)
+        let sourcePath = bundleDirectory.appending(component: resourcesPath.basename).appending(component: file.basename)
 
-        guard localFileSystem.exists(resourcesPath, followSymlink: true),
+        guard localFileSystem.exists(sourcePath, followSymlink: true),
           !localFileSystem.exists(targetPath, followSymlink: true)
         else { continue }
 
-        terminal.logLookup("Copying this resource to the root bundle directory ", file)
-        try localFileSystem.copy(from: file, to: targetPath)
+        terminal.logLookup("Creating symlink ", targetPath)
+        try localFileSystem.createSymbolicLink(targetPath, pointingAt: sourcePath, relative: true)
       }
     }
   }
