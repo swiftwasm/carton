@@ -1,3 +1,12 @@
+# 1.0.2 (28 Mar 2024)
+
+This release fixes several issues:
+
+* Restore MIME types in `dev` server to fix loading of CSS and image files.
+* Fixed browser test runner to work with large number of test suites with Chrome.
+* Fixed permission issue when running `swift run carton bundle`
+
+
 # 1.0.1 (10 Mar 2024)
 
 This release fixes several issues in version 1.0.0:
