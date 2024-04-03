@@ -99,6 +99,9 @@ for WebAssembly and served when you start `swift run carton dev` in the director
 `carton` is built as a SwiftPM Plugin with [SwiftNIO](https://github.com/apple/swift-nio), and supports both
 macOS and Linux. (Many thanks to everyone supporting and maintaining those projects!)
 
+> [!TIP]
+> There is no comprehensive documentation about the internal architecture of `carton`, but [this page](https://github.com/swiftwasm/carton/pull/420) might be helpful to understand the current architecture and rationale.
+
 ### Running `swift run carton dev` with the `release` configuration
 
 By default `swift run carton dev` will compile in the `debug` configuration. Add the `--release` flag to compile in the `release` configuration.
