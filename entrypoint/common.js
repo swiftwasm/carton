@@ -14,6 +14,7 @@
 
 import { WASI } from "@wasmer/wasi";
 import { WasmFs } from "@wasmer/wasmfs";
+import * as path from "path-browserify";
 
 export const WasmRunner = (rawOptions, SwiftRuntime) => {
   const options = defaultRunnerOptions(rawOptions);
@@ -34,12 +35,18 @@ export const WasmRunner = (rawOptions, SwiftRuntime) => {
     }
   );
 
+  wasmFs.fs.mkdirSync("/sandbox");
+
   const wasi = new WASI({
     args: options.args,
     env: {},
+    preopenDirectories: {
+      "/": "/sandbox",
+    },
     bindings: {
       ...WASI.defaultBindings,
       fs: wasmFs.fs,
+      path: path,
     },
   });
 
@@ -100,13 +107,13 @@ export const WasmRunner = (rawOptions, SwiftRuntime) => {
 const defaultRunnerOptions = (options) => {
   if (!options) return defaultRunnerOptions({});
   if (!options.onStdout) {
-    options.onStdout = () => {};
+    options.onStdout = () => { };
   }
   if (!options.onStderr) {
-    options.onStderr = () => {};
+    options.onStderr = () => { };
   }
   if (!options.args) {
-    options.args = [];
+    options.args = ["main.wasm"];
   }
   return options;
 };
