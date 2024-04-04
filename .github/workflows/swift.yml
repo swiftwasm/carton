@@ -7,37 +7,25 @@ on:
     branches: [main]
 
 jobs:
-  swift-test:
+  swift-test-macos:
+    name: Build and test on macOS with Swift ${{ matrix.swift_version }}
+    timeout-minutes: 40
+    runs-on: macos-13
     strategy:
       matrix:
         include:
           - os: macos-13 # TODO: macos-14 runner expected in October-December 2023
             swift_version: "5.9"
             xcode: /Applications/Xcode_15.0.app/Contents/Developer
-          - os: ubuntu-22.04
-            swift_version: "5.9"
-    name: Build on ${{ matrix.os }} with Swift ${{ matrix.swift_version }}
-    timeout-minutes: 40
-    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
-      - uses: swift-actions/setup-swift@v1
-        if: ${{ !startsWith(matrix.os, 'macos') }}
-        with:
-          swift-version: ${{ matrix.swift_version }}
 
       - name: Select Xcode version
-        if: startsWith(matrix.os, 'macos')
         run: sudo xcode-select --switch ${{ matrix.xcode }}
 
       - name: Install dependencies for macOS
         run: brew bundle
-        if: startsWith(matrix.os, 'macos')
-
-      - name: Install dependencies for Ubuntu
-        if: startsWith(matrix.os, 'ubuntu')
-        run: sudo apt-get install wabt binaryen -y
 
       - uses: bytecodealliance/actions/wasmtime/setup@v1
 
@@ -56,5 +44,30 @@ jobs:
 
       - name: Run Tests
         run: swift test
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  swift-test-linux:
+    name: Build and test on Linux with Swift ${{ matrix.swift_version }}
+    timeout-minutes: 40
+    runs-on: ubuntu-22.04
+    container: swift:${{ matrix.swift_version }}
+    strategy:
+      matrix:
+        include:
+          - swift_version: "5.9"
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies for Ubuntu
+        run: apt-get update && apt-get install wabt binaryen -y
+
+      - uses: bytecodealliance/actions/wasmtime/setup@v1
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '20'
+      - run: swift build
+      - run: swift test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
