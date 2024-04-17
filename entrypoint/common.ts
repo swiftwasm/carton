@@ -15,11 +15,22 @@
 import { WASI } from "@wasmer/wasi";
 import { WasmFs } from "@wasmer/wasmfs";
 import * as path from "path-browserify";
+import type { SwiftRuntime, SwiftRuntimeConstructor } from "./JavaScriptKit_JavaScriptKit.resources/Runtime";
 
-export const WasmRunner = (rawOptions, SwiftRuntime) => {
-  const options = defaultRunnerOptions(rawOptions);
+export type Options = {
+  args?: string[];
+  onStdout?: (text: string) => void;
+  onStderr?: (text: string) => void;
+};
 
-  let swift;
+export type WasmRunner = {
+  run(wasmBytes: ArrayBufferLike, extraWasmImports?: WebAssembly.Imports): Promise<void>
+};
+
+export const WasmRunner = (rawOptions: Options | false, SwiftRuntime: SwiftRuntimeConstructor | undefined): WasmRunner => {
+  const options: Options = defaultRunnerOptions(rawOptions);
+
+  let swift: SwiftRuntime;
   if (SwiftRuntime) {
     swift = new SwiftRuntime();
   }
@@ -27,11 +38,11 @@ export const WasmRunner = (rawOptions, SwiftRuntime) => {
   const wasmFs = createWasmFS(
     (stdout) => {
       console.log(stdout);
-      options.onStdout(stdout);
+      options.onStdout?.call(undefined, stdout);
     },
     (stderr) => {
       console.error(stderr);
-      options.onStderr(stderr);
+      options.onStderr?.call(undefined, stderr);
     }
   );
 
@@ -50,13 +61,16 @@ export const WasmRunner = (rawOptions, SwiftRuntime) => {
     },
   });
 
-  const createWasmImportObject = (extraWasmImports, wasmModule) => {
-    const importObject = {
+  const createWasmImportObject = (
+    extraWasmImports: WebAssembly.Imports,
+    wasmModule: WebAssembly.Module
+  ): WebAssembly.Imports => {
+    const importObject: WebAssembly.Imports = {
       wasi_snapshot_preview1: wrapWASI(wasi, wasmModule),
     };
 
     if (swift) {
-      importObject.javascript_kit = swift.wasmImports;
+      importObject.javascript_kit = swift.wasmImports as unknown as WebAssembly.ModuleImports;
     }
 
     if (extraWasmImports) {
@@ -70,7 +84,7 @@ export const WasmRunner = (rawOptions, SwiftRuntime) => {
   };
 
   return {
-    async run(wasmBytes, extraWasmImports) {
+    async run(wasmBytes: ArrayBufferLike, extraWasmImports?: WebAssembly.Imports) {
       if (!extraWasmImports) {
         extraWasmImports = {};
       }
@@ -91,7 +105,7 @@ export const WasmRunner = (rawOptions, SwiftRuntime) => {
       wasi.start(instance);
 
       // Initialize and start Reactor
-      if (instance.exports._initialize) {
+      if (typeof instance.exports._initialize == "function") {
         instance.exports._initialize();
         if (typeof instance.exports.main === "function") {
           instance.exports.main();
@@ -104,7 +118,7 @@ export const WasmRunner = (rawOptions, SwiftRuntime) => {
   };
 };
 
-const defaultRunnerOptions = (options) => {
+const defaultRunnerOptions = (options: Options | false): Options => {
   if (!options) return defaultRunnerOptions({});
   if (!options.onStdout) {
     options.onStdout = () => { };
@@ -118,13 +132,19 @@ const defaultRunnerOptions = (options) => {
   return options;
 };
 
-const createWasmFS = (onStdout, onStderr) => {
+const createWasmFS = (
+  onStdout: (text: string) => void,
+  onStderr: (text: string) => void
+): WasmFs => {
   // Instantiate a new WASI Instance
   const wasmFs = new WasmFs();
 
   // Output stdout and stderr to console
   const originalWriteSync = wasmFs.fs.writeSync;
-  wasmFs.fs.writeSync = (fd, buffer, offset, length, position) => {
+  (wasmFs.fs as any).writeSync = (
+    fd: number, buffer: Buffer | Uint8Array,
+    offset?: number, length?: number, position?: number
+  ): number => {
     const text = new TextDecoder("utf-8").decode(buffer);
     if (text !== "\n") {
       switch (fd) {
@@ -142,7 +162,7 @@ const createWasmFS = (onStdout, onStderr) => {
   return wasmFs;
 };
 
-const wrapWASI = (wasiObject, wasmModule) => {
+const wrapWASI = (wasiObject: WASI, wasmModule: WebAssembly.Module): WebAssembly.ModuleImports => {
   // PATCH: @wasmer-js/wasi@0.x forgets to call `refreshMemory` in `clock_res_get`,
   // which writes its result to memory view. Without the refresh the memory view,
   // it accesses a detached array buffer if the memory is grown by malloc.
@@ -154,7 +174,7 @@ const wrapWASI = (wasiObject, wasmModule) => {
   // Reference: https://github.com/wasmerio/wasmer-js/blob/55fa8c17c56348c312a8bd23c69054b1aa633891/packages/wasi/src/index.ts#L557
   const original_clock_res_get = wasiObject.wasiImport["clock_res_get"];
 
-  wasiObject.wasiImport["clock_res_get"] = (clockId, resolution) => {
+  wasiObject.wasiImport["clock_res_get"] = (clockId: number, resolution: number) => {
     wasiObject.refreshMemory();
     return original_clock_res_get(clockId, resolution);
   };

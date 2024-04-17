@@ -13,15 +13,17 @@
 // limitations under the License.
 
 import { WasmRunner } from "./common.js";
+import type { SwiftRuntimeConstructor } from "./JavaScriptKit_JavaScriptKit.resources/Runtime";
 
 const startWasiTask = async () => {
   // Fetch our Wasm File
   const response = await fetch("REPLACE_THIS_WITH_THE_MAIN_WEBASSEMBLY_MODULE");
   const responseArrayBuffer = await response.arrayBuffer();
 
-  let runtimeConstructor;
+  let runtimeConstructor: SwiftRuntimeConstructor | undefined = undefined;
   try {
     const { SwiftRuntime } = await import(
+      // @ts-ignore
       "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs"
     );
     runtimeConstructor = SwiftRuntime;
@@ -36,7 +38,7 @@ const startWasiTask = async () => {
   await wasmRunner.run(wasmBytes);
 };
 
-function handleError(e) {
+function handleError(e: any) {
   console.error(e);
   if (e instanceof WebAssembly.RuntimeError) {
     console.log(e.stack);

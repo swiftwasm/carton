@@ -47,9 +47,10 @@ struct HashArchive: AsyncParsableCommand {
     try localFileSystem.createDirectory(dotFilesStaticPath, recursive: true)
     var hashes: [(String, String)] = []
     for entrypoint in ["dev", "bundle", "test", "testNode"] {
+      let tsFilename = "\(entrypoint).ts"
       let filename = "\(entrypoint).js"
       var arguments = [
-        "esbuild", "--bundle", "entrypoint/\(filename)", "--outfile=static/\(filename)",
+        "esbuild", "--bundle", "entrypoint/\(tsFilename)", "--outfile=static/\(filename)",
       ]
 
       if entrypoint == "testNode" {
