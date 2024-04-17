@@ -63,9 +63,14 @@ export const WasmRunner = (rawOptions: Options | false, SwiftRuntime: SwiftRunti
     }
 
     if (extraWasmImports) {
-      // Shallow clone
-      for (const key in extraWasmImports) {
-        importObject[key] = extraWasmImports[key];
+      for (const moduleName in extraWasmImports) {
+        // importObject[moduleName] = extraWasmImports[moduleName];
+        if (!importObject[moduleName]) {
+          importObject[moduleName] = {};
+        }
+        for (const entry in extraWasmImports[moduleName]) {
+          importObject[moduleName][entry] = extraWasmImports[moduleName][entry];
+        }
       }
     }
 
