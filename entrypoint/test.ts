@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import ReconnectingWebSocket from "reconnecting-websocket";
-import { WASIExitError } from "@wasmer/wasi";
+import { WASIProcExit } from "@bjorn3/browser_wasi_shim";
 import { WasmRunner } from "./common.js";
 import type { SwiftRuntimeConstructor } from "./JavaScriptKit_JavaScriptKit.resources/Runtime";
 
@@ -73,7 +73,7 @@ const startWasiTask = async () => {
 
   const handleExitOrError = (error: any) => {
     // XCTest always calls `exit` at the end when no crash
-    if (error instanceof WASIExitError) {
+    if (error instanceof WASIProcExit) {
       // pass the output to the server in any case
       socket.send(JSON.stringify({ kind: "testRunOutput", testRunOutput }));
       if (error.code === 0) {
