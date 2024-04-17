@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "strict": true,
+    "target": "ESNext",
+    "esModuleInterop": true,
+    "lib": [
+      "DOM",
+      "ES2020",
+      "ES2021.WeakRef"
+    ],
+    "noEmit": true,
+    "isolatedModules": true,
+    "sourceMap": true
+  },
+  "include": [
+    "entrypoint/**/*.ts"
+  ]
+}

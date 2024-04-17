@@ -14,6 +14,7 @@
 
 import fs from "fs/promises";
 import { WasmRunner } from "./common.js";
+import type { SwiftRuntimeConstructor } from "./JavaScriptKit_JavaScriptKit.resources/Runtime";
 
 const args = [...process.argv];
 args.shift();
@@ -27,9 +28,10 @@ if (!wasmFile) {
 const startWasiTask = async () => {
   const wasmBytes = await fs.readFile(wasmFile);
 
-  let runtimeConstructor;
+  let runtimeConstructor: SwiftRuntimeConstructor | undefined = undefined;
   try {
     const { SwiftRuntime } = await import(
+      // @ts-ignore
       "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs"
     );
 

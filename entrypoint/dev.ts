@@ -13,7 +13,8 @@
 // limitations under the License.
 
 import ReconnectingWebSocket from "reconnecting-websocket";
-import { WasmRunner } from "./common.js";
+import { WasmRunner } from "./common";
+import type { SwiftRuntimeConstructor } from "./JavaScriptKit_JavaScriptKit.resources/Runtime";
 
 const socket = new ReconnectingWebSocket(`ws://${location.host}/watcher`);
 
@@ -28,9 +29,10 @@ const startWasiTask = async () => {
   const response = await fetch("/main.wasm");
   const responseArrayBuffer = await response.arrayBuffer();
 
-  let runtimeConstructor;
+  let runtimeConstructor: SwiftRuntimeConstructor | undefined = undefined;
   try {
     const { SwiftRuntime } = await import(
+      // @ts-ignore
       "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs"
     );
     runtimeConstructor = SwiftRuntime;
@@ -62,7 +64,7 @@ const startWasiTask = async () => {
   await wasmRunner.run(wasmBytes);
 };
 
-function handleError(e) {
+function handleError(e: any) {
   console.error(e);
   if (e instanceof WebAssembly.RuntimeError) {
     console.log(e.stack);

@@ -15,6 +15,7 @@
 import ReconnectingWebSocket from "reconnecting-websocket";
 import { WASIExitError } from "@wasmer/wasi";
 import { WasmRunner } from "./common.js";
+import type { SwiftRuntimeConstructor } from "./JavaScriptKit_JavaScriptKit.resources/Runtime";
 
 const socket = new ReconnectingWebSocket(`ws://${location.host}/watcher`);
 socket.addEventListener("message", (message) => {
@@ -28,9 +29,10 @@ const startWasiTask = async () => {
   const response = await fetch("/main.wasm");
   const responseArrayBuffer = await response.arrayBuffer();
 
-  let runtimeConstructor;
+  let runtimeConstructor: SwiftRuntimeConstructor | undefined = undefined;
   try {
     const { SwiftRuntime } = await import(
+      // @ts-ignore
       "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs"
     );
     runtimeConstructor = SwiftRuntime;
@@ -69,7 +71,7 @@ const startWasiTask = async () => {
   // 5. Crash by throwing JS exception synchronously
   // 6. Crash by throwing JS exception asynchronously
 
-  const handleExitOrError = (error) => {
+  const handleExitOrError = (error: any) => {
     // XCTest always calls `exit` at the end when no crash
     if (error instanceof WASIExitError) {
       // pass the output to the server in any case
@@ -105,7 +107,7 @@ const startWasiTask = async () => {
   // reachable here without catch (case 3, 4, 6)
 };
 
-function handleError(e) {
+function handleError(e: any) {
   console.error(e);
   if (e instanceof WebAssembly.RuntimeError) {
     console.log(e.stack);
