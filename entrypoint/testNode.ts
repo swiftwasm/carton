@@ -46,7 +46,15 @@ const startWasiTask = async () => {
 
   const wasmRunner = WasmRunner({ args: testArgs }, runtimeConstructor);
 
-  await wasmRunner.run(wasmBytes);
+  await wasmRunner.run(wasmBytes, {
+    "wasi_snapshot_preview1": {
+      // @bjorn3/browser_wasi_shim raises an exception when
+      // the process exits, but we just want to exit the process itself.
+      proc_exit: (code: number) => {
+        process.exit(code);
+      },
+    }
+  });
 };
 
 startWasiTask().catch((e) => {
