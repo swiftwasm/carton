@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import fs from "fs/promises";
+import path from "path";
 import { WasmRunner } from "./common.js";
 import type { SwiftRuntimeConstructor } from "./JavaScriptKit_JavaScriptKit.resources/Runtime";
 
@@ -20,6 +21,7 @@ const args = [...process.argv];
 args.shift();
 args.shift();
 const [wasmFile, ...testArgs] = args;
+testArgs.unshift(path.basename(wasmFile));
 
 if (!wasmFile) {
   throw Error("No WASM test file specified, can not run tests");
