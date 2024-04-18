@@ -1,3 +1,9 @@
+# 1.0.3 (18 April 2024)
+
+* Fix test harness for the latest main XCTest by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/426
+* TypeScript-ify entrypoint scripts by @omochi in https://github.com/swiftwasm/carton/pull/428
+* Use `@bjorn3/browser_wasi_shim` as WASI implementation by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/429
+
 # 1.0.2 (28 Mar 2024)
 
 This release fixes several issues:
