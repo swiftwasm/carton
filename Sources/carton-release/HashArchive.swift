@@ -82,12 +82,6 @@ struct HashArchive: AsyncParsableCommand {
         ))
     }
 
-    try localFileSystem.writeFileContents(
-      staticPath.appending(component: "so_sanitizer.wasm"),
-      bytes: .init(StackOverflowSanitizer.supportObjectFile)
-    )
-    print("file written to \(staticPath.appending(component: "so_sanitizer.wasm"))")
-
     let archiveSources = try localFileSystem.getDirectoryContents(staticPath)
       .map { try AbsolutePath(validating: $0, relativeTo: staticPath) }
       .map(\.pathString)
