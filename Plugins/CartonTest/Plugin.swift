@@ -103,6 +103,7 @@ struct CartonTestPlugin: CommandPlugin {
         "test",
         "--prebuilt-test-bundle-path", testProductArtifactPath,
         "--environment", options.environment.rawValue,
+        "--plugin-work-directory", context.pluginWorkDirectory.string
       ]
       + resourcesPaths.flatMap {
         ["--resources", $0.string]

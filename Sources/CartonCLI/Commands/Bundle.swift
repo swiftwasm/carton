@@ -18,11 +18,6 @@ import CartonKit
 import Foundation
 import WasmTransformer
 
-private let dependency = Entrypoint(
-  fileName: "bundle.js",
-  sha256: bundleEntrypointSHA256
-)
-
 enum WasmOptimizations: String, CaseIterable, ExpressibleByArgument {
   case size, none
 }
@@ -77,8 +72,6 @@ struct Bundle: AsyncParsableCommand {
 
   func run() async throws {
     let terminal = InteractiveWriter.stderr
-
-    try dependency.check(on: localFileSystem, terminal)
 
     var mainWasmPath = try AbsolutePath(
       validating: mainWasmPath, relativeTo: localFileSystem.currentWorkingDirectory!)
@@ -175,9 +168,8 @@ struct Bundle: AsyncParsableCommand {
     try localFileSystem.move(from: wasmOutputFilePath, to: mainModulePath)
 
     // Copy the bundle entrypoint, point to the binary, and give it a cachebuster name.
-    let (_, _, entrypointPath) = try dependency.paths(on: localFileSystem)
-    let entrypoint = try ByteString(
-      encodingAsUTF8: localFileSystem.readFileContents(entrypointPath)
+    let entrypoint = ByteString(
+      encodingAsUTF8: StaticResource.bundle
         .description
         .replacingOccurrences(
           of: "REPLACE_THIS_WITH_THE_MAIN_WEBASSEMBLY_MODULE",

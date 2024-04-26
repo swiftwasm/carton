@@ -24,7 +24,7 @@ import WebDriverClient
 #endif
 
 private enum Constants {
-  static let entrypoint = Entrypoint(fileName: "test.js", sha256: testEntrypointSHA256)
+  static let entrypoint = Entrypoint(fileName: "test.js", content: StaticResource.test)
 }
 
 enum BrowserTestRunnerError: Error, CustomStringConvertible {
@@ -152,7 +152,6 @@ struct BrowserTestRunner: TestRunner {
   }
 
   func run() async throws {
-    try Constants.entrypoint.check(on: localFileSystem, terminal)
     let server = try await Server(
       .init(
         builder: nil,

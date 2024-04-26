@@ -15,62 +15,18 @@
 import CartonHelpers
 import Foundation
 
-private struct StringError: Equatable, Codable, CustomStringConvertible, Error {
-  let description: String
-  init(_ description: String) {
-    self.description = description
-  }
-}
-
-extension StringError: CustomNSError {
-  var errorUserInfo: [String: Any] {
-    return [NSLocalizedDescriptionKey: self.description]
-  }
-}
-
 public struct Entrypoint {
   let fileName: String
-  let sha256: ByteString
+  let content: ByteString
 
-  public init(fileName: String, sha256: ByteString) {
+  public init(fileName: String, content: Data) {
     self.fileName = fileName
-    self.sha256 = sha256
+    self.content = ByteString(content)
   }
 
-  public func paths(
-    on fileSystem: FileSystem
-      // swiftlint:disable:next large_tuple
-  ) throws -> (cartonDir: AbsolutePath, staticDir: AbsolutePath, filePath: AbsolutePath) {
-    let cartonDir = try fileSystem.homeDirectory.appending(component: ".carton")
-    let staticDir = cartonDir.appending(component: "static")
-    return (cartonDir, staticDir, staticDir.appending(component: fileName))
-  }
-
-  public func check(on fileSystem: FileSystem, _ terminal: InteractiveWriter) throws {
-    let (cartonDir, staticDir, filePath) = try paths(on: fileSystem)
-
-    // If hash check fails, download the `static.zip` archive and unpack it
-    if try !fileSystem.exists(filePath, followSymlink: true)
-      || SHA256().hash(
-        fileSystem.readFileContents(filePath)
-      ) != sha256
-    {
-      terminal.logLookup("Directory doesn't exist or contains outdated polyfills: ", staticDir)
-      let archiveFile = cartonDir.appending(component: "static.zip")
-      try fileSystem.removeFileTree(staticDir)
-      try fileSystem.removeFileTree(archiveFile)
-
-      let staticArchiveBytes = Data(base64Encoded: staticArchiveContents)!
-      try fileSystem.createDirectory(cartonDir, recursive: true)
-      try fileSystem.writeFileContents(archiveFile, bytes: ByteString(staticArchiveBytes))
-      terminal.logLookup("Unpacking the archive: ", archiveFile)
-
-      try fileSystem.createDirectory(staticDir, recursive: false)
-      let result = try Process.popen(
-        args: "unzip", archiveFile.pathString, "-d", staticDir.pathString)
-      guard result.exitStatus == .terminated(code: 0) else {
-        throw try StringError(result.utf8stderrOutput())
-      }
-    }
+  public func write(at directory: AbsolutePath, fileSystem: FileSystem) throws -> AbsolutePath {
+    let path = directory.appending(component: fileName)
+    try fileSystem.writeFileContents(path, bytes: content)
+    return path
   }
 }
