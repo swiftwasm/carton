@@ -17,11 +17,12 @@ import CartonKit
 import Foundation
 
 private enum Constants {
-  static let entrypoint = Entrypoint(fileName: "testNode.js", sha256: testNodeEntrypointSHA256)
+  static let entrypoint = Entrypoint(fileName: "testNode.js", content: StaticResource.testNode)
 }
 
 /// Test runner for Node.js.
 struct NodeTestRunner: TestRunner {
+  let pluginWorkDirectory: AbsolutePath
   let testFilePath: AbsolutePath
   let listTestCases: Bool
   let testCases: [String]
@@ -30,12 +31,13 @@ struct NodeTestRunner: TestRunner {
   func run() async throws {
     terminal.write("\nRunning the test bundle with Node.js:\n", inColor: .yellow)
 
-    try Constants.entrypoint.check(on: localFileSystem, terminal)
-    let (_, _, entrypointPath) = try Constants.entrypoint.paths(on: localFileSystem)
+    let entrypointPath = try Constants.entrypoint.write(
+      at: pluginWorkDirectory, fileSystem: localFileSystem
+    )
 
     // Allow Node.js to resolve modules from resource directories by making them relative to the entrypoint path.
     let buildDirectory = testFilePath.parentDirectory
-    let staticDirectory = entrypointPath.parentDirectory
+    let staticDirectory = pluginWorkDirectory
 
     // Clean up existing symlinks before creating new ones.
     for existingSymlink in try localFileSystem.resourcesDirectoryNames(relativeTo: staticDirectory)

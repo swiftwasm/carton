@@ -18,7 +18,7 @@ import CartonKit
 import Foundation
 
 struct Dev: AsyncParsableCommand {
-  static let entrypoint = Entrypoint(fileName: "dev.js", sha256: devEntrypointSHA256)
+  static let entrypoint = Entrypoint(fileName: "dev.js", content: StaticResource.dev)
 
   @Option(help: "Specify name of an executable product in development.")
   var product: String?
@@ -92,8 +92,6 @@ struct Dev: AsyncParsableCommand {
 
   func run() async throws {
     let terminal = InteractiveWriter.stdout
-
-    try Self.entrypoint.check(on: localFileSystem, terminal)
 
     let paths = try watchPaths.map {
       try AbsolutePath(validating: $0, relativeTo: localFileSystem.currentWorkingDirectory!)

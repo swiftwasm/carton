@@ -86,6 +86,11 @@ struct Test: AsyncParsableCommand {
   )
   var resources: [String] = []
 
+  @Option(name: .long, help: ArgumentHelp(
+    "Internal: Path to writable directory", visibility: .private
+  ))
+  var pluginWorkDirectory: String = "./"
+
   func validate() throws {
     if headless && environment != .browser {
       throw TestError(
@@ -96,8 +101,9 @@ struct Test: AsyncParsableCommand {
   func run() async throws {
     let terminal = InteractiveWriter.stdout
     let bundlePath: AbsolutePath
+    let cwd = localFileSystem.currentWorkingDirectory!
     bundlePath = try AbsolutePath(
-      validating: prebuiltTestBundlePath, relativeTo: localFileSystem.currentWorkingDirectory!)
+      validating: prebuiltTestBundlePath, relativeTo: cwd)
     guard localFileSystem.exists(bundlePath, followSymlink: true) else {
       terminal.write(
         "No prebuilt binary found at \(bundlePath)\n",
@@ -125,6 +131,7 @@ struct Test: AsyncParsableCommand {
       ).run()
     case .node:
       try await NodeTestRunner(
+        pluginWorkDirectory: AbsolutePath(validating: pluginWorkDirectory, relativeTo: cwd),
         testFilePath: bundlePath,
         listTestCases: list,
         testCases: testCases,

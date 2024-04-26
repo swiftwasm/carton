@@ -39,13 +39,14 @@ struct HashArchive: AsyncParsableCommand {
     let terminal = InteractiveWriter.stdout
     let cwd = localFileSystem.currentWorkingDirectory!
     let staticPath = try AbsolutePath(validating: "static", relativeTo: cwd)
-    let dotFilesStaticPath = try localFileSystem.homeDirectory.appending(
-      components: ".carton",
-      "static"
-    )
 
-    try localFileSystem.createDirectory(dotFilesStaticPath, recursive: true)
-    var hashes: [(String, String)] = []
+    var fileContent = """
+    import Foundation
+
+    public enum StaticResource {
+
+    """
+
     for entrypoint in ["dev", "bundle", "test", "testNode"] {
       let tsFilename = "\(entrypoint).ts"
       let filename = "\(entrypoint).js"
@@ -70,44 +71,21 @@ struct HashArchive: AsyncParsableCommand {
       }
       try Foundation.Process.run(npx.asURL, arguments: arguments).waitUntilExit()
       let entrypointPath = try AbsolutePath(validating: filename, relativeTo: staticPath)
-      let dotFilesEntrypointPath = dotFilesStaticPath.appending(component: filename)
-      try localFileSystem.removeFileTree(dotFilesEntrypointPath)
-      try localFileSystem.copy(from: entrypointPath, to: dotFilesEntrypointPath)
 
-      hashes.append(
-        (
-          entrypoint,
-          try SHA256().hash(localFileSystem.readFileContents(entrypointPath))
-            .hexadecimalRepresentation.uppercased()
-        ))
+      // Base64 is not an efficient way, but too long byte array literal breaks type-checker
+      let base64Content = try localFileSystem.readFileContents(entrypointPath).withData {
+        $0.base64EncodedString()
+      }
+      fileContent += """
+        public static let \(entrypoint): Data = Data(base64Encoded: \"\(base64Content)\")!
+
+      """
     }
 
-    let archiveSources = try localFileSystem.getDirectoryContents(staticPath)
-      .map { try AbsolutePath(validating: $0, relativeTo: staticPath) }
-      .map(\.pathString)
+    fileContent += """
 
-    try await Process.run(["zip", "-j", "static.zip"] + archiveSources, terminal)
-
-    let staticArchiveContents = try localFileSystem.readFileContents(
-      AbsolutePath(
-        validating: "static.zip",
-        relativeTo: localFileSystem.currentWorkingDirectory!
-      ))
-
-    // Base64 is not an efficient way, but too long byte array literal breaks type-checker
-    let hashesFileContent = """
-      import CartonHelpers
-
-      \(hashes.map {
-      """
-      public let \($0)EntrypointSHA256 = ByteString([
-      \(arrayString(from: $1))
-      ])
-      """
-      }.joined(separator: "\n\n"))
-
-      public let staticArchiveContents = "\(staticArchiveContents.withData { $0.base64EncodedString() })"
-      """
+    }
+    """
 
     try localFileSystem.writeFileContents(
       AbsolutePath(
@@ -115,7 +93,7 @@ struct HashArchive: AsyncParsableCommand {
         RelativePath(validating: "Sources").appending(
           components: "CartonKit", "Server", "StaticArchive.swift")
       ),
-      bytes: ByteString(encodingAsUTF8: hashesFileContent)
+      bytes: ByteString(encodingAsUTF8: fileContent)
     )
   }
 }
