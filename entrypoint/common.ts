@@ -53,6 +53,7 @@ export const WasmRunner = (rawOptions: Options | false, SwiftRuntime: SwiftRunti
 
   const createWasmImportObject = (
     extraWasmImports: WebAssembly.Imports,
+    module: WebAssembly.Module,
   ): WebAssembly.Imports => {
     const importObject: WebAssembly.Imports = {
       wasi_snapshot_preview1: wasi.wasiImport,
@@ -64,12 +65,22 @@ export const WasmRunner = (rawOptions: Options | false, SwiftRuntime: SwiftRunti
 
     if (extraWasmImports) {
       for (const moduleName in extraWasmImports) {
-        // importObject[moduleName] = extraWasmImports[moduleName];
         if (!importObject[moduleName]) {
           importObject[moduleName] = {};
         }
         for (const entry in extraWasmImports[moduleName]) {
           importObject[moduleName][entry] = extraWasmImports[moduleName][entry];
+        }
+      }
+    }
+
+    for (const importEntry of WebAssembly.Module.imports(module)) {
+      if (!importObject[importEntry.module]) {
+        importObject[importEntry.module] = {};
+      }
+      if (importEntry.kind == "function" && !importObject[importEntry.module][importEntry.name]) {
+        importObject[importEntry.module][importEntry.name] = () => {
+          throw new Error(`Imported function ${importEntry.module}.${importEntry.name} not implemented`);
         }
       }
     }
@@ -88,7 +99,7 @@ export const WasmRunner = (rawOptions: Options | false, SwiftRuntime: SwiftRunti
         },
       };
       const module = await WebAssembly.compile(wasmBytes);
-      const importObject = createWasmImportObject(extraWasmImports);
+      const importObject = createWasmImportObject(extraWasmImports, module);
       const instance = await WebAssembly.instantiate(module, importObject);
 
       if (swift && instance.exports.swjs_library_version) {
