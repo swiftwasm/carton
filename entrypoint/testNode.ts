@@ -47,12 +47,21 @@ const startWasiTask = async () => {
   }
 
   const wasmRunner = WasmRunner({ args: testArgs }, runtimeConstructor);
+  let procExitCalled = false;
+
+  process.on("beforeExit", () => {
+    if (!procExitCalled) {
+      throw new Error(`Test harness process exited before test process.
+This usually means there are some dangling continuations, which are awaited but never resumed.`);
+    }
+  });
 
   await wasmRunner.run(wasmBytes, {
     "wasi_snapshot_preview1": {
       // @bjorn3/browser_wasi_shim raises an exception when
       // the process exits, but we just want to exit the process itself.
       proc_exit: (code: number) => {
+        procExitCalled = true;
         process.exit(code);
       },
     }
