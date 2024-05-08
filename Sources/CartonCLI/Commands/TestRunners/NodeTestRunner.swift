@@ -61,7 +61,6 @@ struct NodeTestRunner: TestRunner {
     if listTestCases {
       nodeArguments.append(contentsOf: ["--", "-l"])
     } else if !testCases.isEmpty {
-      nodeArguments.append("--")
       nodeArguments.append(contentsOf: testCases)
     }
     try await Process.run(nodeArguments, terminal)
