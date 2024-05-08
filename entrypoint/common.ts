@@ -112,11 +112,17 @@ export const WasmRunner = (rawOptions: Options | false, SwiftRuntime: SwiftRunti
       } else if (typeof instance.exports._initialize == "function") {
         // Initialize and start Reactor
         wasi.initialize(instance as any);
-        if (typeof instance.exports.main === "function") {
-          instance.exports.main();
-        } else if (typeof instance.exports.__main_argc_argv === "function") {
-          // Swift 6.0 and later use `__main_argc_argv` instead of `main`.
-          instance.exports.__main_argc_argv(0, 0);
+        if (swift && swift.main) {
+          // Use JavaScriptKit's entry point if it's available
+          swift.main();
+        } else {
+          // For older versions of JavaScriptKit, we need to handle it manually
+          if (typeof instance.exports.main === "function") {
+            instance.exports.main();
+          } else if (typeof instance.exports.__main_argc_argv === "function") {
+            // Swift 6.0 and later use `__main_argc_argv` instead of `main`.
+            instance.exports.__main_argc_argv(0, 0);
+          }
         }
       }
     },
