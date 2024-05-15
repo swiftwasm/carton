@@ -100,9 +100,6 @@ struct Dev: AsyncParsableCommand {
     if !verbose {
       terminal.revertCursorAndClear()
     }
-    terminal.write("\nWatching these directories for changes:\n", inColor: .green)
-    paths.forEach { terminal.logLookup("", $0) }
-    terminal.write("\n")
 
     let server = try await Server(
       .init(

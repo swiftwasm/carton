@@ -165,6 +165,12 @@ public actor Server {
     }
 
     if !builder.pathsToWatch.isEmpty {
+      let terminal = configuration.terminal
+
+      terminal.write("\nWatching these directories for changes:\n", inColor: .green)
+      builder.pathsToWatch.forEach { terminal.logLookup("", $0) }
+      terminal.write("\n")
+
       watcher = FSWatch(paths: builder.pathsToWatch, latency: 0.1) { [weak self] changes in
         guard let self = self, !changes.isEmpty else { return }
         Task { try await self.onChange(changes, configuration) }
