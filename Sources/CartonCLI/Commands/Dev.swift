@@ -18,6 +18,22 @@ import CartonKit
 import Foundation
 
 struct Dev: AsyncParsableCommand {
+  enum Error: Swift.Error & CustomStringConvertible {
+    case noBuildRequestOption
+    case noBuildResponseOption
+    case failedToOpenBuildRequestPipe
+    case failedToOpenBuildResponsePipe
+
+    var description: String {
+      switch self {
+      case .noBuildRequestOption: "--build-request option is necessary if you want to watch, but has not been specified."
+      case .noBuildResponseOption: "--build-response option is necessary if you want to watch, but has not been specified."
+      case .failedToOpenBuildRequestPipe: "failed to open build request pipe"
+      case .failedToOpenBuildResponsePipe: "failed to open build response pipe"
+      }
+    }
+  }
+
   static let entrypoint = Entrypoint(fileName: "dev.js", content: StaticResource.dev)
 
   @Option(help: "Specify name of an executable product in development.")
@@ -68,7 +84,7 @@ struct Dev: AsyncParsableCommand {
       visibility: .private
     )
   )
-  var buildRequest: String
+  var buildRequest: String?
 
   @Option(
     help: ArgumentHelp(
@@ -76,7 +92,7 @@ struct Dev: AsyncParsableCommand {
       visibility: .private
     )
   )
-  var buildResponse: String
+  var buildResponse: String?
 
   @Option(
     help: ArgumentHelp(
@@ -90,12 +106,38 @@ struct Dev: AsyncParsableCommand {
     abstract: "Watch the current directory, host the app, rebuild on change."
   )
 
-  func run() async throws {
-    let terminal = InteractiveWriter.stdout
+  private func makeBuilderIfNeed() throws -> SwiftPMPluginBuilder? {
+    guard !watchPaths.isEmpty else {
+      return nil
+    }
 
-    let paths = try watchPaths.map {
+    guard let buildRequest else {
+      throw Error.noBuildRequestOption
+    }
+    guard let buildResponse else {
+      throw Error.noBuildResponseOption
+    }
+
+    let pathsToWatch = try watchPaths.map {
       try AbsolutePath(validating: $0, relativeTo: localFileSystem.currentWorkingDirectory!)
     }
+
+    guard let buildRequest = FileHandle(forWritingAtPath: buildRequest) else {
+      throw Error.failedToOpenBuildRequestPipe
+    }
+    guard let buildResponse = FileHandle(forReadingAtPath: buildResponse) else {
+      throw Error.failedToOpenBuildResponsePipe
+    }
+
+    return SwiftPMPluginBuilder(
+      pathsToWatch: pathsToWatch,
+      buildRequest: buildRequest,
+      buildResponse: buildResponse
+    )
+  }
+
+  func run() async throws {
+    let terminal = InteractiveWriter.stdout
 
     if !verbose {
       terminal.revertCursorAndClear()
@@ -103,11 +145,7 @@ struct Dev: AsyncParsableCommand {
 
     let server = try await Server(
       .init(
-        builder: SwiftPMPluginBuilder(
-          pathsToWatch: paths,
-          buildRequest: FileHandle(forWritingAtPath: buildRequest)!,
-          buildResponse: FileHandle(forReadingAtPath: buildResponse)!
-        ),
+        builder: try makeBuilderIfNeed(),
         mainWasmPath: AbsolutePath(
           validating: mainWasmPath, relativeTo: localFileSystem.currentWorkingDirectory!),
         verbose: verbose,
