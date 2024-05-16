@@ -14,19 +14,29 @@
 
 import ArgumentParser
 import XCTest
+import CartonHelpers
+
+struct CommandTestError: Swift.Error & CustomStringConvertible {
+  var description: String
+}
 
 extension XCTest {
-  func findSwiftExecutable() throws -> String {
+  func findExecutable(name: String) throws -> AbsolutePath {
     let process = Process()
     process.executableURL = URL(fileURLWithPath: "/usr/bin/which")
-    process.arguments = ["swift"]
+    process.arguments = [name]
     let output = Pipe()
     process.standardOutput = output
     try process.run()
     process.waitUntilExit()
     let outputData = output.fileHandleForReading.readDataToEndOfFile()
-    return String(data: outputData, encoding: .utf8)!.trimmingCharacters(
-      in: .whitespacesAndNewlines)
+    let path = String(data: outputData, encoding: .utf8)!
+      .trimmingCharacters(in: .whitespacesAndNewlines)
+    return try AbsolutePath(validating: path)
+  }
+
+  func findSwiftExecutable() throws -> AbsolutePath {
+    try findExecutable(name: "swift")
   }
 
   struct SwiftRunResult {
@@ -42,9 +52,9 @@ extension XCTest {
   func swiftRunProcess(
     _ arguments: [CustomStringConvertible],
     packageDirectory: URL
-  ) throws -> (Process, stdout: Pipe, stderr: Pipe) {
-    let process = Process()
-    process.executableURL = URL(fileURLWithPath: try findSwiftExecutable())
+  ) throws -> (Foundation.Process, stdout: Pipe, stderr: Pipe) {
+    let process = Foundation.Process()
+    process.executableURL = try findSwiftExecutable().asURL
     process.arguments = ["run"] + arguments.map(\.description)
     process.currentDirectoryURL = packageDirectory
     let stdoutPipe = Pipe()
