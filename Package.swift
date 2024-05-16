@@ -137,6 +137,7 @@ let package = Package(
       name: "CartonCommandTests",
       dependencies: [
         "CartonCLI",
+        "SwiftToolchain",
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
       ]
     ),

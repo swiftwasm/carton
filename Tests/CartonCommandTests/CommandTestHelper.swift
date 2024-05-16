@@ -17,6 +17,9 @@ import XCTest
 import CartonHelpers
 
 struct CommandTestError: Swift.Error & CustomStringConvertible {
+  init(_ description: String) {
+    self.description = description
+  }
   var description: String
 }
 
