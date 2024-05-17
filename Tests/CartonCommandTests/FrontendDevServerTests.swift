@@ -15,8 +15,6 @@ final class FrontendDevServerTests: XCTestCase {
     let tools = try ToolchainSystem(fileSystem: fs)
     let (wasmSwift, _) = try await tools.inferSwiftPath(terminal)
 
-    let swift = try findSwiftExecutable()
-
     try fs.changeCurrentWorkingDirectory(to: dir)
 
     if !fs.exists(appWasmFile) {
@@ -35,14 +33,14 @@ final class FrontendDevServerTests: XCTestCase {
 
     try await Process.run(
       [
-        swift.pathString, "build", "--target", "CartonFrontend"
+        wasmSwift.pathString, "build", "--target", "CartonFrontend"
       ],
       terminal
     )
 
     let process = Process(
       arguments: [
-        swift.pathString, "run", "CartonFrontend", "dev",
+        wasmSwift.pathString, "run", "CartonFrontend", "dev",
         "--skip-auto-open", "--verbose",
         "--main-wasm-path", appWasmFile.pathString,
         "--resources", targetResourceDir.pathString
@@ -82,10 +80,8 @@ final class FrontendDevServerTests: XCTestCase {
     do {
       let devJs = try await curl(url: url + "/dev.js")
       _ = devJs
+      XCTFail("Currently, due to a bug, `dev.js` is not being delivered")
     } catch {
-      XCTExpectFailure {
-        XCTFail("\(error)")
-      }
     }
 
     let serverMainWasm = try await curlBinary(url: url + "/main.wasm")
