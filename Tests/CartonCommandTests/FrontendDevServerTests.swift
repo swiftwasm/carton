@@ -5,13 +5,29 @@ import CartonHelpers
 
 final class FrontendDevServerTests: XCTestCase {
   func testDevServerPublish() async throws {
+    let fs = localFileSystem
+    
     // CI-DEBUG
 
     print("TRACE env begin --------")
     print(try await Process.checkNonZeroExit(arguments: ["/usr/bin/env"]))
     print("TRACE env end --------")
 
-    let fs = localFileSystem
+    let homeDir = ProcessInfo.processInfo.environment["HOME"]!
+
+    print("TRACE fs home=\(homeDir)")
+
+    let homeItems = try fs.getDirectoryContents(AbsolutePath(validating: homeDir))
+    print(homeItems)
+
+    if homeItems.contains(".carton") {
+      print("TRACE dot carton")
+      let dotCartonItems = try fs.getDirectoryContents(AbsolutePath(validating: homeDir + "/.carton"))
+      print(dotCartonItems)
+    }
+
+
+
     let terminal = InteractiveWriter.stdout
     let dir = try testFixturesDirectory.appending(component: "DevServerTestApp")
     let productDir = dir.appending(components: [".build", "wasm32-unknown-wasi", "debug"])
@@ -90,19 +106,6 @@ final class FrontendDevServerTests: XCTestCase {
     )
 
     print("TRACE \(#line)")
-
-    let homeDir = ProcessInfo.processInfo.environment["HOME"]!
-
-    print("TRACE fs home=\(homeDir)")
-
-    let homeItems = try fs.getDirectoryContents(AbsolutePath(validating: homeDir))
-    print(homeItems)
-
-    if homeItems.contains(".carton") {
-      print("TRACE dot carton")
-      let dotCartonItems = try fs.getDirectoryContents(AbsolutePath(validating: homeDir + "/.carton"))
-      print(dotCartonItems)
-    }
 
     do {
       let devJs = try await curl(url: url + "/dev.js")
