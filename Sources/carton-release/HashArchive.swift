@@ -15,7 +15,6 @@
 import ArgumentParser
 import CartonHelpers
 import Foundation
-import WasmTransformer
 
 struct HashArchive: AsyncParsableCommand {
   /** Converts a hexadecimal hash string to Swift code that represents an archive of static assets.
@@ -36,7 +35,6 @@ struct HashArchive: AsyncParsableCommand {
   }
 
   func run() async throws {
-    let terminal = InteractiveWriter.stdout
     let cwd = localFileSystem.currentWorkingDirectory!
     let staticPath = try AbsolutePath(validating: "static", relativeTo: cwd)
 
