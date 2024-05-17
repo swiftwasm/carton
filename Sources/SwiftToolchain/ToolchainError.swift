@@ -12,13 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import Foundation
 import CartonHelpers
 
 enum ToolchainError: Error, CustomStringConvertible {
   case directoryDoesNotExist(AbsolutePath)
   case invalidInstallationArchive(AbsolutePath)
   case invalidVersion(version: String)
-  case invalidResponse(url: String, status: Int)
+  case notHTTPURLResponse(url: String)
+  case invalidResponse(url: String, status: Int, body: Data)
   case unsupportedOperatingSystem
   case noInstallationDirectory(path: String)
 
@@ -30,8 +32,12 @@ enum ToolchainError: Error, CustomStringConvertible {
       return "Invalid toolchain/SDK archive was installed at path \(path)"
     case let .invalidVersion(version):
       return "Invalid version \(version)"
-    case let .invalidResponse(url: url, status: status):
-      return "Response from \(url) had invalid status \(status) or didn't contain body"
+    case let .notHTTPURLResponse(url: url):
+      return "Response from \(url) is not HTTPURLResponse"
+    case let .invalidResponse(url: url, status: status, body: body):
+      var t = "Response from \(url) had invalid status \(status) with a body of \(body.count) bytes: "
+      t += String(decoding: body, as: UTF8.self)
+      return t
     case .unsupportedOperatingSystem:
       return "This version of the operating system is not supported"
     case let .noInstallationDirectory(path):
