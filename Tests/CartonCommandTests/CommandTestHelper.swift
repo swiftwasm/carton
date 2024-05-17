@@ -14,19 +14,42 @@
 
 import ArgumentParser
 import XCTest
+import CartonHelpers
+
+struct CommandTestError: Swift.Error & CustomStringConvertible {
+  init(_ description: String) {
+    self.description = description
+  }
+
+  var description: String
+}
 
 extension XCTest {
-  func findSwiftExecutable() throws -> String {
+  func findExecutable(name: String) throws -> AbsolutePath {
+    let whichBin = "/usr/bin/which"
     let process = Process()
-    process.executableURL = URL(fileURLWithPath: "/usr/bin/which")
-    process.arguments = ["swift"]
+    process.executableURL = URL(fileURLWithPath: whichBin)
+    process.arguments = [name]
     let output = Pipe()
     process.standardOutput = output
     try process.run()
     process.waitUntilExit()
+    guard process.terminationStatus == EXIT_SUCCESS else {
+      throw CommandTestError("Executable \(name) was not found: status=\(process.terminationStatus)")
+    }
     let outputData = output.fileHandleForReading.readDataToEndOfFile()
-    return String(data: outputData, encoding: .utf8)!.trimmingCharacters(
-      in: .whitespacesAndNewlines)
+    guard let string = String(data: outputData, encoding: .utf8) else {
+      throw CommandTestError("Output from \(whichBin) is not UTF-8 string")
+    }
+    let path = string.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard path.isEmpty else {
+      throw CommandTestError("Output from \(whichBin) is empty")
+    }
+    return try AbsolutePath(validating: path)
+  }
+
+  func findSwiftExecutable() throws -> AbsolutePath {
+    try findExecutable(name: "swift")
   }
 
   struct SwiftRunResult {
@@ -42,9 +65,9 @@ extension XCTest {
   func swiftRunProcess(
     _ arguments: [CustomStringConvertible],
     packageDirectory: URL
-  ) throws -> (Process, stdout: Pipe, stderr: Pipe) {
+  ) throws -> (Foundation.Process, stdout: Pipe, stderr: Pipe) {
     let process = Process()
-    process.executableURL = URL(fileURLWithPath: try findSwiftExecutable())
+    process.executableURL = try findSwiftExecutable().asURL
     process.arguments = ["run"] + arguments.map(\.description)
     process.currentDirectoryURL = packageDirectory
     let stdoutPipe = Pipe()
