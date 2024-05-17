@@ -38,6 +38,8 @@ final class FrontendDevServerTests: XCTestCase {
       terminal
     )
 
+    print("TRACE \(#line)")
+
     let process = Process(
       arguments: [
         wasmSwift.pathString, "run", "CartonFrontend", "dev",
@@ -47,21 +49,25 @@ final class FrontendDevServerTests: XCTestCase {
       ],
       outputRedirection: .stream(
         stdout: { (bytes) in
-          guard let string = String(data: Data(bytes), encoding: .utf8) else { return }
+          let string = String(decoding: bytes, as: UTF8.self)
           terminal.write(string)
         }, stderr: { _ in }, redirectStderr: true
       )
     )
+    print("TRACE \(#line)")
     try process.launch()
 
     defer {
+      print("TRACE \(#line)")
       process.signal(SIGINT)
     }
 
+    print("TRACE \(#line)")
     try await Task.sleep(for: .seconds(3))
 
     let url = "http://localhost:8080"
 
+    print("TRACE \(#line)")
     let index = try await curl(url: url)
     XCTAssertEqual(index, """
       <!DOCTYPE html>
@@ -77,17 +83,22 @@ final class FrontendDevServerTests: XCTestCase {
       """
     )
 
+    print("TRACE \(#line)")
     do {
       let devJs = try await curl(url: url + "/dev.js")
       _ = devJs
       XCTFail("Currently, due to a bug, `dev.js` is not being delivered")
     } catch {
     }
+    print("TRACE \(#line)")
 
     let serverMainWasm = try await curlBinary(url: url + "/main.wasm")
+    print("TRACE \(#line)")
     let localAppWasm = try Data(contentsOf: appWasmFile.asURL)
+    print("TRACE \(#line)")
     XCTAssertTrue(serverMainWasm == localAppWasm)
 
+    print("TRACE \(#line)")
     let css = try await curl(url: url + "/style.css")
     XCTAssertEqual(css, """
       * {
@@ -98,7 +109,9 @@ final class FrontendDevServerTests: XCTestCase {
     )
 
     process.signal(SIGINT)
+    print("TRACE \(#line)")
     _ = try await process.waitUntilExit()
+    print("TRACE \(#line)")
   }
 
   private func curl(url: String) async throws -> String {
