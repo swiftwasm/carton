@@ -25,16 +25,25 @@ struct CommandTestError: Swift.Error & CustomStringConvertible {
 
 extension XCTest {
   func findExecutable(name: String) throws -> AbsolutePath {
+    let whichBin = "/usr/bin/which"
     let process = Process()
-    process.executableURL = URL(fileURLWithPath: "/usr/bin/which")
+    process.executableURL = URL(fileURLWithPath: whichBin)
     process.arguments = [name]
     let output = Pipe()
     process.standardOutput = output
     try process.run()
     process.waitUntilExit()
+    guard process.terminationStatus == EXIT_SUCCESS else {
+      throw CommandTestError("Executable \(name) was not found: status=\(process.terminationStatus)")
+    }
     let outputData = output.fileHandleForReading.readDataToEndOfFile()
-    let path = String(data: outputData, encoding: .utf8)!
-      .trimmingCharacters(in: .whitespacesAndNewlines)
+    guard let string = String(data: outputData, encoding: .utf8) else {
+      throw CommandTestError("Output from \(whichBin) is not UTF-8 string")
+    }
+    let path = string.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !path.isEmpty else {
+      throw CommandTestError("Output from \(whichBin) is empty")
+    }
     return try AbsolutePath(validating: path)
   }
 
