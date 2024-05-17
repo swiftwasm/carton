@@ -42,7 +42,7 @@ extension XCTest {
       throw CommandTestError("Output from \(whichBin) is not UTF-8 string")
     }
     let path = string.trimmingCharacters(in: .whitespacesAndNewlines)
-    guard path.isEmpty else {
+    guard !path.isEmpty else {
       throw CommandTestError("Output from \(whichBin) is empty")
     }
     return try AbsolutePath(validating: path)
