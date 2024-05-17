@@ -10,11 +10,13 @@
 
 import Foundation
 
-public struct ProcessEnvironmentKey {
+public struct ProcessEnvironmentKey: CustomStringConvertible {
   public let value: String
   public init(_ value: String) {
     self.value = value
   }
+
+  public var description: String { value }
 }
 
 extension ProcessEnvironmentKey: Encodable {
