@@ -37,7 +37,7 @@ jobs:
       - name: Run Tests
         run: swift test
         env:
-          GITHUB_TOKEN: xxxx
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   swift-test-linux:
     name: Build and test on Linux with Swift ${{ matrix.swift_version }}
@@ -62,4 +62,4 @@ jobs:
       - run: swift build
       - run: swift test
         env:
-          GITHUB_TOKEN: xxxx
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
