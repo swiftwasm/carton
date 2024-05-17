@@ -165,10 +165,12 @@ public class ToolchainSystem {
     let request = URLRequest(url: URL(string: releaseURL)!)
     let (data, response) = try await URLSession.shared.data(for: request)
     guard let httpResponse = response as? HTTPURLResponse else {
-      throw ToolchainError.invalidResponse(url: releaseURL, status: -1)
+      throw ToolchainError.notHTTPURLResponse(url: releaseURL)
     }
     guard 200..<300 ~= httpResponse.statusCode else {
-      throw ToolchainError.invalidResponse(url: releaseURL, status: httpResponse.statusCode)
+      throw ToolchainError.invalidResponse(
+        url: releaseURL, status: httpResponse.statusCode, body: data
+      )
     }
     terminal.write("Response contained body, parsing it now...\n", inColor: .green)
 
