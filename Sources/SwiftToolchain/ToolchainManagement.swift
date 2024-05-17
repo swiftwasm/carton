@@ -52,9 +52,14 @@ public class ToolchainSystem {
   let userXCToolchainResolver: XCToolchainResolver?
   let cartonToolchainResolver: CartonToolchainResolver
   let resolvers: [ToolchainResolver]
+  let githubToken: String?
 
-  public init(fileSystem: FileSystem) throws {
+  public init(
+    fileSystem: FileSystem,
+    githubToken: String? = nil
+  ) throws {
     self.fileSystem = fileSystem
+    self.githubToken = githubToken ?? ProcessInfo.processInfo.environment["GITHUB_TOKEN"]
 
     let userLibraryPath = NSSearchPathForDirectoriesInDomains(
       .libraryDirectory,
@@ -162,7 +167,10 @@ public class ToolchainSystem {
 
     terminal.logLookup("Fetching release assets from ", releaseURL)
     let decoder = JSONDecoder()
-    let request = URLRequest(url: URL(string: releaseURL)!)
+    var request = URLRequest(url: URL(string: releaseURL)!)
+    if let githubToken {
+      request.setValue("Bearer \(githubToken)", forHTTPHeaderField: "Authorization")
+    }
     let (data, response) = try await URLSession.shared.data(for: request)
     guard let httpResponse = response as? HTTPURLResponse else {
       throw ToolchainError.notHTTPURLResponse(url: releaseURL)
