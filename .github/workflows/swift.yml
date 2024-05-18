@@ -19,9 +19,6 @@ jobs:
             xcode: /Applications/Xcode_15.0.app/Contents/Developer
 
     steps:
-      - run: curl -LfO https://github.com/swiftwasm/swift/releases/download/swift-wasm-5.9.2-RELEASE/swift-wasm-5.9.2-RELEASE-macos_x86_64.pkg
-      - run: installer -target CurrentUserHomeDirectory -pkg swift-wasm-5.9.2-RELEASE-macos_x86_64.pkg -dumplog
-      
       - uses: actions/checkout@v4
 
       - name: Select Xcode version
@@ -35,12 +32,12 @@ jobs:
       - name: Build the project
         run: |
           swift -v
-          swift build
+          swift build --build-tests
 
-      # - name: Run Tests
-      #   run: swift test
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run Tests
+        run: swift test --filter CartonCommandTests.BundleCommandTests/testWithDebugInfo
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   swift-test-linux:
     name: Build and test on Linux with Swift ${{ matrix.swift_version }}
