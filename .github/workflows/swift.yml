@@ -59,7 +59,7 @@ jobs:
       - uses: ./.github/actions/install-swift
 
       - name: Install dependent packages for Wasm
-        run: apt-get update && apt-get install -y wabt binaryen
+        run: sudo apt-get update && apt-get install -y wabt binaryen
 
       - uses: bytecodealliance/actions/wasmtime/setup@v1
 
