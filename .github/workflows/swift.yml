@@ -33,6 +33,8 @@ jobs:
         run: |
           swift -v
           swift build
+      
+      - run: swift build -v --build-tests
 
       - name: Run Tests
         run: swift test -v
