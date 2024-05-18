@@ -17,6 +17,8 @@ jobs:
           - os: macos-13 # TODO: macos-14 runner expected in October-December 2023
             swift_version: "5.9"
             xcode: /Applications/Xcode_15.0.app/Contents/Developer
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
