@@ -5,8 +5,8 @@ runs:
     - name: Install dependent packages for Swift
       shell: bash
       run: >
-        apt-get -q update &&
-        apt-get install -y
+        sudo apt-get -q update &&
+        sudo apt-get install -y
         binutils
         git
         gnupg2
@@ -28,8 +28,9 @@ runs:
     - name: Download Swift
       shell: bash
       run: curl -fLO https://download.swift.org/${{ env.SWIFT_DIR }}/${{ env.SWIFT_VERSION }}/${{ env.SWIFT_VERSION }}-ubuntu22.04.tar.gz
+      working-directory: ${{ env.RUNNER_TEMP }}
 
     - name: Unarchive and Install Swift
       shell: bash
-      run: RUN tar -xf ${{ env.SWIFT_VERSION }}-ubuntu22.04.tar.gz --strip-components=2 -C /usr/local
-
+      run: sudo tar -xf ${{ env.SWIFT_VERSION }}-ubuntu22.04.tar.gz --strip-components=2 -C /usr/local
+      working-directory: ${{ env.RUNNER_TEMP }}
