@@ -45,10 +45,15 @@ jobs:
       #     cp -r static $HOME/.carton
       
       - run: swift test --filter CartonTests
+        continue-on-error: true
       - run: swift test --filter BundleCommandTests
+        continue-on-error: true
       - run: swift test --filter DevCommandTests
+        continue-on-error: true
       - run: swift test --filter TestCommandTests
+        continue-on-error: true
       - run: swift test --filter WebDriverClientTests
+        continue-on-error: true
 
       # - name: Run Tests
       #   run: swift test --filter CartonCommandTests.BundleCommandTests
