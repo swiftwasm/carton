@@ -18,7 +18,7 @@
 import CartonHelpers
 import Foundation
 
-func trace(_ message: String = "", function: String = #function, file: String = #filePath, line: Int = #line) {
+func trace(_ message: String = "", function: String = #function, file: String = #fileID, line: Int = #line) {
   print("TRACE \(file).\(function).\(line)\(message)")
   fflush(stdout)
 }
