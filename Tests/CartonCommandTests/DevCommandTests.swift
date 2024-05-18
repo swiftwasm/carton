@@ -68,9 +68,9 @@ final class DevCommandTests: XCTestCase {
       <!DOCTYPE html>
       <html>
         <head>
-            <meta charset="utf-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1" />
-            <script type="module" src="dev.js"></script>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <script type="module" src="dev.js"></script>
         </head>
         <body>
         </body>
