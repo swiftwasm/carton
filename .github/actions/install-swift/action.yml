@@ -3,6 +3,7 @@ runs:
   steps:
     # https://www.swift.org/install/linux/#installation-via-tarball
     - name: Install dependent packages for Swift
+      shell: bash
       run: >
         apt-get -q update &&
         apt-get install -y
@@ -25,8 +26,10 @@ runs:
         curl
     
     - name: Download Swift
+      shell: bash
       run: curl -fLO https://download.swift.org/${{ env.SWIFT_DIR }}/${{ env.SWIFT_VERSION }}/${{ env.SWIFT_VERSION }}-ubuntu22.04.tar.gz
 
     - name: Unarchive and Install Swift
+      shell: bash
       run: RUN tar -xf ${{ env.SWIFT_VERSION }}-ubuntu22.04.tar.gz --strip-components=2 -C /usr/local
 
