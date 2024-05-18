@@ -42,6 +42,8 @@ jobs:
           mkdir -p $HOME/.carton
           cp -r static $HOME/.carton
 
+      - uses: mxschmitt/action-tmate@v3
+
       - name: Run Tests
         run: swift test
         env:
