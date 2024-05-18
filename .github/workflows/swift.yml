@@ -43,7 +43,7 @@ jobs:
           cp -r static $HOME/.carton
 
       - name: Run Tests
-        run: swift test --filter CartonCommandTests.BundleCommandTests/testWithDebugInfo
+        run: swift test --filter CartonCommandTests.BundleCommandTests
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
