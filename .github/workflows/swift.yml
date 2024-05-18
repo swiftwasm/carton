@@ -34,13 +34,13 @@ jobs:
           swift --version
           swift build --build-tests
 
-      - name: Build and install JavaScript and sanitizer resources
-        run: |
-          set -ex
-          npm install
-          swift run carton-release hash-archive
-          mkdir -p $HOME/.carton
-          cp -r static $HOME/.carton
+      # - name: Build and install JavaScript and sanitizer resources
+      #   run: |
+      #     set -ex
+      #     npm install
+      #     swift run carton-release hash-archive
+      #     mkdir -p $HOME/.carton
+      #     cp -r static $HOME/.carton
 
       - name: Run Tests
         run: swift test --filter CartonCommandTests.BundleCommandTests
