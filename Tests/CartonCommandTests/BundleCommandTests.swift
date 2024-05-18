@@ -21,6 +21,10 @@ import XCTest
 @testable import CartonCLI
 
 final class BundleCommandTests: XCTestCase {
+  override func setUp() {
+    setbuf(stdout, nil)
+  }
+
   func testWithNoArguments() throws {
     try withFixture("EchoExecutable") { packageDirectory in
       let bundleDirectory = packageDirectory.appending(component: "Bundle")
