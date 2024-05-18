@@ -34,7 +34,7 @@ struct TestError: Error, CustomStringConvertible {
   let description: String
 }
 
-struct Test: AsyncParsableCommand {
+struct CartonFrontendTestCommand: AsyncParsableCommand {
 
   static let configuration = CommandConfiguration(abstract: "Run the tests in a WASI environment.")
 

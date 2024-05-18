@@ -18,7 +18,7 @@
 import Foundation
 import XCTest
 
-@testable import CartonCLI
+@testable import CartonFrontend
 
 #if canImport(FoundationNetworking)
   import FoundationNetworking

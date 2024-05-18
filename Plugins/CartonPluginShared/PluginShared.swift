@@ -194,7 +194,7 @@ internal func checkHelpFlag(_ arguments: [String], subcommand: String, context: 
 internal func makeCartonFrontendProcess(context: PluginContext, arguments: [String]) throws
   -> Process
 {
-  let frontend = try context.tool(named: "CartonFrontend")
+  let frontend = try context.tool(named: "carton-frontend")
 
   Diagnostics.remark(
     "Running " + ([frontend.path.string] + arguments).map { "\"\($0)\"" }.joined(separator: " "))

@@ -16,7 +16,7 @@ import Foundation
 import PackagePlugin
 
 @main
-struct CartonDevPlugin: CommandPlugin {
+struct CartonDevPluginCommand: CommandPlugin {
   struct Options {
     var product: String?
     var release: Bool

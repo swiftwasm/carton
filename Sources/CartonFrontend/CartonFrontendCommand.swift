@@ -12,11 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import CartonCLI
+import ArgumentParser
+import CartonHelpers
 
-@main
-struct Main {
-  static func main() async {
-    await Carton.main()
-  }
+public struct CartonFrontendCommand: AsyncParsableCommand {
+  public static let configuration = CommandConfiguration(
+    abstract: "📦 Watcher, bundler, and test runner for your SwiftWasm apps.",
+    version: cartonVersion,
+    subcommands: [
+      CartonFrontendBundleCommand.self,
+      CartonFrontendDevCommand.self,
+      CartonFrontendTestCommand.self
+    ]
+  )
+
+  public init() {}
 }

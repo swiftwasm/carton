@@ -16,7 +16,7 @@ import Foundation
 import PackagePlugin
 
 @main
-struct CartonBundlePlugin: CommandPlugin {
+struct CartonBundlePluginCommand: CommandPlugin {
 
   struct Options {
     var product: String?

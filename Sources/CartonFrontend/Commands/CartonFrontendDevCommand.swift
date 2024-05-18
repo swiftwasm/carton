@@ -17,7 +17,7 @@ import CartonHelpers
 import CartonKit
 import Foundation
 
-struct Dev: AsyncParsableCommand {
+struct CartonFrontendDevCommand: AsyncParsableCommand {
   enum Error: Swift.Error & CustomStringConvertible {
     case noBuildRequestOption
     case noBuildResponseOption

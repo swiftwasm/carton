@@ -18,7 +18,7 @@
 import CartonHelpers
 import XCTest
 
-@testable import CartonCLI
+@testable import CartonFrontend
 
 final class BundleCommandTests: XCTestCase {
   func testWithNoArguments() throws {
