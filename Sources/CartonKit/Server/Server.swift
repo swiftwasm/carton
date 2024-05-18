@@ -231,15 +231,15 @@ public actor Server {
         channel.eventLoop.makeSucceededFuture(HTTPHeaders())
       },
       upgradePipelineHandler: { (channel: Channel, head: HTTPRequestHead) in
-        return channel.eventLoop.makeFutureWithTask { () -> WebSocketHandler? in
+        return channel.eventLoop.makeFutureWithTask { () -> ServerWebSocketHandler? in
           guard head.uri == "/watcher" else {
             return nil
           }
           let environment =
             head.headers["User-Agent"].compactMap(DestinationEnvironment.init).first
             ?? .other
-          let handler = await WebSocketHandler(
-            configuration: Server.WebSocketHandler.Configuration(
+          let handler = await ServerWebSocketHandler(
+            configuration: ServerWebSocketHandler.Configuration(
               onText: self.createWSHandler(in: environment, terminal: self.configuration.terminal)
             )
           )
@@ -258,7 +258,7 @@ public actor Server {
         }
       }
     )
-    let handlerConfiguration = HTTPHandler.Configuration(
+    let handlerConfiguration = ServerHTTPHandler.Configuration(
       logger: Logger(label: "org.swiftwasm.carton.dev-server"),
       mainWasmPath: configuration.mainWasmPath,
       customIndexPath: configuration.customIndexPath,
@@ -270,7 +270,7 @@ public actor Server {
       .serverChannelOption(ChannelOptions.backlog, value: 256)
       .serverChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
       .childChannelInitializer { channel in
-        let httpHandler = HTTPHandler(configuration: handlerConfiguration)
+        let httpHandler = ServerHTTPHandler(configuration: handlerConfiguration)
         let config: NIOHTTPServerUpgradeConfiguration = (
           upgraders: [upgrader],
           completionHandler: { _ in
