@@ -1,4 +1,5 @@
 runs:
+  using: composite
   steps:
     # https://www.swift.org/install/linux/#installation-via-tarball
     - name: Install dependent packages for Swift
