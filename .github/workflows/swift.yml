@@ -59,6 +59,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '20'
+      - uses: mxschmitt/action-tmate@v3
       - run: swift build
       - run: swift test
         env:
