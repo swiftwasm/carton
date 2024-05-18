@@ -59,8 +59,6 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '20'
-      - uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 5
       - run: swift build
       - run: swift test
         env:
