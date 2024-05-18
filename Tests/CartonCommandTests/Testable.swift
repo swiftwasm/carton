@@ -48,8 +48,11 @@ public var packageDirectory: AbsolutePath {
 }
 
 func withFixture(_ name: String, _ body: (AbsolutePath) throws -> Void) throws {
+  print("TRACE \(#function) L\(#line)")
   let fixtureDir = try testFixturesDirectory.appending(component: name)
+  print("TRACE \(#function) L\(#line)")
   try body(fixtureDir)
+  print("TRACE \(#function) L\(#line)")
 }
 
 func withFixture(_ name: String, _ body: (AbsolutePath) async throws -> Void) async throws {
