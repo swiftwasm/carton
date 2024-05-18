@@ -44,13 +44,27 @@ jobs:
       #     mkdir -p $HOME/.carton
       #     cp -r static $HOME/.carton
       
+      - run: swift test --filter TestCommandTests/testEnvironmentDefaultBrowser
+        continue-on-error: true
+      - run: swift test --filter TestCommandTests/testEnvironmentNodeJSKit
+        continue-on-error: true
+      - run: swift test --filter TestCommandTests/testEnvironmentNodeNoJSKit
+        continue-on-error: true
+      - run: swift test --filter TestCommandTests/testHeadlessBrowser
+        continue-on-error: true
+      - run: swift test --filter TestCommandTests/testHeadlessBrowserWithCrash
+        continue-on-error: true
+      - run: swift test --filter TestCommandTests/testHeadlessBrowserWithFail
+        continue-on-error: true
+      - run: swift test --filter TestCommandTests/testSkipBuild
+        continue-on-error: true
+      - run: swift test --filter TestCommandTests/testWithNoArguments
+        continue-on-error: true
       - run: swift test --filter CartonTests
         continue-on-error: true
       - run: swift test --filter BundleCommandTests
         continue-on-error: true
       - run: swift test --filter DevCommandTests
-        continue-on-error: true
-      - run: swift test --filter TestCommandTests
         continue-on-error: true
       - run: swift test --filter WebDriverClientTests
         continue-on-error: true
