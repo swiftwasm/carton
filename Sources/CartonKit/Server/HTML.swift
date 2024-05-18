@@ -48,7 +48,7 @@ extension HTML {
 
   public static func indexPage(customContent: String?, entrypointName: String) -> String {
     let scriptTag = #"<script type="module" src="\#(entrypointName)"></script>"#
-    if let customContent = customContent {
+    if let customContent {
       return customContent.replacingOccurrences(
         of: "</head>",
         with: "\(scriptTag)</head>"
@@ -59,9 +59,9 @@ extension HTML {
       <!DOCTYPE html>
       <html>
         <head>
-            <meta charset="utf-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1" />
-            \#(scriptTag)
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          \#(scriptTag)
         </head>
         <body>
         </body>
