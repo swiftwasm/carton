@@ -41,11 +41,18 @@ jobs:
       #     swift run carton-release hash-archive
       #     mkdir -p $HOME/.carton
       #     cp -r static $HOME/.carton
+      
+      - run: swift test --filter CartonTests
+      - run: swift test --filter BundleCommandTests
+      - run: swift test --filter DevCommandTests
+      - run: swift test --filter TestCommandTests
+      - run: swift test --filter WebDriverClientTests
 
-      - name: Run Tests
-        run: swift test --filter CartonCommandTests.BundleCommandTests
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Run Tests
+      #   run: swift test --filter CartonCommandTests.BundleCommandTests
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
 
   swift-test-linux:
     name: Build and test on Linux with Swift ${{ matrix.swift_version }}
