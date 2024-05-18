@@ -18,6 +18,11 @@
 import CartonHelpers
 import Foundation
 
+func trace(_ message: String = "", function: String = #function, file: String = #filePath, line: Int = #line) {
+  print("TRACE \(file).\(function).\(line)\(message)")
+  fflush(stdout)
+}
+
 /// Returns path to the built products directory.
 public var productsDirectory: AbsolutePath {
   get throws {
@@ -48,11 +53,11 @@ public var packageDirectory: AbsolutePath {
 }
 
 func withFixture(_ name: String, _ body: (AbsolutePath) throws -> Void) throws {
-  print("TRACE \(#function) L\(#line)")
+  trace()
   let fixtureDir = try testFixturesDirectory.appending(component: name)
-  print("TRACE \(#function) L\(#line)")
+  trace()
   try body(fixtureDir)
-  print("TRACE \(#function) L\(#line)")
+  trace()
 }
 
 func withFixture(_ name: String, _ body: (AbsolutePath) async throws -> Void) async throws {

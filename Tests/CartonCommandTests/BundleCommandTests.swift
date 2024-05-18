@@ -46,36 +46,36 @@ final class BundleCommandTests: XCTestCase {
   }
 
   func testWithDebugInfo() throws {
-    print("TRACE \(#function) L\(#line)")
+    trace()
     try withFixture("EchoExecutable") { packageDirectory in
-      print("TRACE \(#function) L\(#line)")
+      trace()
       let result = try swiftRun(
         ["carton", "bundle", "--debug-info"], packageDirectory: packageDirectory.url
       )
-      print("TRACE \(#function) L\(#line)")
+      trace()
       result.assertZeroExit()
 
-      print("TRACE \(#function) L\(#line)")
+      trace()
       let bundleDirectory = packageDirectory.appending(component: "Bundle")
 
-      print("TRACE \(#function) L\(#line)")
+      trace()
       guard let wasmBinary = (bundleDirectory.ls().filter { $0.contains("wasm") }).first else {
-        print("TRACE \(#function) L\(#line)")
+        trace()
         XCTFail("No wasm binary found")
         return
       }
 
-      print("TRACE \(#function) L\(#line)")
+      trace()
       let headers = try Process.checkNonZeroExit(arguments: [
         "wasm-objdump", "--headers", bundleDirectory.appending(component: wasmBinary).pathString,
       ])
 
-      print("TRACE \(#function) L\(#line)")
+      trace()
       XCTAssert(headers.contains("\"name\""), "name section not found: \(headers)")
 
-      print("TRACE \(#function) L\(#line)")
+      trace()
     }
-    print("TRACE \(#function) L\(#line)")
+    trace()
   }
 
   func testWithoutContentHash() throws {

@@ -87,7 +87,7 @@ extension XCTest {
     setSignalForwarding(SIGINT)
     setSignalForwarding(SIGTERM)
 
-    print("TRACE \(#function) L\(#line): executableURL=\(process.executableURL?.description ?? "") arguments=\(process.arguments) currentDirectoryURL=\(process.currentDirectoryURL?.description ?? "")")
+    trace("executableURL=\(process.executableURL?.description ?? "") arguments=\(process.arguments ?? []) currentDirectoryURL=\(process.currentDirectoryURL?.description ?? "")")
 
     try process.run()
 
