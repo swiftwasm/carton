@@ -50,7 +50,7 @@ jobs:
       matrix:
         include:
           - swift:
-              dir: "swift-5.9-release"
+              dir: "ubuntu2204/swift-5.9-release"
               version: "swift-5.9-RELEASE"
 
     steps:
