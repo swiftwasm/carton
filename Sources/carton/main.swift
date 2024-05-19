@@ -34,6 +34,13 @@ import CartonHelpers
 import Foundation
 import SwiftToolchain
 
+struct CartonCommandError: Error & CustomStringConvertible {
+  init(_ description: String) {
+    self.description = description
+  }
+  var description: String
+}
+
 extension Foundation.Process {
   internal static func checkRun(
     _ executableURL: URL, arguments: [String], forwardExit: Bool = false
@@ -99,8 +106,7 @@ func derivePackageCommandArguments(
     packageArguments += ["--disable-sandbox"]
   case "test":
     // 1. Ask the plugin process to generate the build command based on the given options
-    let commandFile = makeTemporaryFile(
-      prefix: "test-build", suffix: "args", in: URL(fileURLWithPath: NSTemporaryDirectory()))
+    let commandFile = try makeTemporaryFile(prefix: "test-build")
     try Foundation.Process.checkRun(
       swiftExec,
       arguments: packageArguments + pluginArguments + [
@@ -132,15 +138,25 @@ func derivePackageCommandArguments(
   return packageArguments + pluginArguments + ["carton-\(subcommand)"] + cartonPluginArguments
 }
 
-func makeTemporaryFile(prefix: String, suffix: String, in directory: URL) -> URL {
-  var template = directory.appendingPathComponent("carton-XXXXXX").path
-  let result = template.withUTF8 { template in
+var errnoString: String {
+  String(cString: strerror(errno))
+}
+
+var temporaryDirectory: URL {
+  URL(fileURLWithPath: NSTemporaryDirectory())
+}
+
+func makeTemporaryFile(prefix: String, in directory: URL? = nil) throws -> URL {
+  let directory = directory ?? temporaryDirectory
+  var template = directory.appendingPathComponent("\(prefix)XXXXXX").path
+  let result = try template.withUTF8 { template in
     let copy = UnsafeMutableBufferPointer<CChar>.allocate(capacity: template.count + 1)
     defer { copy.deallocate() }
     template.copyBytes(to: copy)
     copy[template.count] = 0
     guard mkstemp(copy.baseAddress!) != -1 else {
-      fatalError("Failed to create a temporary directory")
+      let error = errnoString
+      throw CartonCommandError("Failed to make a temporary file at \(template): \(error)")
     }
     return String(cString: copy.baseAddress!)
   }
