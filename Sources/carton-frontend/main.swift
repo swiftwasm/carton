@@ -14,4 +14,7 @@
 
 import CartonFrontend
 
-CartonFrontendCommand.main()
+func main() async {
+  await CartonFrontendCommand.main()
+}
+await main()
