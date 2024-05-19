@@ -17,6 +17,7 @@ import CartonHelpers
 
 public struct CartonFrontendCommand: AsyncParsableCommand {
   public static let configuration = CommandConfiguration(
+    commandName: "carton-frontend",
     abstract: "📦 Watcher, bundler, and test runner for your SwiftWasm apps.",
     version: cartonVersion,
     subcommands: [
