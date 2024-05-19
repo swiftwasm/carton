@@ -34,13 +34,6 @@ import CartonHelpers
 import Foundation
 import SwiftToolchain
 
-struct CartonCommandError: Error & CustomStringConvertible {
-  init(_ description: String) {
-    self.description = description
-  }
-  var description: String
-}
-
 extension Foundation.Process {
   internal static func checkRun(
     _ executableURL: URL, arguments: [String], forwardExit: Bool = false
