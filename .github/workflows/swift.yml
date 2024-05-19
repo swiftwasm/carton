@@ -33,26 +33,37 @@ jobs:
         run: |
           swift -v
           swift build
+      
+      - run: swift build -v --build-tests
 
       - name: Run Tests
-        run: swift test
+        run: swift test -v
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   swift-test-linux:
-    name: Build and test on Linux with Swift ${{ matrix.swift_version }}
+    name: Build and test on Linux with Swift ${{ matrix.swift.version }}
     timeout-minutes: 40
     runs-on: ubuntu-22.04
-    container: swift:${{ matrix.swift_version }}
     strategy:
       matrix:
         include:
-          - swift_version: "5.9"
+          - swift:
+              dir: "swift-5.9-release/ubuntu2204"
+              version: "swift-5.9-RELEASE"
 
     steps:
       - uses: actions/checkout@v4
-      - name: Install dependencies for Ubuntu
-        run: apt-get update && apt-get install wabt binaryen -y
+
+      - uses: ./.github/actions/install-swift
+        with:
+          swift-dir: ${{ matrix.swift.dir }}
+          swift-version: ${{ matrix.swift.version }}
+
+      - name: Install dependent packages for Wasm
+        run: >
+          sudo apt-get update && sudo apt-get install -y
+          wabt binaryen
 
       - uses: bytecodealliance/actions/wasmtime/setup@v1
 
