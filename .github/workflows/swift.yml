@@ -31,9 +31,6 @@ jobs:
       - name: Check Swift version
         run: swift --version
 
-      - name: Check Swift version
-        run: swift --version
-
       - name: Install dependencies for macOS
         run: brew bundle
 
