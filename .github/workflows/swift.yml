@@ -52,7 +52,7 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        run: actions/checkout@v4
+        uses: actions/checkout@v4
 
       - name: Install Swift toolchain
         uses: ./.github/actions/install-swift
