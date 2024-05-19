@@ -8,7 +8,7 @@ on:
 
 jobs:
   swift-test-macos:
-    name: Build and test on ${{ matrix.os }} with Swift ${{ matrix.swift-version }}, Xcode  ${{ matrix.xcode }}
+    name: Build and test on ${{ matrix.os }} with Swift ${{ matrix.swift }}, Xcode  ${{ matrix.xcode }}
     timeout-minutes: 40
     runs-on: ${{ matrix.os }}
     strategy:
@@ -16,10 +16,10 @@ jobs:
         include:
           - os: macos-14-arm64
             xcode: "15.4"
-            swift-version: "5.10"
+            swift: "5.10"
           - os: macos-13
             xcode: "15.2"
-            swift-version: "5.9.2"
+            swift: "5.9.2"
 
     steps:
       - name: Checkout the repository
