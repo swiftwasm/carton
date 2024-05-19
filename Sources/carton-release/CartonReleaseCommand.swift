@@ -16,7 +16,7 @@ import ArgumentParser
 import CartonHelpers
 
 @main
-struct CartonRelease: AsyncParsableCommand {
+struct CartonReleaseCommand: AsyncParsableCommand {
   static let configuration = CommandConfiguration(
     abstract: "Carton release automation utility",
     subcommands: [HashArchive.self]
