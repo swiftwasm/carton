@@ -67,6 +67,7 @@ struct CartonFrontendBundleCommand: AsyncParsableCommand {
   var output: String
 
   static let configuration = CommandConfiguration(
+    commandName: "bundle",
     abstract: "Produces an optimized app bundle for distribution."
   )
 

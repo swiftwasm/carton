@@ -103,6 +103,7 @@ struct CartonFrontendDevCommand: AsyncParsableCommand {
   var mainWasmPath: String
 
   static let configuration = CommandConfiguration(
+    commandName: "dev",
     abstract: "Watch the current directory, host the app, rebuild on change."
   )
 
