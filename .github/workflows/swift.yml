@@ -8,22 +8,22 @@ on:
 
 jobs:
   swift-test-macos:
-    name: Build and test on macOS with Swift ${{ matrix.swift_version }}
+    name: Build and test on ${{ matrix.os }} with Swift ${{ matrix.swift }}, Xcode ${{ matrix.xcode }}
     timeout-minutes: 40
-    runs-on: macos-13
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
-          - os: macos-13 # TODO: macos-14 runner expected in October-December 2023
-            swift_version: "5.9"
-            xcode: /Applications/Xcode_15.0.app/Contents/Developer
+          - os: macos-13
+            xcode: "15.2"
+            swift: "5.9.2"
 
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
 
       - name: Select Xcode version
-        run: sudo xcode-select --switch ${{ matrix.xcode }}
+        run: sudo xcode-select --switch /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
 
       - name: Check Swift version
         run: swift --version
@@ -47,8 +47,8 @@ jobs:
       matrix:
         include:
           - swift:
-              dir: "swift-5.9-release/ubuntu2204"
-              version: "swift-5.9-RELEASE"
+              dir: "swift-5.9.2-release/ubuntu2204"
+              version: "swift-5.9.2-RELEASE"
 
     steps:
       - name: Checkout the repository
