@@ -1,1 +1,3 @@
-This directory contains symbolic links to shared source code among the Carton plugins. This is a temporary workaround until SwiftPM supports it natively.
+This directory contains shared source code for the Carton plugins.
+Plugins reference this directory using symbolic links to use these sources.
+This is a temporary workaround until SwiftPM supports it natively.
