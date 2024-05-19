@@ -156,7 +156,7 @@ func makeTemporaryFile(prefix: String, in directory: URL? = nil) throws -> URL {
     copy[template.count] = 0
     guard mkstemp(copy.baseAddress!) != -1 else {
       let error = errnoString
-      throw CartonCommandError("Failed to create a temporary file at \(template): \(error)")
+      throw CartonCommandError("Failed to make a temporary file at \(template): \(error)")
     }
     return String(cString: copy.baseAddress!)
   }
