@@ -106,7 +106,7 @@ func derivePackageCommandArguments(
     packageArguments += ["--disable-sandbox"]
   case "test":
     // 1. Ask the plugin process to generate the build command based on the given options
-    let commandFile = try makeTemporaryFile(prefix: "test-build")
+    let commandFile = try FileUtils.makeTemporaryFile(prefix: "test-build")
     try Foundation.Process.checkRun(
       swiftExec,
       arguments: packageArguments + pluginArguments + [
@@ -136,31 +136,6 @@ func derivePackageCommandArguments(
   }
 
   return packageArguments + pluginArguments + ["carton-\(subcommand)"] + cartonPluginArguments
-}
-
-var errnoString: String {
-  String(cString: strerror(errno))
-}
-
-var temporaryDirectory: URL {
-  URL(fileURLWithPath: NSTemporaryDirectory())
-}
-
-func makeTemporaryFile(prefix: String, in directory: URL? = nil) throws -> URL {
-  let directory = directory ?? temporaryDirectory
-  var template = directory.appendingPathComponent("\(prefix)XXXXXX").path
-  let result = try template.withUTF8 { template in
-    let copy = UnsafeMutableBufferPointer<CChar>.allocate(capacity: template.count + 1)
-    defer { copy.deallocate() }
-    template.copyBytes(to: copy)
-    copy[template.count] = 0
-    guard mkstemp(copy.baseAddress!) != -1 else {
-      let error = errnoString
-      throw CartonCommandError("Failed to make a temporary file at \(template): \(error)")
-    }
-    return String(cString: copy.baseAddress!)
-  }
-  return URL(fileURLWithPath: result)
 }
 
 func pluginSubcommand(subcommand: String, argv0: String, arguments: [String]) async throws {

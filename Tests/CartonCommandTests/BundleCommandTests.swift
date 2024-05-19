@@ -21,11 +21,12 @@ import XCTest
 @testable import CartonFrontend
 
 final class BundleCommandTests: XCTestCase {
-  func testWithNoArguments() throws {
-    try withFixture("EchoExecutable") { packageDirectory in
+  func testWithNoArguments() async throws {
+    try await withFixture("EchoExecutable") { packageDirectory in
       let bundleDirectory = packageDirectory.appending(component: "Bundle")
 
-      try swiftRun(["carton", "bundle"], packageDirectory: packageDirectory.url)
+      let result = try await swiftRun(["carton", "bundle"], packageDirectory: packageDirectory.url)
+      try result.checkSuccess()
 
       // Confirm that the files are actually in the folder
       XCTAssertTrue(bundleDirectory.exists, "The Bundle directory should exist")
@@ -41,31 +42,31 @@ final class BundleCommandTests: XCTestCase {
     }
   }
 
-  func testWithDebugInfo() throws {
-    try withFixture("EchoExecutable") { packageDirectory in
-      let result = try swiftRun(
+  func testWithDebugInfo() async throws {
+    try await withFixture("EchoExecutable") { packageDirectory in
+      let result = try await swiftRun(
         ["carton", "bundle", "--debug-info"], packageDirectory: packageDirectory.url
       )
-      result.assertZeroExit()
+      try result.checkSuccess()
 
       let bundleDirectory = packageDirectory.appending(component: "Bundle")
       guard let wasmBinary = (bundleDirectory.ls().filter { $0.contains("wasm") }).first else {
         XCTFail("No wasm binary found")
         return
       }
-      let headers = try Process.checkNonZeroExit(arguments: [
+      let headers = try await Process.checkNonZeroExit(arguments: [
         "wasm-objdump", "--headers", bundleDirectory.appending(component: wasmBinary).pathString,
       ])
       XCTAssert(headers.contains("\"name\""), "name section not found: \(headers)")
     }
   }
 
-  func testWithoutContentHash() throws {
-    try withFixture("EchoExecutable") { packageDirectory in
-      let result = try swiftRun(
+  func testWithoutContentHash() async throws {
+    try await withFixture("EchoExecutable") { packageDirectory in
+      let result = try await swiftRun(
         ["carton", "bundle", "--no-content-hash", "--wasm-optimizations", "none"], packageDirectory: packageDirectory.url
       )
-      result.assertZeroExit()
+      try result.checkSuccess()
 
       let bundleDirectory = packageDirectory.appending(component: "Bundle")
       guard let wasmBinary = (bundleDirectory.ls().filter { $0.contains("wasm") }).first else {
@@ -76,16 +77,16 @@ final class BundleCommandTests: XCTestCase {
     }
   }
 
-  func testWasmOptimizationOptions() throws {
-    try withFixture("EchoExecutable") { packageDirectory in
-      func getFileSizeOfWasmBinary(wasmOptimizations: WasmOptimizations) throws -> UInt64 {
+  func testWasmOptimizationOptions() async throws {
+    try await withFixture("EchoExecutable") { packageDirectory in
+      func getFileSizeOfWasmBinary(wasmOptimizations: WasmOptimizations) async throws -> UInt64 {
         let bundleDirectory = packageDirectory.appending(component: "Bundle")
 
-        let result = try swiftRun(
+        let result = try await swiftRun(
           ["carton", "bundle", "--wasm-optimizations", wasmOptimizations.rawValue],
           packageDirectory: packageDirectory.url
         )
-        result.assertZeroExit()
+        try result.checkSuccess()
 
         guard let wasmFile = (bundleDirectory.ls().filter { $0.contains("wasm") }).first else {
           XCTFail("No wasm binary found")
@@ -95,10 +96,10 @@ final class BundleCommandTests: XCTestCase {
         return try localFileSystem.getFileInfo(bundleDirectory.appending(component: wasmFile)).size
       }
 
-      try XCTAssertGreaterThan(
-        getFileSizeOfWasmBinary(wasmOptimizations: .none),
-        getFileSizeOfWasmBinary(wasmOptimizations: .size)
-      )
+      let noneSize = try await getFileSizeOfWasmBinary(wasmOptimizations: .none)
+      let optimizedSize = try await getFileSizeOfWasmBinary(wasmOptimizations: .size)
+
+      XCTAssertGreaterThan(noneSize, optimizedSize)
     }
   }
 }

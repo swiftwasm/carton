@@ -13,8 +13,9 @@
 // limitations under the License.
 
 import ArgumentParser
-import XCTest
 import CartonHelpers
+import Foundation
+import XCTest
 
 struct CommandTestError: Swift.Error & CustomStringConvertible {
   init(_ description: String) {
@@ -51,28 +52,137 @@ func findSwiftExecutable() throws -> AbsolutePath {
   try findExecutable(name: "swift")
 }
 
-struct SwiftRunResult {
-  var exitCode: Int32
-  var stdout: String
-  var stderr: String
+func makeTeeProcess(file: AbsolutePath) throws -> Foundation.Process {
+  let process = Process()
+  process.executableURL = try findExecutable(name: "tee").asURL
+  process.arguments = [file.pathString]
+  return process
+}
 
-  func assertZeroExit(_ file: StaticString = #file, line: UInt = #line) {
-    XCTAssertEqual(exitCode, 0, "stdout: " + stdout + "\nstderr: " + stderr, file: file, line: line)
+private let processConcurrentQueue = DispatchQueue(
+  label: "carton.processConcurrentQueue",
+  attributes: .concurrent
+)
+
+struct FoundationProcessResult: CustomStringConvertible {
+  struct Error: Swift.Error & CustomStringConvertible {
+    var result: FoundationProcessResult
+
+    var description: String {
+      result.description
+    }
+  }
+
+  var executable: String
+  var arguments: [String]
+  var statusCode: Int32
+  var output: Data?
+  var errorOutput: Data?
+
+  func utf8Output() -> String? {
+    guard let output else { return nil }
+    return String(decoding: output, as: UTF8.self)
+  }
+
+  func utf8ErrorOutput() -> String? {
+    guard let errorOutput else { return nil }
+    return String(decoding: errorOutput, as: UTF8.self)
+  }
+
+  var description: String {
+    let commandLine = ([executable] + arguments).joined(separator: " ")
+
+    let summary = if statusCode == EXIT_SUCCESS {
+      "Process succeeded."
+    } else {
+      "Process failed with status code \(statusCode)."
+    }
+
+    var lines: [String] = [
+      summary,
+      "Command line: \(commandLine)"
+    ]
+
+    if let string = utf8Output() {
+      lines += ["Output:", string]
+    }
+    if let string = utf8ErrorOutput() {
+      lines += ["Error output:", string]
+    }
+    return lines.joined(separator: "\n")
+  }
+
+  func checkSuccess() throws {
+    guard statusCode == EXIT_SUCCESS else {
+      throw Error(result: self)
+    }
+  }
+}
+
+
+extension Foundation.Process {
+  func waitUntilExit() async {
+    await withCheckedContinuation { (continuation) in
+      processConcurrentQueue.async {
+        self.waitUntilExit()
+        continuation.resume()
+      }
+    }
+  }
+
+  func result(
+    output: Data? = nil,
+    errorOutput: Data? = nil
+  ) throws -> FoundationProcessResult {
+    guard let executableURL else {
+      throw CommandTestError("executableURL is nil")
+    }
+    return FoundationProcessResult(
+      executable: executableURL.path,
+      arguments: arguments ?? [],
+      statusCode: terminationStatus,
+      output: output,
+      errorOutput: errorOutput
+    )
+  }
+}
+
+struct SwiftRunProcess {
+  var process: Foundation.Process
+  var tee: Foundation.Process
+  var outputFile: AbsolutePath
+
+  func output() throws -> Data {
+    try Data(contentsOf: outputFile.asURL)
+  }
+
+  func waitUntilExit() async {
+    await process.waitUntilExit()
+    await tee.waitUntilExit()
+  }
+
+  func result() throws -> FoundationProcessResult {
+    return try process.result(output: try output())
   }
 }
 
 func swiftRunProcess(
-  _ arguments: [CustomStringConvertible],
+  _ arguments: [String],
   packageDirectory: URL
-) throws -> (Foundation.Process, stdout: Pipe, stderr: Pipe) {
+) throws -> SwiftRunProcess {
+  let outputFile = try AbsolutePath(
+    validating: try FileUtils.makeTemporaryFile(prefix: "swift-run").path
+  )
+  let tee = try makeTeeProcess(file: outputFile)
+
+  let teePipe = Pipe()
+  tee.standardInput = teePipe
+
   let process = Process()
   process.executableURL = try findSwiftExecutable().asURL
   process.arguments = ["run"] + arguments.map(\.description)
   process.currentDirectoryURL = packageDirectory
-  let stdoutPipe = Pipe()
-  process.standardOutput = stdoutPipe
-  let stderrPipe = Pipe()
-  process.standardError = stderrPipe
+  process.standardOutput = teePipe
 
   func setSignalForwarding(_ signalNo: Int32) {
     signal(signalNo, SIG_IGN)
@@ -88,23 +198,11 @@ func swiftRunProcess(
 
   try process.run()
 
-  return (process, stdoutPipe, stderrPipe)
+  return SwiftRunProcess(process: process, tee: tee, outputFile: outputFile)
 }
 
-@discardableResult
-func swiftRun(_ arguments: [CustomStringConvertible], packageDirectory: URL) throws
-  -> SwiftRunResult
-{
-  let (process, stdoutPipe, stderrPipe) = try swiftRunProcess(
-    arguments, packageDirectory: packageDirectory)
-  process.waitUntilExit()
-
-  let stdout = String(
-    data: stdoutPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)!
-    .trimmingCharacters(in: .whitespacesAndNewlines)
-
-  let stderr = String(
-    data: stderrPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)!
-    .trimmingCharacters(in: .whitespacesAndNewlines)
-  return SwiftRunResult(exitCode: process.terminationStatus, stdout: stdout, stderr: stderr)
+func swiftRun(_ arguments: [String], packageDirectory: URL) async throws -> FoundationProcessResult {
+  let process = try swiftRunProcess(arguments, packageDirectory: packageDirectory)
+  await process.waitUntilExit()
+  return try process.result()
 }
