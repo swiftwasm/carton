@@ -14,12 +14,12 @@ let package = Package(
     .library(name: "SwiftToolchain", targets: ["SwiftToolchain"]),
     .library(name: "CartonHelpers", targets: ["CartonHelpers"]),
     .library(name: "CartonKit", targets: ["CartonKit"]),
-    .library(name: "CartonCLI", targets: ["CartonCLI"]),
+    .library(name: "CartonFrontend", targets: ["CartonFrontend"]),
     .executable(name: "carton", targets: ["carton"]),
     .executable(name: "carton-release", targets: ["carton-release"]),
-    .plugin(name: "CartonBundle", targets: ["CartonBundle"]),
-    .plugin(name: "CartonTest", targets: ["CartonTest"]),
-    .plugin(name: "CartonDev", targets: ["CartonDev"]),
+    .plugin(name: "CartonBundlePlugin", targets: ["CartonBundlePlugin"]),
+    .plugin(name: "CartonTestPlugin", targets: ["CartonTestPlugin"]),
+    .plugin(name: "CartonDevPlugin", targets: ["CartonDevPlugin"]),
     .executable(name: "carton-plugin-helper", targets: ["carton-plugin-helper"]),
   ],
   dependencies: [
@@ -43,47 +43,47 @@ let package = Package(
       ]
     ),
     .executableTarget(
-      name: "CartonFrontend",
+      name: "carton-frontend",
       dependencies: [
-        "CartonCLI",
+        "CartonFrontend"
       ]
     ),
     .plugin(
-        name: "CartonBundle",
+        name: "CartonBundlePlugin",
         capability: .command(
             intent: .custom(
                 verb: "carton-bundle",
                 description: "Produces an optimized app bundle for distribution."
             )
         ),
-        dependencies: ["CartonFrontend"],
+        dependencies: ["carton-frontend"],
         exclude: ["CartonPluginShared/README.md"]
     ),
     .plugin(
-        name: "CartonTest",
+        name: "CartonTestPlugin",
         capability: .command(
             intent: .custom(
                 verb: "carton-test",
                 description: "Run the tests in a WASI environment."
             )
         ),
-        dependencies: ["CartonFrontend"],
+        dependencies: ["carton-frontend"],
         exclude: ["CartonPluginShared/README.md"]
     ),
     .plugin(
-        name: "CartonDev",
+        name: "CartonDevPlugin",
         capability: .command(
             intent: .custom(
                 verb: "carton-dev",
                 description: "Watch the current directory, host the app, rebuild on change."
             )
         ),
-        dependencies: ["CartonFrontend"],
+        dependencies: ["carton-frontend"],
         exclude: ["CartonPluginShared/README.md"]
     ),
     .executableTarget(name: "carton-plugin-helper"),
     .target(
-      name: "CartonCLI",
+      name: "CartonFrontend",
       dependencies: [
         .product(name: "Logging", package: "swift-log"),
         "CartonKit",
@@ -136,7 +136,7 @@ let package = Package(
     .testTarget(
       name: "CartonCommandTests",
       dependencies: [
-        "CartonCLI",
+        "CartonFrontend",
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
       ]
     ),

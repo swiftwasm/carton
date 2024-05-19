@@ -17,7 +17,7 @@ import CartonHelpers
 import CartonKit
 import Foundation
 
-struct Dev: AsyncParsableCommand {
+struct CartonFrontendDevCommand: AsyncParsableCommand {
   enum Error: Swift.Error & CustomStringConvertible {
     case noBuildRequestOption
     case noBuildResponseOption
@@ -103,6 +103,7 @@ struct Dev: AsyncParsableCommand {
   var mainWasmPath: String
 
   static let configuration = CommandConfiguration(
+    commandName: "dev",
     abstract: "Watch the current directory, host the app, rebuild on change."
   )
 

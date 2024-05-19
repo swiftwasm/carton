@@ -18,7 +18,7 @@
 import CartonHelpers
 import XCTest
 
-@testable import CartonCLI
+@testable import CartonFrontend
 
 private enum Constants {
   static let testAppPackageName = "TestApp"

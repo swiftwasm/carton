@@ -16,7 +16,7 @@ import Foundation
 import PackagePlugin
 
 @main
-struct CartonTestPlugin: CommandPlugin {
+struct CartonTestPluginCommand: CommandPlugin {
   struct Options {
     var environment: Environment
     var prebuiltTestBundlePath: String?

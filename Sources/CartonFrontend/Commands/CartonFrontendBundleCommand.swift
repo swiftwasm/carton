@@ -22,7 +22,7 @@ enum WasmOptimizations: String, CaseIterable, ExpressibleByArgument {
   case size, none
 }
 
-struct Bundle: AsyncParsableCommand {
+struct CartonFrontendBundleCommand: AsyncParsableCommand {
   @Argument(
     help: ArgumentHelp(
       "Internal: Path to the main WebAssembly file built by the SwiftPM Plugin process.",
@@ -67,6 +67,7 @@ struct Bundle: AsyncParsableCommand {
   var output: String
 
   static let configuration = CommandConfiguration(
+    commandName: "bundle",
     abstract: "Produces an optimized app bundle for distribution."
   )
 
