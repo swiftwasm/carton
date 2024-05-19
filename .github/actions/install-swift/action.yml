@@ -1,13 +1,13 @@
+inputs:
+  swift-dir:
+    description: The directory name part of the distribution URL
+    required: true
+  swift-version:
+    description: Git tag indicating the Swift version
+    required: true
+      
 runs:
   using: composite
-  inputs:
-    swift-dir:
-      description: The directory name part of the distribution URL
-      required: true
-    swift-version:
-      description: Git tag indicating the Swift version
-      required: true
-
   steps:
     # https://www.swift.org/install/linux/#installation-via-tarball
     - name: Install dependent packages for Swift
