@@ -19,24 +19,22 @@ jobs:
             xcode: /Applications/Xcode_15.0.app/Contents/Developer
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout the repository
+        uses: actions/checkout@v4
 
       - name: Select Xcode version
         run: sudo xcode-select --switch ${{ matrix.xcode }}
 
+      - name: Check Swift version
+        run: swift --version
+
       - name: Install dependencies for macOS
         run: brew bundle
 
-      - uses: bytecodealliance/actions/wasmtime/setup@v1
-
       - name: Build the project
-        run: |
-          swift -v
-          swift build
+        run: swift build --build-tests
       
-      - run: swift build -v --build-tests
-
-      - name: Run Tests
+      - name: Run tests
         run: swift test -v
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -53,24 +51,30 @@ jobs:
               version: "swift-5.9-RELEASE"
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout the repository
+        run: actions/checkout@v4
 
-      - uses: ./.github/actions/install-swift
+      - name: Install Swift toolchain
+        uses: ./.github/actions/install-swift
         with:
           swift-dir: ${{ matrix.swift.dir }}
           swift-version: ${{ matrix.swift.version }}
 
-      - name: Install dependent packages for Wasm
+      - name: Check Swift version
+        run: swift --version
+
+      - name: Install dependent packages for WebAssembly
         run: >
           sudo apt-get update && sudo apt-get install -y
           wabt binaryen
 
-      - uses: bytecodealliance/actions/wasmtime/setup@v1
+      - name: Install WebAssembly runtime
+        uses: bytecodealliance/actions/wasmtime/setup@v1
 
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '20'
-      - run: swift build
-      - run: swift test
+      - name: Build the project
+        run: swift build --build-tests
+
+      - name: Run tests
+        run: swift test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
