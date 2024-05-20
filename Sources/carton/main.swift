@@ -30,6 +30,6 @@
 //
 // This executable should be eventually removed once SwiftPM provides a way to express those requirements.
 
-import CartonModule
+import CartonDriver
 
 try await main(arguments: CommandLine.arguments)
