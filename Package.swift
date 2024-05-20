@@ -13,6 +13,7 @@ let package = Package(
   products: [
     .library(name: "SwiftToolchain", targets: ["SwiftToolchain"]),
     .library(name: "CartonHelpers", targets: ["CartonHelpers"]),
+    .library(name: "CartonModule", targets: ["CartonModule"]),
     .library(name: "CartonKit", targets: ["CartonKit"]),
     .library(name: "CartonFrontend", targets: ["CartonFrontend"]),
     .executable(name: "carton", targets: ["carton"]),
@@ -35,11 +36,17 @@ let package = Package(
     ),
   ],
   targets: [
+    .target(
+      name: "CartonModule",
+      dependencies: [
+        "SwiftToolchain",
+        "CartonHelpers"
+      ]
+    ),
     .executableTarget(
       name: "carton",
       dependencies: [
-        "SwiftToolchain",
-        "CartonHelpers",
+        "CartonModule"
       ]
     ),
     .executableTarget(
