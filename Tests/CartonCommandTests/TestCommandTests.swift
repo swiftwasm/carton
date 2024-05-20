@@ -32,41 +32,41 @@ func skipBrowserTest() throws {
 }
 
 final class TestCommandTests: XCTestCase {
-  func testWithNoArguments() throws {
-    try withFixture(Constants.testAppPackageName) { packageDirectory in
-      let result = try swiftRun(
+  func testWithNoArguments() async throws {
+    try await withFixture(Constants.testAppPackageName) { packageDirectory in
+      let result = try await swiftRun(
         ["carton", "test"], packageDirectory: packageDirectory.url
       )
-      result.assertZeroExit()
+      try result.checkNonZeroExit()
     }
   }
 
-  func testEnvironmentNodeNoJSKit() throws {
-    try withFixture(Constants.testAppPackageName) { packageDirectory in
-      let result = try swiftRun(
+  func testEnvironmentNodeNoJSKit() async throws {
+    try await withFixture(Constants.testAppPackageName) { packageDirectory in
+      let result = try await swiftRun(
         ["carton", "test", "--environment", "node"], packageDirectory: packageDirectory.url
       )
-      result.assertZeroExit()
+      try result.checkNonZeroExit()
     }
   }
 
-  func testEnvironmentNodeJSKit() throws {
-    try withFixture(Constants.nodeJSKitPackageName) { packageDirectory in
-      let result = try swiftRun(
+  func testEnvironmentNodeJSKit() async throws {
+    try await withFixture(Constants.nodeJSKitPackageName) { packageDirectory in
+      let result = try await swiftRun(
         ["carton", "test", "--environment", "node"], packageDirectory: packageDirectory.url
       )
-      result.assertZeroExit()
+      try result.checkNonZeroExit()
     }
   }
 
-  func testSkipBuild() throws {
-    try withFixture(Constants.nodeJSKitPackageName) { packageDirectory in
-      var result = try swiftRun(
+  func testSkipBuild() async throws {
+    try await withFixture(Constants.nodeJSKitPackageName) { packageDirectory in
+      var result = try await swiftRun(
         ["carton", "test", "--environment", "node"], packageDirectory: packageDirectory.url
       )
-      result.assertZeroExit()
+      try result.checkNonZeroExit()
 
-      result = try swiftRun(
+      result = try await swiftRun(
         [
           "carton", "test", "--environment", "node",
           "--prebuilt-test-bundle-path",
@@ -74,52 +74,52 @@ final class TestCommandTests: XCTestCase {
         ],
         packageDirectory: packageDirectory.url
       )
-      result.assertZeroExit()
+      try result.checkNonZeroExit()
     }
   }
 
-  func testHeadlessBrowser() throws {
+  func testHeadlessBrowser() async throws {
     try skipBrowserTest()
     guard Process.findExecutable("safaridriver") != nil else {
       throw XCTSkip("WebDriver is required")
     }
-    try withFixture(Constants.testAppPackageName) { packageDirectory in
-      let result = try swiftRun(
+    try await withFixture(Constants.testAppPackageName) { packageDirectory in
+      let result = try await swiftRun(
         ["carton", "test", "--environment", "browser", "--headless"],
         packageDirectory: packageDirectory.url
       )
-      result.assertZeroExit()
+      try result.checkNonZeroExit()
     }
   }
 
-  func testHeadlessBrowserWithCrash() throws {
+  func testHeadlessBrowserWithCrash() async throws {
     try skipBrowserTest()
-    try checkCartonTestFail(fixture: Constants.crashTestPackageName)
+    try await checkCartonTestFail(fixture: Constants.crashTestPackageName)
   }
 
-  func testHeadlessBrowserWithFail() throws {
+  func testHeadlessBrowserWithFail() async throws {
     try skipBrowserTest()
-    try checkCartonTestFail(fixture: Constants.failTestPackageName)
+    try await checkCartonTestFail(fixture: Constants.failTestPackageName)
   }
 
-  func checkCartonTestFail(fixture: String) throws {
+  func checkCartonTestFail(fixture: String) async throws {
     guard Process.findExecutable("safaridriver") != nil else {
       throw XCTSkip("WebDriver is required")
     }
-    try withFixture(fixture) { packageDirectory in
-      let result = try swiftRun(
+    try await withFixture(fixture) { packageDirectory in
+      let result = try await swiftRun(
         ["carton", "test", "--environment", "browser", "--headless"],
         packageDirectory: packageDirectory.url
       )
-      XCTAssertNotEqual(result.exitCode, 0)
+      try result.checkNonZeroExit()
     }
   }
 
   // This test is prone to hanging on Linux.
   #if os(macOS)
-    func testEnvironmentDefaultBrowser() throws {
+    func testEnvironmentDefaultBrowser() async throws {
       try skipBrowserTest()
-      try withFixture(Constants.testAppPackageName) { packageDirectory in
+      try await withFixture(Constants.testAppPackageName) { packageDirectory in
         let expectedTestSuiteCount = 1
         let expectedTestsCount = 1
 
@@ -132,11 +132,13 @@ final class TestCommandTests: XCTestCase {
           """
 
         // FIXME: Don't assume a specific port is available since it can be used by others or tests
-        let result = try swiftRun(
+        let result = try await swiftRun(
           ["carton", "test", "--environment", "browser", "--port", "8082"],
           packageDirectory: packageDirectory.url
         )
-        XCTAssertTrue(result.stdout.contains(expectedContent))
+        try result.checkNonZeroExit()
+        let output = try result.utf8Output()
+        XCTAssertTrue(output.contains(expectedContent))
       }
     }
   #endif

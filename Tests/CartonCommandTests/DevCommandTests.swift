@@ -31,7 +31,7 @@ final class DevCommandTests: XCTestCase {
     func testWithNoArguments() async throws {
       // FIXME: Don't assume a specific port is available since it can be used by others or tests
       try await withFixture("EchoExecutable") { packageDirectory in
-        let (process, _, _) = try swiftRunProcess(
+        let process = try swiftRunProcess(
           ["carton", "dev", "--verbose", "--skip-auto-open"],
           packageDirectory: packageDirectory.url
         )
@@ -43,7 +43,7 @@ final class DevCommandTests: XCTestCase {
     func testWithArguments() async throws {
       // FIXME: Don't assume a specific port is available since it can be used by others or tests
       try await withFixture("EchoExecutable") { packageDirectory in
-        let (process, _, _) = try swiftRunProcess(
+        let process = try swiftRunProcess(
           ["carton", "dev", "--verbose", "--port", "8081", "--skip-auto-open"],
           packageDirectory: packageDirectory.url
         )
@@ -53,7 +53,7 @@ final class DevCommandTests: XCTestCase {
     }
   #endif
 
-  func checkForExpectedContent(process: Process, at url: String) async {
+  func checkForExpectedContent(process: SwiftRunProcess, at url: String) async {
     // client time out for connecting and responding
     let timeOut: Int64 = 60
 
@@ -85,11 +85,6 @@ final class DevCommandTests: XCTestCase {
 
     // give the server some time to start
     repeat {
-      // Don't wait for anything if the process is dead.
-      guard process.isRunning else {
-        break
-      }
-
       sleep(delay)
       count += 1
 
@@ -109,7 +104,7 @@ final class DevCommandTests: XCTestCase {
     } while count < polls && response == nil
 
     // end the process regardless of success
-    process.terminate()
+    process.process.signal(SIGTERM)
 
     if let response = response {
       XCTAssertTrue(response.statusCode == 200, "Response was not ok")
