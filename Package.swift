@@ -117,8 +117,22 @@ let package = Package(
       exclude: ["Utilities/README.md"]
     ),
     .target(
+      /** Shim target to import missing C headers in Darwin and Glibc modulemap. */
+      name: "TSCclibc",
+      cSettings: [
+        .define("_GNU_SOURCE", .when(platforms: [.linux])),
+      ]
+    ),
+    .target(
+        /** Cross-platform access to bare `libc` functionality. */
+        name: "TSCLibc"
+    ),
+    .target(
       name: "CartonHelpers",
-      dependencies: [],
+      dependencies: [
+        "TSCclibc",
+        "TSCLibc"
+      ],
       exclude: ["Basics/README.md"]
     ),
     .target(name: "WebDriverClient", dependencies: []),
