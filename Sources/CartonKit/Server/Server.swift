@@ -240,7 +240,7 @@ public actor Server {
             ?? .other
           let handler = await ServerWebSocketHandler(
             configuration: ServerWebSocketHandler.Configuration(
-              onText: self.createWSHandler(in: environment, terminal: self.configuration.terminal)
+              onText: self.createWebSocketTextHandler(in: environment, terminal: self.configuration.terminal)
             )
           )
           await self.add(connection: Connection(channel: channel))
@@ -330,7 +330,7 @@ public actor Server {
 
 extension Server {
   /// Returns a handler that responds to WebSocket messages coming from the browser.
-  func createWSHandler(
+  func createWebSocketTextHandler(
     in environment: DestinationEnvironment,
     terminal: InteractiveWriter
   ) -> @Sendable (String) -> Void {
