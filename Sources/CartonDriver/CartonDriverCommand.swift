@@ -34,7 +34,7 @@ import CartonHelpers
 import Foundation
 import SwiftToolchain
 
-struct CartonCommandError: Error & CustomStringConvertible {
+struct CartonDriverError: Error & CustomStringConvertible {
   init(_ description: String) {
     self.description = description
   }
@@ -45,9 +45,10 @@ extension Foundation.Process {
   internal static func checkRun(
     _ executableURL: URL, arguments: [String], forwardExit: Bool = false
   ) throws {
-    fputs(
-      "Running \(([executableURL.path] + arguments).map { "\"\($0)\"" }.joined(separator: " "))\n",
-      stderr)
+    let commandLine: String = ([executableURL.path] + arguments)
+      .map { "\"\($0)\"" }.joined(separator: " ")
+
+    fputs("Running \(commandLine)\n", stderr)
     fflush(stderr)
 
     let process = Foundation.Process()
@@ -67,17 +68,18 @@ extension Foundation.Process {
     setSignalForwarding(SIGINT)
     setSignalForwarding(SIGTERM)
 
-    if forwardExit {
-      process.terminationHandler = {
-        // Exit plugin process itself when child process exited
-        exit($0.terminationStatus)
-      }
-    }
     try process.run()
     process.waitUntilExit()
 
-    if process.terminationStatus != 0 {
+    if forwardExit {
       exit(process.terminationStatus)
+    }
+
+    if process.terminationStatus != 0 {
+      throw CartonDriverError(
+        "Process failed with status \(process.terminationStatus).\n" +
+        "Command line: \(commandLine)"
+      )
     }
   }
 }
@@ -156,7 +158,7 @@ func makeTemporaryFile(prefix: String, in directory: URL? = nil) throws -> URL {
     copy[template.count] = 0
     guard mkstemp(copy.baseAddress!) != -1 else {
       let error = errnoString
-      throw CartonCommandError("Failed to make a temporary file at \(template): \(error)")
+      throw CartonDriverError("Failed to make a temporary file at \(template): \(error)")
     }
     return String(cString: copy.baseAddress!)
   }
