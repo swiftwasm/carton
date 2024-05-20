@@ -809,7 +809,7 @@ private protocol _FileWatcher {
     let delegate: FSEventStreamDelegate
 
     /// The thread on which the stream is running.
-    private var thread: Thread?
+    private var thread: Foundation.Thread?
 
     /// The run loop attached to the stream.
     private var runLoop: CFRunLoop?
@@ -844,7 +844,7 @@ private protocol _FileWatcher {
 
     // Start the runloop.
     public func start() throws {
-      let thread = Thread { [weak self] in
+      let thread = Foundation.Thread { [weak self] in
         guard let `self` = self else { return }
         self.runLoop = CFRunLoopGetCurrent()
         let queue = DispatchQueue(label: "org.swiftwasm.carton.FSWatch")
