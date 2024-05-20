@@ -51,60 +51,59 @@ func findSwiftExecutable() throws -> AbsolutePath {
   try findExecutable(name: "swift")
 }
 
-struct SwiftRunResult {
-  var exitCode: Int32
-  var stdout: String
-  var stderr: String
-
-  func assertZeroExit(_ file: StaticString = #file, line: UInt = #line) {
-    XCTAssertEqual(exitCode, 0, "stdout: " + stdout + "\nstderr: " + stderr, file: file, line: line)
-  }
+struct SwiftRunProcess {
+  var process: CartonHelpers.Process
+  var output: () -> [UInt8]
 }
 
 func swiftRunProcess(
-  _ arguments: [CustomStringConvertible],
+  _ arguments: [String],
   packageDirectory: URL
-) throws -> (Foundation.Process, stdout: Pipe, stderr: Pipe) {
-  let process = Process()
-  process.executableURL = try findSwiftExecutable().asURL
-  process.arguments = ["run"] + arguments.map(\.description)
-  process.currentDirectoryURL = packageDirectory
-  let stdoutPipe = Pipe()
-  process.standardOutput = stdoutPipe
-  let stderrPipe = Pipe()
-  process.standardError = stderrPipe
+) throws -> SwiftRunProcess {
+  let swiftBin = try findSwiftExecutable().pathString
+
+  var outputBuffer = Array<UInt8>()
+
+  let process = CartonHelpers.Process(
+    arguments: [swiftBin, "run"] + arguments,
+    workingDirectory: try AbsolutePath(validating: packageDirectory.path),
+    outputRedirection: .stream(
+      stdout: { (chunk) in
+        outputBuffer += chunk
+        stdoutStream.write(sequence: chunk)
+      }, stderr: { (chunk) in
+        stderrStream.write(sequence: chunk)
+      },
+      redirectStderr: false
+    )
+  )
+
+  try process.launch()
 
   func setSignalForwarding(_ signalNo: Int32) {
     signal(signalNo, SIG_IGN)
     let signalSource = DispatchSource.makeSignalSource(signal: signalNo)
     signalSource.setEventHandler {
       signalSource.cancel()
-      process.interrupt()
+      process.signal(SIGINT)
     }
     signalSource.resume()
   }
   setSignalForwarding(SIGINT)
   setSignalForwarding(SIGTERM)
 
-  try process.run()
-
-  return (process, stdoutPipe, stderrPipe)
+  return SwiftRunProcess(
+    process: process,
+    output: { outputBuffer }
+  )
 }
 
 @discardableResult
-func swiftRun(_ arguments: [CustomStringConvertible], packageDirectory: URL) throws
-  -> SwiftRunResult
+func swiftRun(_ arguments: [String], packageDirectory: URL) async throws
+  -> CartonHelpers.ProcessResult
 {
-  let (process, stdoutPipe, stderrPipe) = try swiftRunProcess(
-    arguments, packageDirectory: packageDirectory)
-  process.waitUntilExit()
-
-  let stdout = String(
-    data: stdoutPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)!
-    .trimmingCharacters(in: .whitespacesAndNewlines)
-
-  let stderr = String(
-    data: stderrPipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)!
-    .trimmingCharacters(in: .whitespacesAndNewlines)
-  return SwiftRunResult(exitCode: process.terminationStatus, stdout: stdout, stderr: stderr)
+  let process = try swiftRunProcess(arguments, packageDirectory: packageDirectory)
+  var result = try await process.process.waitUntilExit()
+  result.setOutput(.success(process.output()))
+  return result
 }
