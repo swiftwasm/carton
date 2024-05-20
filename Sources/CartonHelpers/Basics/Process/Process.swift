@@ -270,8 +270,7 @@ public final class Process {
     private static let loggingHandlerLock = NSLock()
 
     /// Global logging handler. Use with care! preferably use instance level instead of setting one globally.
-    @available(*, deprecated, message: "use instance level `loggingHandler` passed via `init` instead of setting one globally.")
-    public static var loggingHandler: LoggingHandler? {
+    private static var loggingHandler: LoggingHandler? {
         get {
             Self.loggingHandlerLock.withLock {
                 self._loggingHandler
@@ -295,8 +294,7 @@ public final class Process {
     public let arguments: [String]
 
     /// The environment with which the process was executed.
-    @available(*, deprecated, message: "use `environmentBlock` instead")
-    public var environment: [String:String] {
+    private var environment: [String:String] {
         Dictionary<String, String>(uniqueKeysWithValues: environmentBlock.map { ($0.key.value, $0.value) })
     }
 
