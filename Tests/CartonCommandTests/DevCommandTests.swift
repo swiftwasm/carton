@@ -63,7 +63,7 @@ final class DevCommandTests: XCTestCase {
 
     do {
       return try await withRetry(maxAttempts: count, delay: delay) {
-        try await fetchDevServerContent(at: url, timeout: timeOut)
+        try await fetchWebContent(at: url, timeout: timeOut)
       }
     } catch {
       throw CommandTestError(

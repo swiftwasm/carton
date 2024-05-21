@@ -48,6 +48,13 @@ public enum Environment: String, CaseIterable {
     
     public var otherSwiftcFlags: [String] = []
     public var otherLinkerFlags: [String] = []
+
+    public func asBuildArguments() -> [String] {
+      var args: [String] = []
+      args += otherSwiftcFlags.flatMap { ["-Xswiftc", $0] }
+      args += otherLinkerFlags.flatMap { ["-Xlinker", $0] }
+      return args
+    }
   }
 
   public func applyBuildParameters(_ parameters: inout Parameters) {
@@ -67,5 +74,11 @@ public enum Environment: String, CaseIterable {
       parameters.otherLinkerFlags += ["--export-if-defined=main"]
       #endif
     }
+  }
+
+  public func buildParameters() -> Parameters {
+    var p = Parameters()
+    applyBuildParameters(&p)
+    return p
   }
 }

@@ -128,7 +128,7 @@ func swiftRun(_ arguments: [String], packageDirectory: URL) async throws
   return result
 }
 
-func fetchDevServerContent(at url: URL, timeout: Duration) async throws -> (response: HTTPURLResponse, body: Data) {
+func fetchWebContent(at url: URL, timeout: Duration) async throws -> (response: HTTPURLResponse, body: Data) {
   let session = URLSession.shared
 
   let request = URLRequest(
