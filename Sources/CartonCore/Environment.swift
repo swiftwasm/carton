@@ -14,12 +14,16 @@
 
 /// The target environment to build for.
 /// `Environment` doesn't specify the concrete environment, but the type of environments enough for build planning.
-internal enum Environment: String, CaseIterable {
+public enum Environment: String, CaseIterable {
+  public static var allCasesNames: [String] {
+    allCases.map(\.rawValue)
+  }
+
   case command
   case node
   case browser
 
-  static func parse(_ string: String) -> (Environment?, diagnostics: String?) {
+  public static func parse(_ string: String) -> (Environment?, diagnostics: String?) {
     // Find from canonical names
     if let found = allCases.first(where: { $0.rawValue == string }) {
       return (found, nil)
@@ -36,12 +40,17 @@ internal enum Environment: String, CaseIterable {
     }
   }
 
-  struct Parameters {
-    var otherSwiftcFlags: [String] = []
-    var otherLinkerFlags: [String] = []
+  public struct Parameters {
+    public init(otherSwiftcFlags: [String] = [], otherLinkerFlags: [String] = []) {
+      self.otherSwiftcFlags = otherSwiftcFlags
+      self.otherLinkerFlags = otherLinkerFlags
+    }
+    
+    public var otherSwiftcFlags: [String] = []
+    public var otherLinkerFlags: [String] = []
   }
 
-  func applyBuildParameters(_ parameters: inout Parameters) {
+  public func applyBuildParameters(_ parameters: inout Parameters) {
     // NOTE: We only support static linking for now, and the new SwiftDriver
     // does not infer `-static-stdlib` for WebAssembly targets intentionally
     // for future dynamic linking support.

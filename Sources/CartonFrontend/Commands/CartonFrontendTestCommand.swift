@@ -15,16 +15,7 @@
 import ArgumentParser
 import CartonHelpers
 import CartonKit
-
-/// The target environment to build for.
-/// `Environment` doesn't specify the concrete environment, but the type of environments enough for build planning.
-enum Environment: String, CaseIterable, ExpressibleByArgument {
-  public static var allCasesNames: [String] { Environment.allCases.map { $0.rawValue } }
-
-  case command
-  case node
-  case browser
-}
+import CartonCore
 
 enum SanitizeVariant: String, CaseIterable, ExpressibleByArgument {
   case stackOverflow

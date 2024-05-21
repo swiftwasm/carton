@@ -64,7 +64,10 @@ let package = Package(
             )
         ),
         dependencies: ["carton-frontend"],
-        exclude: ["CartonPluginShared/README.md"]
+        exclude: [
+          "CartonCore/README.md",
+          "CartonPluginShared/README.md"
+        ]
     ),
     .plugin(
         name: "CartonTestPlugin",
@@ -75,7 +78,10 @@ let package = Package(
             )
         ),
         dependencies: ["carton-frontend"],
-        exclude: ["CartonPluginShared/README.md"]
+        exclude: [
+          "CartonCore/README.md",
+          "CartonPluginShared/README.md"
+        ]
     ),
     .plugin(
         name: "CartonDevPlugin",
@@ -86,7 +92,10 @@ let package = Package(
             )
         ),
         dependencies: ["carton-frontend"],
-        exclude: ["CartonPluginShared/README.md"]
+        exclude: [
+          "CartonCore/README.md",
+          "CartonPluginShared/README.md"
+        ]
     ),
     .executableTarget(name: "carton-plugin-helper"),
     .target(
@@ -131,9 +140,14 @@ let package = Package(
       name: "CartonHelpers",
       dependencies: [
         "TSCclibc",
-        "TSCLibc"
+        "TSCLibc",
+        "CartonCore"
       ],
       exclude: ["Basics/README.md"]
+    ),
+    .target(
+      name: "CartonCore",
+      exclude: ["README.md"]
     ),
     .target(name: "WebDriverClient", dependencies: []),
     // This target is used only for release automation tasks and
