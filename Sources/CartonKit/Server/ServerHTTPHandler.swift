@@ -71,6 +71,11 @@ final class ServerHTTPHandler: ChannelInboundHandler, RemovableChannelHandler {
             bytes: localFileSystem.readFileContents(configuration.mainWasmPath).contents
           )
         )
+      case "/" + configuration.entrypoint.fileName:
+        response = StaticResponse(
+          contentType: "application/javascript",
+          body: ByteBuffer(bytes: configuration.entrypoint.content.contents)
+        )
       default:
         guard let staticResponse = try self.respond(context: context, head: head) else {
           self.respond404(context: context)
@@ -111,13 +116,7 @@ final class ServerHTTPHandler: ChannelInboundHandler, RemovableChannelHandler {
   private func respond(context: ChannelHandlerContext, head: HTTPRequestHead) throws
   -> StaticResponse?
   {
-    var responders = [
-      self.makeStaticResourcesResponder(
-        baseDirectory: FileManager.default.homeDirectoryForCurrentUser
-          .appendingPathComponent(".carton")
-          .appendingPathComponent("static")
-      )
-    ]
+    var responders: [(_ context: ChannelHandlerContext, _ uri: String) throws -> StaticResponse?] = []
 
     let buildDirectory = configuration.mainWasmPath.parentDirectory
     for directoryName in try localFileSystem.resourcesDirectoryNames(relativeTo: buildDirectory) {
