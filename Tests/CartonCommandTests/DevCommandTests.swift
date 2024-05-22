@@ -31,7 +31,7 @@ final class DevCommandTests: XCTestCase {
       try await withFixture("EchoExecutable") { packageDirectory in
         let process = try swiftRunProcess(
           ["carton", "dev", "--verbose", "--skip-auto-open"],
-          packageDirectory: packageDirectory.url
+          packageDirectory: packageDirectory.asURL
         )
 
         try await checkForExpectedContent(process: process, at: "http://127.0.0.1:8080")
@@ -43,7 +43,7 @@ final class DevCommandTests: XCTestCase {
       try await withFixture("EchoExecutable") { packageDirectory in
         let process = try swiftRunProcess(
           ["carton", "dev", "--verbose", "--port", "8081", "--skip-auto-open"],
-          packageDirectory: packageDirectory.url
+          packageDirectory: packageDirectory.asURL
         )
 
         try await checkForExpectedContent(process: process, at: "http://127.0.0.1:8081")
