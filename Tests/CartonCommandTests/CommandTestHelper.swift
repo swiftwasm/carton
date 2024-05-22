@@ -16,12 +16,32 @@ import ArgumentParser
 import XCTest
 import CartonHelpers
 
+#if canImport(FoundationNetworking)
+  import FoundationNetworking
+#endif
+
 struct CommandTestError: Swift.Error & CustomStringConvertible {
   init(_ description: String) {
     self.description = description
   }
 
   var description: String
+}
+
+extension Optional {
+  func unwrap(_ name: String) throws -> Wrapped {
+    guard let self else {
+      throw CommandTestError("\(name) is none")
+    }
+    return self
+  }
+}
+
+extension Duration {
+  var asTimeInterval: TimeInterval {
+    let (sec, atto) = components
+    return TimeInterval(sec) + TimeInterval(atto) / 1e18
+  }
 }
 
 func findExecutable(name: String) throws -> AbsolutePath {
@@ -106,4 +126,40 @@ func swiftRun(_ arguments: [String], packageDirectory: URL) async throws
   var result = try await process.process.waitUntilExit()
   result.setOutput(.success(process.output()))
   return result
+}
+
+func fetchWebContent(at url: URL, timeout: Duration) async throws -> (response: HTTPURLResponse, body: Data) {
+  let session = URLSession.shared
+
+  let request = URLRequest(
+    url: url, cachePolicy: .reloadIgnoringCacheData,
+    timeoutInterval: timeout.asTimeInterval
+  )
+
+  let (body, response) = try await session.data(for: request)
+  
+  guard let response = response as? HTTPURLResponse else {
+    throw CommandTestError("Response from \(url.absoluteString) is not HTTPURLResponse")
+  }
+
+  return (response: response, body: body)
+}
+
+func withRetry<R>(maxAttempts: Int, delay: Duration, body: () async throws -> R) async throws -> R {
+  var attempt = 0
+  while true {
+    try await Task.sleep(for: delay)
+
+    attempt += 1
+    do {
+      return try await body()
+    } catch {
+      if attempt < maxAttempts {
+        print("attempt \(attempt) failed: \(error), retrying...")
+        continue
+      }
+
+      throw error
+    }
+  }
 }

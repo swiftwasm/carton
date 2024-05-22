@@ -25,8 +25,6 @@ import XCTest
 #endif
 
 final class DevCommandTests: XCTestCase {
-  private var client: URLSession?
-
   #if os(macOS)
     func testWithNoArguments() async throws {
       // FIXME: Don't assume a specific port is available since it can be used by others or tests
@@ -36,7 +34,7 @@ final class DevCommandTests: XCTestCase {
           packageDirectory: packageDirectory.url
         )
 
-        await checkForExpectedContent(process: process, at: "http://127.0.0.1:8080")
+        try await checkForExpectedContent(process: process, at: "http://127.0.0.1:8080")
       }
     }
 
@@ -48,23 +46,44 @@ final class DevCommandTests: XCTestCase {
           packageDirectory: packageDirectory.url
         )
 
-        await checkForExpectedContent(process: process, at: "http://127.0.0.1:8081")
+        try await checkForExpectedContent(process: process, at: "http://127.0.0.1:8081")
       }
     }
   #endif
 
-  func checkForExpectedContent(process: SwiftRunProcess, at url: String) async {
+  private func fetchDevServerWithRetry(at url: URL) async throws -> (response: HTTPURLResponse, body: Data) {
     // client time out for connecting and responding
-    let timeOut: Int64 = 60
+    let timeOut: Duration = .seconds(60)
 
     // client delay... let the server start up
-    let delay: UInt32 = 30
+    let delay: Duration = .seconds(30)
 
     // only try 5 times.
-    let polls = 5
+    let count = 5
 
-    let expectedHtml =
-      """
+    do {
+      return try await withRetry(maxAttempts: count, delay: delay) {
+        try await fetchWebContent(at: url, timeout: timeOut)
+      }
+    } catch {
+      throw CommandTestError(
+        "Could not reach server.\n" +
+        "No response from server after \(count) tries or \(count * Int(delay.components.seconds)) seconds.\n" +
+        "Last error: \(error)"
+      )
+    }
+  }
+
+  func checkForExpectedContent(process: SwiftRunProcess, at url: String) async throws {
+    defer {
+      // end the process regardless of success
+      process.process.signal(SIGTERM)
+    }
+
+    let (response, data) = try await fetchDevServerWithRetry(at: try URL(string: url).unwrap("url"))
+    XCTAssertEqual(response.statusCode, 200, "Response was not ok")
+
+    let expectedHtml = """
       <!DOCTYPE html>
       <html>
         <head>
@@ -77,53 +96,11 @@ final class DevCommandTests: XCTestCase {
       </html>
       """
 
-    client = .shared
-
-    var response: HTTPURLResponse?
-    var responseBody: Data?
-    var count = 0
-
-    // give the server some time to start
-    repeat {
-      sleep(delay)
-      count += 1
-
-      guard
-        let (body, urlResponse) = try? await client?.data(
-          for: URLRequest(
-            url: URL(string: url)!,
-            cachePolicy: .reloadIgnoringCacheData,
-            timeoutInterval: TimeInterval(timeOut)
-          )
-        )
-      else {
-        continue
-      }
-      response = urlResponse as? HTTPURLResponse
-      responseBody = body
-    } while count < polls && response == nil
-
-    // end the process regardless of success
-    process.process.signal(SIGTERM)
-
-    if let response = response {
-      XCTAssertTrue(response.statusCode == 200, "Response was not ok")
-
-      guard let data = responseBody else {
-        XCTFail("Could not map data")
-        return
-      }
-      guard let actualHtml = String(data: data, encoding: .utf8) else {
-        XCTFail("Could not convert data to string")
-        return
-      }
-
-      // test may be brittle as the template may change over time.
-      XCTAssertEqual(actualHtml, expectedHtml, "HTML output does not match")
-
-    } else {
-      print("no response from server after \(count) tries or \(Int(count) * Int(delay)) seconds")
-      XCTFail("Could not reach server")
+    guard let actualHtml = String(data: data, encoding: .utf8) else {
+      throw CommandTestError("Could not decode as UTF-8 string")
     }
+
+    // test may be brittle as the template may change over time.
+    XCTAssertEqual(actualHtml, expectedHtml, "HTML output does not match")
   }
 }
