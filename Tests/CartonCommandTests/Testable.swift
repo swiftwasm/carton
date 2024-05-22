@@ -58,10 +58,6 @@ func withFixture(_ name: String, _ body: (AbsolutePath) async throws -> Void) as
 }
 
 extension AbsolutePath {
-  var exists: Bool {
-    FileManager.default.fileExists(atPath: pathString)
-  }
-
   func ls() -> [String] {
     guard let paths = try? FileManager.default.subpathsOfDirectory(atPath: pathString)
     else { return [] }

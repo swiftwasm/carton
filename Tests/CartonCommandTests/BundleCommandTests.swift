@@ -22,6 +22,8 @@ import XCTest
 
 final class BundleCommandTests: XCTestCase {
   func testWithNoArguments() async throws {
+    let fs = localFileSystem
+
     try await withFixture("EchoExecutable") { packageDirectory in
       let bundleDirectory = packageDirectory.appending(component: "Bundle")
 
@@ -29,7 +31,7 @@ final class BundleCommandTests: XCTestCase {
       try result.checkNonZeroExit()
 
       // Confirm that the files are actually in the folder
-      XCTAssertTrue(bundleDirectory.exists, "The Bundle directory should exist")
+      XCTAssertTrue(fs.isDirectory(bundleDirectory), "The Bundle directory should exist")
       XCTAssertTrue(bundleDirectory.ls().contains("index.html"), "Bundle does not have index.html")
       XCTAssertFalse(
         (bundleDirectory.ls().filter { $0.contains("wasm") }).isEmpty,
