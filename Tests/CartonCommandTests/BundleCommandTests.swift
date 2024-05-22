@@ -31,20 +31,30 @@ final class BundleCommandTests: XCTestCase {
       try result.checkNonZeroExit()
 
       // Confirm that the files are actually in the folder
-      XCTAssertTrue(fs.isDirectory(bundleDirectory), "The Bundle directory should exist")
-      XCTAssertTrue(bundleDirectory.ls().contains("index.html"), "Bundle does not have index.html")
-      XCTAssertFalse(
-        (bundleDirectory.ls().filter { $0.contains("wasm") }).isEmpty,
-        ".wasm file does not exist"
+      XCTAssertTrue(fs.isDirectory(bundleDirectory), "The bundle directory should exist")
+
+      let files = try fs.traverseRecursively(bundleDirectory)
+
+      XCTAssertTrue(
+        files.contains { $0.basename == "index.html" },
+        "The bundle should include an index.html file, but it was not found"
       )
-      XCTAssertFalse(
-        (bundleDirectory.ls().filter { $0.contains("js") }).isEmpty,
-        ".js does not exist"
+
+      XCTAssertTrue(
+        files.contains { $0.extension == "wasm" },
+        "The bundle should include a .wasm files, but it was not found"
+      )
+
+      XCTAssertTrue(
+        files.contains { $0.extension == "js" },
+        "The bundle should include a .js files, but it was not found"
       )
     }
   }
 
   func testWithDebugInfo() async throws {
+    let fs = localFileSystem
+
     try await withFixture("EchoExecutable") { packageDirectory in
       let result = try await swiftRun(
         ["carton", "bundle", "--debug-info"], packageDirectory: packageDirectory.asURL
@@ -52,34 +62,45 @@ final class BundleCommandTests: XCTestCase {
       try result.checkNonZeroExit()
 
       let bundleDirectory = packageDirectory.appending(component: "Bundle")
-      guard let wasmBinary = (bundleDirectory.ls().filter { $0.contains("wasm") }).first else {
+
+      guard let wasmBinary = try fs.traverseRecursively(bundleDirectory)
+        .filter({ $0.extension == "wasm" }).first else
+      {
         XCTFail("No wasm binary found")
         return
       }
+      
       let headers = try await Process.checkNonZeroExit(arguments: [
-        "wasm-objdump", "--headers", bundleDirectory.appending(component: wasmBinary).pathString,
+        "wasm-objdump", "--headers", wasmBinary.pathString,
       ])
       XCTAssert(headers.contains("\"name\""), "name section not found: \(headers)")
     }
   }
 
   func testWithoutContentHash() async throws {
+    let fs = localFileSystem
+
     try await withFixture("EchoExecutable") { packageDirectory in
       let result = try await swiftRun(
-        ["carton", "bundle", "--no-content-hash", "--wasm-optimizations", "none"], packageDirectory: packageDirectory.asURL
+        ["carton", "bundle", "--no-content-hash", "--wasm-optimizations", "none"], 
+        packageDirectory: packageDirectory.asURL
       )
       try result.checkNonZeroExit()
 
       let bundleDirectory = packageDirectory.appending(component: "Bundle")
-      guard let wasmBinary = (bundleDirectory.ls().filter { $0.contains("wasm") }).first else {
+      guard let wasmBinary = try fs.traverseRecursively(bundleDirectory)
+        .filter({ $0.extension == "wasm" }).first else
+      {
         XCTFail("No wasm binary found")
         return
       }
-      XCTAssertEqual(wasmBinary, "my-echo.wasm")
+      XCTAssertEqual(wasmBinary.basename, "my-echo.wasm")
     }
   }
 
   func testWasmOptimizationOptions() async throws {
+    let fs = localFileSystem
+
     try await withFixture("EchoExecutable") { packageDirectory in
       func getFileSizeOfWasmBinary(wasmOptimizations: WasmOptimizations) async throws -> UInt64 {
         let bundleDirectory = packageDirectory.appending(component: "Bundle")
@@ -90,12 +111,14 @@ final class BundleCommandTests: XCTestCase {
         )
         try result.checkNonZeroExit()
 
-        guard let wasmFile = (bundleDirectory.ls().filter { $0.contains("wasm") }).first else {
+        guard let wasmFile = try fs.traverseRecursively(bundleDirectory)
+          .filter({ $0.extension == "wasm" }).first else
+        {
           XCTFail("No wasm binary found")
           return 0
         }
 
-        return try localFileSystem.getFileInfo(bundleDirectory.appending(component: wasmFile)).size
+        return try localFileSystem.getFileInfo(wasmFile).size
       }
 
       let none = try await getFileSizeOfWasmBinary(wasmOptimizations: .none)

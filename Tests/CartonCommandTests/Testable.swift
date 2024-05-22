@@ -56,11 +56,3 @@ func withFixture(_ name: String, _ body: (AbsolutePath) async throws -> Void) as
   let fixtureDir = try testFixturesDirectory.appending(component: name)
   try await body(fixtureDir)
 }
-
-extension AbsolutePath {
-  func ls() -> [String] {
-    guard let paths = try? FileManager.default.subpathsOfDirectory(atPath: pathString)
-    else { return [] }
-    return paths
-  }
-}
