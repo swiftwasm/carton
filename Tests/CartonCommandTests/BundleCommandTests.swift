@@ -22,14 +22,16 @@ import XCTest
 
 final class BundleCommandTests: XCTestCase {
   func testWithNoArguments() async throws {
+    let fs = localFileSystem
+
     try await withFixture("EchoExecutable") { packageDirectory in
       let bundleDirectory = packageDirectory.appending(component: "Bundle")
 
-      let result = try await swiftRun(["carton", "bundle"], packageDirectory: packageDirectory.url)
+      let result = try await swiftRun(["carton", "bundle"], packageDirectory: packageDirectory.asURL)
       try result.checkNonZeroExit()
 
       // Confirm that the files are actually in the folder
-      XCTAssertTrue(bundleDirectory.exists, "The Bundle directory should exist")
+      XCTAssertTrue(fs.isDirectory(bundleDirectory), "The Bundle directory should exist")
       XCTAssertTrue(bundleDirectory.ls().contains("index.html"), "Bundle does not have index.html")
       XCTAssertFalse(
         (bundleDirectory.ls().filter { $0.contains("wasm") }).isEmpty,
@@ -45,7 +47,7 @@ final class BundleCommandTests: XCTestCase {
   func testWithDebugInfo() async throws {
     try await withFixture("EchoExecutable") { packageDirectory in
       let result = try await swiftRun(
-        ["carton", "bundle", "--debug-info"], packageDirectory: packageDirectory.url
+        ["carton", "bundle", "--debug-info"], packageDirectory: packageDirectory.asURL
       )
       try result.checkNonZeroExit()
 
@@ -64,7 +66,7 @@ final class BundleCommandTests: XCTestCase {
   func testWithoutContentHash() async throws {
     try await withFixture("EchoExecutable") { packageDirectory in
       let result = try await swiftRun(
-        ["carton", "bundle", "--no-content-hash", "--wasm-optimizations", "none"], packageDirectory: packageDirectory.url
+        ["carton", "bundle", "--no-content-hash", "--wasm-optimizations", "none"], packageDirectory: packageDirectory.asURL
       )
       try result.checkNonZeroExit()
 
@@ -84,7 +86,7 @@ final class BundleCommandTests: XCTestCase {
 
         let result = try await swiftRun(
           ["carton", "bundle", "--wasm-optimizations", wasmOptimizations.rawValue],
-          packageDirectory: packageDirectory.url
+          packageDirectory: packageDirectory.asURL
         )
         try result.checkNonZeroExit()
 
