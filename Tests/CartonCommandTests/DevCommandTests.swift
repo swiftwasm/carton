@@ -62,7 +62,7 @@ final class DevCommandTests: XCTestCase {
     let count = 5
 
     do {
-      return try await withRetry(maxAttempts: count, delay: delay) {
+      return try await withRetry(maxAttempts: count, initialDelay: delay, retryInterval: delay) {
         try await fetchWebContent(at: url, timeout: timeOut)
       }
     } catch {
