@@ -1,3 +1,11 @@
+# 1.0.4 (22 May 2024)
+
+This release includes several bug fixes and internal improvements:
+
+* Fix `carton test --environment node` to work with 6.0 and later toolchains
+* Stop writing files under `~/.carton/static` to avoid pollution
+* Many internal refactorings and test improvements
+
 # 1.0.3 (18 April 2024)
 
 * Fix test harness for the latest main XCTest by @kateinoigakukun in https://github.com/swiftwasm/carton/pull/426
