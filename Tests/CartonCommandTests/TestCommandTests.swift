@@ -35,7 +35,7 @@ final class TestCommandTests: XCTestCase {
   func testWithNoArguments() async throws {
     try await withFixture(Constants.testAppPackageName) { packageDirectory in
       let result = try await swiftRun(
-        ["carton", "test"], packageDirectory: packageDirectory.url
+        ["carton", "test"], packageDirectory: packageDirectory.asURL
       )
       try result.checkNonZeroExit()
     }
@@ -44,7 +44,7 @@ final class TestCommandTests: XCTestCase {
   func testEnvironmentNodeNoJSKit() async throws {
     try await withFixture(Constants.testAppPackageName) { packageDirectory in
       let result = try await swiftRun(
-        ["carton", "test", "--environment", "node"], packageDirectory: packageDirectory.url
+        ["carton", "test", "--environment", "node"], packageDirectory: packageDirectory.asURL
       )
       try result.checkNonZeroExit()
     }
@@ -53,7 +53,7 @@ final class TestCommandTests: XCTestCase {
   func testEnvironmentNodeJSKit() async throws {
     try await withFixture(Constants.nodeJSKitPackageName) { packageDirectory in
       let result = try await swiftRun(
-        ["carton", "test", "--environment", "node"], packageDirectory: packageDirectory.url
+        ["carton", "test", "--environment", "node"], packageDirectory: packageDirectory.asURL
       )
       try result.checkNonZeroExit()
     }
@@ -62,7 +62,7 @@ final class TestCommandTests: XCTestCase {
   func testSkipBuild() async throws {
     try await withFixture(Constants.nodeJSKitPackageName) { packageDirectory in
       var result = try await swiftRun(
-        ["carton", "test", "--environment", "node"], packageDirectory: packageDirectory.url
+        ["carton", "test", "--environment", "node"], packageDirectory: packageDirectory.asURL
       )
       try result.checkNonZeroExit()
 
@@ -72,7 +72,7 @@ final class TestCommandTests: XCTestCase {
           "--prebuilt-test-bundle-path",
           "./.build/carton/wasm32-unknown-wasi/debug/NodeJSKitTestPackageTests.wasm",
         ],
-        packageDirectory: packageDirectory.url
+        packageDirectory: packageDirectory.asURL
       )
       try result.checkNonZeroExit()
     }
@@ -86,7 +86,7 @@ final class TestCommandTests: XCTestCase {
     try await withFixture(Constants.testAppPackageName) { packageDirectory in
       let result = try await swiftRun(
         ["carton", "test", "--environment", "browser", "--headless"],
-        packageDirectory: packageDirectory.url
+        packageDirectory: packageDirectory.asURL
       )
       try result.checkNonZeroExit()
     }
@@ -109,7 +109,7 @@ final class TestCommandTests: XCTestCase {
     try await withFixture(fixture) { packageDirectory in
       let result = try await swiftRun(
         ["carton", "test", "--environment", "browser", "--headless"],
-        packageDirectory: packageDirectory.url
+        packageDirectory: packageDirectory.asURL
       )
       try result.checkNonZeroExit()
     }
@@ -134,7 +134,7 @@ final class TestCommandTests: XCTestCase {
         // FIXME: Don't assume a specific port is available since it can be used by others or tests
         let result = try await swiftRun(
           ["carton", "test", "--environment", "browser", "--port", "8082"],
-          packageDirectory: packageDirectory.url
+          packageDirectory: packageDirectory.asURL
         )
         try result.checkNonZeroExit()
         let output = try result.utf8Output()

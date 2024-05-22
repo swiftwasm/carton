@@ -58,10 +58,6 @@ func withFixture(_ name: String, _ body: (AbsolutePath) async throws -> Void) as
 }
 
 extension AbsolutePath {
-  var url: URL {
-    URL(fileURLWithPath: pathString)
-  }
-
   var exists: Bool {
     FileManager.default.fileExists(atPath: pathString)
   }
