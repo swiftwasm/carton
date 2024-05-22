@@ -104,7 +104,7 @@ final class TestCommandTests: XCTestCase {
         ["carton", "test", "--environment", "browser", "--headless"],
         packageDirectory: packageDirectory.url
       )
-      try result.checkNonZeroExit()
+      XCTAssertNotEqual(result.exitStatus, .terminated(code: 0))
     }
   }
 
