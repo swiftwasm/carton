@@ -27,10 +27,6 @@ private enum Constants {
   static let failTestPackageName = "FailTest"
 }
 
-func skipBrowserTest() throws {
-  throw XCTSkip("[FIXME] Running tests in the browser is currently disabled because it causes freezing")
-}
-
 final class TestCommandTests: XCTestCase {
   func testWithNoArguments() async throws {
     try await withFixture(Constants.testAppPackageName) { packageDirectory in
@@ -79,7 +75,6 @@ final class TestCommandTests: XCTestCase {
   }
 
   func testHeadlessBrowser() async throws {
-    try skipBrowserTest()
     guard Process.findExecutable("safaridriver") != nil else {
       throw XCTSkip("WebDriver is required")
     }
@@ -93,12 +88,10 @@ final class TestCommandTests: XCTestCase {
   }
 
   func testHeadlessBrowserWithCrash() async throws {
-    try skipBrowserTest()
     try await checkCartonTestFail(fixture: Constants.crashTestPackageName)
   }
 
   func testHeadlessBrowserWithFail() async throws {
-    try skipBrowserTest()
     try await checkCartonTestFail(fixture: Constants.failTestPackageName)
   }
 
@@ -118,7 +111,6 @@ final class TestCommandTests: XCTestCase {
   // This test is prone to hanging on Linux.
   #if os(macOS)
     func testEnvironmentDefaultBrowser() async throws {
-      try skipBrowserTest()
       try await withFixture(Constants.testAppPackageName) { packageDirectory in
         let expectedTestSuiteCount = 1
         let expectedTestsCount = 1
