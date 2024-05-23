@@ -41,12 +41,16 @@ final class FrontendDevServerTests: XCTestCase {
     defer {
       devServer.signal(SIGINT)
     }
-    try await Task.sleep(for: .seconds(3))
 
     let host = try URL(string: "http://127.0.0.1:8080").unwrap("url")
 
     do {
-      let indexHtml = try await fetchString(at: host)
+      let indexHtml = try await withRetry(
+        maxAttempts: 5, initialDelay: .seconds(3), retryInterval: .seconds(10)
+      ) {
+        try await fetchString(at: host)
+      }
+
       XCTAssertEqual(indexHtml, """
         <!DOCTYPE html>
         <html>
