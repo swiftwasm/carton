@@ -44,17 +44,12 @@ const startWasiTask = async () => {
 
   const wasmRunner = WasmRunner(
     {
-      onStderr() {
-        const prevLimit = Error.stackTraceLimit;
-        Error.stackTraceLimit = 1000;
-        socket.send(
-          JSON.stringify({
-            kind: "stackTrace",
-            stackTrace: new Error().stack,
-          })
-        );
-        Error.stackTraceLimit = prevLimit;
+      onStdoutLine(line) {
+        console.log(line);
       },
+      onStderrLine(line) {
+        console.error(line);
+      }
     },
     runtimeConstructor
   );
@@ -66,13 +61,26 @@ const startWasiTask = async () => {
 
 function handleError(e: any) {
   console.error(e);
-  if (e instanceof WebAssembly.RuntimeError) {
-    console.log(e.stack);
+
+  if (e instanceof Error) {
+    const stack = e.stack;
+    if (stack != null) {
+      socket.send(
+        JSON.stringify({
+          kind: "stackTrace",
+          stackTrace: stack,
+        })
+      );
+    }
   }
 }
 
-try {
-  startWasiTask().catch(handleError);
-} catch (e) {
-  handleError(e);
+async function main(): Promise<void> {
+  try {
+    await startWasiTask();
+  } catch (e) {
+    handleError(e);
+  }
 }
+
+main();

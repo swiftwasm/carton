@@ -45,16 +45,12 @@ const startWasiTask = async () => {
   let testRunOutput = "";
   const wasmRunner = WasmRunner(
     {
-      onStdout: (text) => {
-        testRunOutput += text + "\n";
+      onStdoutLine: (line) => {
+        console.log(line);
+        testRunOutput += line + "\n";
       },
-      onStderr: () => {
-        socket.send(
-          JSON.stringify({
-            kind: "stackTrace",
-            stackTrace: new Error().stack,
-          })
-        );
+      onStderrLine: (line) => {
+        console.error(line);
       },
     },
     runtimeConstructor
@@ -109,14 +105,33 @@ const startWasiTask = async () => {
 
 function handleError(e: any) {
   console.error(e);
-  if (e instanceof WebAssembly.RuntimeError) {
-    console.log(e.stack);
+
+  if (e instanceof Error) {
+    const stack = e.stack;
+    if (stack != null) {
+      socket.send(
+        JSON.stringify({
+          kind: "stackTrace",
+          stackTrace: stack,
+        })
+      );
+    }
   }
-  socket.send(JSON.stringify({ kind: "errorReport", errorReport: e.toString() }));
+
+  socket.send(
+    JSON.stringify({
+      kind: "errorReport",
+      errorReport: e.toString()
+    })
+  );
 }
 
-try {
-  startWasiTask().catch(handleError);
-} catch (e) {
-  handleError(e);
+async function main(): Promise<void> {
+  try {
+    await startWasiTask();
+  } catch (e) {
+    handleError(e);
+  }
 }
+
+main();
