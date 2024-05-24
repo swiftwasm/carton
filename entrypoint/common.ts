@@ -15,17 +15,42 @@
 import { WASI, File, OpenFile, ConsoleStdout, PreopenDirectory } from "@bjorn3/browser_wasi_shim";
 import type { SwiftRuntime, SwiftRuntimeConstructor } from "./JavaScriptKit_JavaScriptKit.resources/Runtime";
 
+export class LineDecoder {
+  constructor(onLine: (line: string) => void) {
+    this.decoder = new TextDecoder("utf-8", { fatal: false });
+    this.buffer = "";
+    this.onLine = onLine;
+  }
+
+  private decoder: TextDecoder;
+  private buffer: string;
+  private onLine: (line: string) => void;
+
+  send(chunk: Uint8Array) {
+    this.buffer += this.decoder.decode(chunk, { stream: true });
+
+    const lines = this.buffer.split("\n");
+    for (let i = 0; i < lines.length - 1; i++) {
+      this.onLine(lines[i]);
+    }
+
+    this.buffer = lines[lines.length - 1];
+  }
+}
+
 export type Options = {
   args?: string[];
-  onStdout?: (text: string) => void;
-  onStderr?: (text: string) => void;
+  onStdout?: (chunk: Uint8Array) => void;
+  onStdoutLine?: (line: string) => void;
+  onStderr?: (chunk: Uint8Array) => void;
+  onStderrLine?: (line: string) => void;
 };
 
 export type WasmRunner = {
   run(wasmBytes: ArrayBufferLike, extraWasmImports?: WebAssembly.Imports): Promise<void>
 };
 
-export const WasmRunner = (rawOptions: Options | false, SwiftRuntime: SwiftRuntimeConstructor | undefined): WasmRunner => {
+export const WasmRunner = (rawOptions: Options, SwiftRuntime: SwiftRuntimeConstructor | undefined): WasmRunner => {
   const options: Options = defaultRunnerOptions(rawOptions);
 
   let swift: SwiftRuntime;
@@ -33,17 +58,29 @@ export const WasmRunner = (rawOptions: Options | false, SwiftRuntime: SwiftRunti
     swift = new SwiftRuntime();
   }
 
+  let stdoutLine: LineDecoder | undefined = undefined;
+  if (options.onStdoutLine != null) {
+    stdoutLine = new LineDecoder(options.onStdoutLine);
+  }
+  const stdout = new ConsoleStdout((chunk) => {
+    options.onStdout?.call(undefined, chunk);
+    stdoutLine?.send(chunk);
+  });
+
+  let stderrLine: LineDecoder | undefined = undefined;
+  if (options.onStderrLine != null) {
+    stderrLine = new LineDecoder(options.onStderrLine);
+  }
+  const stderr = new ConsoleStdout((chunk) => {
+    options.onStderr?.call(undefined, chunk);
+    stderrLine?.send(chunk);
+  });
+
   const args = options.args || [];
   const fds = [
     new OpenFile(new File([])), // stdin
-    ConsoleStdout.lineBuffered((stdout) => {
-      console.log(stdout);
-      options.onStdout?.call(undefined, stdout);
-    }),
-    ConsoleStdout.lineBuffered((stderr) => {
-      console.error(stderr);
-      options.onStderr?.call(undefined, stderr);
-    }),
+    stdout,
+    stderr,
     new PreopenDirectory("/", new Map()),
   ];
 
@@ -129,15 +166,8 @@ export const WasmRunner = (rawOptions: Options | false, SwiftRuntime: SwiftRunti
   };
 };
 
-const defaultRunnerOptions = (options: Options | false): Options => {
-  if (!options) return defaultRunnerOptions({});
-  if (!options.onStdout) {
-    options.onStdout = () => { };
-  }
-  if (!options.onStderr) {
-    options.onStderr = () => { };
-  }
-  if (!options.args) {
+const defaultRunnerOptions = (options: Options): Options => {
+  if (options.args != null) {
     options.args = ["main.wasm"];
   }
   return options;

@@ -31,22 +31,22 @@ const startWasiTask = async () => {
     // JavaScriptKit module not available, running without JavaScriptKit runtime.
   }
 
-  const wasmRunner = WasmRunner(false, runtimeConstructor);
+  const wasmRunner = WasmRunner({
+    onStdoutLine(line) {
+      console.log(line);
+    },
+    onStderrLine(line) {
+      console.error(line);
+    }
+  }, runtimeConstructor);
 
   // Instantiate the WebAssembly file
   const wasmBytes = new Uint8Array(responseArrayBuffer).buffer;
   await wasmRunner.run(wasmBytes);
 };
 
-function handleError(e: any) {
-  console.error(e);
-  if (e instanceof WebAssembly.RuntimeError) {
-    console.log(e.stack);
-  }
+async function main(): Promise<void> {
+  await startWasiTask();
 }
 
-try {
-  startWasiTask().catch(handleError);
-} catch (e) {
-  handleError(e);
-}
+main();
