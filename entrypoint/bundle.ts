@@ -45,16 +45,8 @@ const startWasiTask = async () => {
   await wasmRunner.run(wasmBytes);
 };
 
-function handleError(e: any) {
-  console.error(e);
-}
-
 async function main(): Promise<void> {
-  try {
-    await startWasiTask();
-  } catch (e) {
-    handleError(e);
-  }
+  await startWasiTask();
 }
 
 main();

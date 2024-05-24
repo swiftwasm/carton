@@ -60,8 +60,6 @@ const startWasiTask = async () => {
 };
 
 function handleError(e: any) {
-  console.error(e);
-
   if (e instanceof Error) {
     const stack = e.stack;
     if (stack != null) {
@@ -78,16 +76,15 @@ function handleError(e: any) {
 async function main(): Promise<void> {
   try {
     window.addEventListener("error", (event) => {
-      event.preventDefault();
       handleError(event.error);
     });
     window.addEventListener("unhandledrejection", (event) => {
-      event.preventDefault();
       handleError(event.reason);
     });
     await startWasiTask();
   } catch (e) {
     handleError(e);
+    throw e;
   }
 }
 
