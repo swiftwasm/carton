@@ -17,7 +17,7 @@ func fputs(_ string: String, file: FILEPointer) {
 fputs("hello stdout\n", file: stdout)
 fputs("hello stderr\n", file: stderr)
 
-fatalError("hello fatalError")
+//fatalError("hello fatalError")
 
 let document = JSObject.global.document
 
