@@ -396,6 +396,7 @@ extension Server {
     _ = withUnsafeMutableBytes(of: &kind) { (buffer) in
       data.copyBytes(to: buffer, from: 0..<2)
     }
+    kind = UInt16(littleEndian: kind)
 
     switch kind {
     case 1001:
