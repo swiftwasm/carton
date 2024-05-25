@@ -238,9 +238,14 @@ public actor Server {
           let environment =
             head.headers["User-Agent"].compactMap(DestinationEnvironment.init).first
             ?? .other
-          let handler = await ServerWebSocketHandler(
+          let handler = ServerWebSocketHandler(
             configuration: ServerWebSocketHandler.Configuration(
-              onText: self.createWebSocketTextHandler(in: environment, terminal: self.configuration.terminal)
+              onText: { [weak self] (text) in
+                self?.webSocketTextHandler(text: text, environment: environment)
+              },
+              onBinary: { [weak self] (data) in
+                self?.webSocketBinaryHandler(data: data)
+              }
             )
           )
           await self.add(connection: Connection(channel: channel))
@@ -329,50 +334,88 @@ public actor Server {
 }
 
 extension Server {
-  /// Returns a handler that responds to WebSocket messages coming from the browser.
-  func createWebSocketTextHandler(
-    in environment: DestinationEnvironment,
-    terminal: InteractiveWriter
-  ) -> @Sendable (String) -> Void {
-    { [weak self] text in
-      guard let self = self else { return }
-      guard
-        let data = text.data(using: .utf8),
-        let event = try? self.decoder.decode(Event.self, from: data)
-      else {
-        return
-      }
+  /// Respond to WebSocket messages coming from the browser.
+  nonisolated func webSocketTextHandler(
+    text: String,
+    environment: DestinationEnvironment
+  ) {
+    guard
+      let data = text.data(using: .utf8),
+      let event = try? self.decoder.decode(Event.self, from: data)
+    else {
+      return
+    }
 
-      switch event {
-      case let .stackTrace(rawStackTrace):
-        if let stackTrace = rawStackTrace.parsedStackTrace(in: environment) {
-          terminal.write("\nAn error occurred, here's a stack trace for it:\n", inColor: .red)
-          stackTrace.forEach { item in
-            terminal.write("  \(item.symbol)", inColor: .cyan)
-            terminal.write(" at \(item.location ?? "<unknown>")\n", inColor: .gray)
-          }
-        } else {
-          terminal.write("\nAn error occurred, here's the raw stack trace for it:\n", inColor: .red)
-          terminal.write(
-            "  Please create an issue or PR to the Carton repository\n"
-              + "  with your browser name and this raw stack trace so\n"
-              + "  we can add support for it: https://github.com/swiftwasm/carton\n", inColor: .gray
-          )
-          terminal.write(rawStackTrace + "\n")
+    let terminal = self.configuration.terminal
+
+    switch event {
+    case let .stackTrace(rawStackTrace):
+      if let stackTrace = rawStackTrace.parsedStackTrace(in: environment) {
+        terminal.write("\nAn error occurred, here's a stack trace for it:\n", inColor: .red)
+        stackTrace.forEach { item in
+          terminal.write("  \(item.symbol)", inColor: .cyan)
+          terminal.write(" at \(item.location ?? "<unknown>")\n", inColor: .gray)
         }
-
-      case let .testRunOutput(output):
-        TestsParser().parse(output, terminal)
-
-      case .testPassed:
-        Task { await self.stopTest(hadError: false) }
-
-      case let .errorReport(output):
-        terminal.write("\nAn error occurred:\n", inColor: .red)
-        terminal.write(output + "\n")
-
-        Task { await self.stopTest(hadError: true) }
+      } else {
+        terminal.write("\nAn error occurred, here's the raw stack trace for it:\n", inColor: .red)
+        terminal.write(
+          "  Please create an issue or PR to the Carton repository\n"
+          + "  with your browser name and this raw stack trace so\n"
+          + "  we can add support for it: https://github.com/swiftwasm/carton\n", inColor: .gray
+        )
+        terminal.write(rawStackTrace + "\n")
       }
+
+    case let .testRunOutput(output):
+      TestsParser().parse(output, terminal)
+
+    case .testPassed:
+      Task { await self.stopTest(hadError: false) }
+
+    case let .errorReport(output):
+      terminal.write("\nAn error occurred:\n", inColor: .red)
+      terminal.write(output + "\n")
+
+      Task { await self.stopTest(hadError: true) }
+    }
+  }
+
+  private static func decodeLines(data: Data) -> [String] {
+    let text = String(decoding: data, as: UTF8.self)
+    return text.components(separatedBy: .newlines)
+  }
+
+  nonisolated func webSocketBinaryHandler(data: Data) {
+    let terminal = self.configuration.terminal
+
+    if data.count < 2 {
+      return
+    }
+
+    var kind: UInt16 = 0
+    _ = withUnsafeMutableBytes(of: &kind) { (buffer) in
+      data.copyBytes(to: buffer, from: 0..<2)
+    }
+    kind = UInt16(littleEndian: kind)
+
+    switch kind {
+    case 1001:
+      // stdout
+      let chunk = data.subdata(in: 2..<data.count)
+      if chunk.isEmpty { return }
+
+      for line in Self.decodeLines(data: chunk) {
+        terminal.write("stdout: " + line + "\n")
+      }
+    case 1002:
+      // stderr
+      let chunk = data.subdata(in: 2..<data.count)
+      if chunk.isEmpty { return }
+
+      for line in Self.decodeLines(data: chunk) {
+        terminal.write("stderr: " + line + "\n", inColor: .red)
+      }
+    default: break
     }
   }
 }

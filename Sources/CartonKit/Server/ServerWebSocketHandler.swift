@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import Foundation
 import NIO
 import NIOWebSocket
 
@@ -20,7 +21,8 @@ final class ServerWebSocketHandler: ChannelInboundHandler {
   typealias OutboundOut = WebSocketFrame
 
   struct Configuration {
-    let onText: @Sendable (String) -> Void
+    var onText: @Sendable (String) -> Void
+    var onBinary: @Sendable (Data) -> Void
   }
 
   private var awaitingClose: Bool = false
@@ -43,7 +45,11 @@ final class ServerWebSocketHandler: ChannelInboundHandler {
       var data = frame.unmaskedData
       let text = data.readString(length: data.readableBytes) ?? ""
       self.configuration.onText(text)
-    case .binary, .continuation, .pong:
+    case .binary:
+      let nioData = frame.unmaskedData
+      let data = Data(nioData.readableBytesView)
+      self.configuration.onBinary(data)
+    case .continuation, .pong:
       // We ignore these frames.
       break
     default:

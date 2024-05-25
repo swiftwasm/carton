@@ -44,8 +44,28 @@ const startWasiTask = async () => {
 
   const wasmRunner = WasmRunner(
     {
+      onStdout(chunk) {
+        const kindBuffer = new ArrayBuffer(2);
+        new DataView(kindBuffer).setUint16(0, 1001, true);
+
+        const buffer = new Uint8Array(2 + chunk.length);
+        buffer.set(new Uint8Array(kindBuffer), 0);
+        buffer.set(chunk, 2);
+
+        socket.send(buffer);
+      },
       onStdoutLine(line) {
         console.log(line);
+      },
+      onStderr(chunk) {
+        const kindBuffer = new ArrayBuffer(2);
+        new DataView(kindBuffer).setUint16(0, 1002, true);
+
+        const buffer = new Uint8Array(2 + chunk.length);
+        buffer.set(new Uint8Array(kindBuffer), 0);
+        buffer.set(chunk, 2);
+
+        socket.send(buffer);
       },
       onStderrLine(line) {
         console.error(line);
