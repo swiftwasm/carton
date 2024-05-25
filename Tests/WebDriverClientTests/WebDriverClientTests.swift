@@ -27,7 +27,7 @@ final class WebDriverClientTests: XCTestCase {
     let client = try await WebDriverClient.newSession(
       endpoint: checkRemoteURL(), httpClient: .shared
     )
-    try await client.goto(url: "https://example.com")
+    try await client.goto(url: URL(string: "https://github.com/swiftwasm/carton")!)
     try await client.closeSession()
   }
 }

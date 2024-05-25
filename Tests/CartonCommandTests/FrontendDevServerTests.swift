@@ -29,13 +29,31 @@ final class FrontendDevServerTests: XCTestCase {
 
     try await Process.run(["swift", "build", "--target", "carton-frontend"], terminal)
 
+    var gotHelloStdout = false
+    var gotHelloStderr = false
+
     let devServer = Process(
       arguments: [
         "swift", "run", "carton-frontend", "dev",
         "--skip-auto-open", "--verbose",
         "--main-wasm-path", wasmFile.pathString,
         "--resources", resourcesDir.pathString
-      ]
+      ],
+      outputRedirection: .stream(
+        stdout: { (chunk) in
+          let string = String(decoding: chunk, as: UTF8.self)
+
+          if string.contains("stdout: hello stdout") {
+            gotHelloStdout = true
+          }
+          if string.contains("stderr: hello stderr") {
+            gotHelloStderr = true
+          }
+
+          terminal.write(string)
+        }, stderr: { (_) in },
+        redirectStderr: true
+      )
     )
     try devServer.launch()
     defer {
@@ -84,6 +102,16 @@ final class FrontendDevServerTests: XCTestCase {
       let expected = try String(contentsOf: resourcesDir.appending(component: name).asURL)
       XCTAssertEqual(styleCss, expected)
     }
+
+    try openInSystemBrowser(url: host)
+
+    for _ in 0..<30 {
+      try await Task.sleep(for: .seconds(1))
+      if gotHelloStdout, gotHelloStderr { break }
+    }
+
+    XCTAssertTrue(gotHelloStdout)
+    XCTAssertTrue(gotHelloStderr)
   }
 
   private func fetchBinary(

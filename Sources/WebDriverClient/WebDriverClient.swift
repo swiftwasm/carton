@@ -110,13 +110,13 @@ public struct WebDriverClient {
     return try encoder.encode(body)
   }
 
-  public func goto(url: String) async throws {
+  public func goto(url: URL) async throws {
     struct Request: Encodable {
       let url: String
     }
     var request = URLRequest(url: URL(string: makeSessionURL("url"))!)
     request.httpMethod = "POST"
-    request.httpBody = try Self.makeRequestBody(Request(url: url))
+    request.httpBody = try Self.makeRequestBody(Request(url: url.absoluteString))
     request.addValue("carton", forHTTPHeaderField: "User-Agent")
     _ = try await client.data(for: request)
   }

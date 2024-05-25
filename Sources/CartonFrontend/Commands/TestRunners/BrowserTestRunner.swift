@@ -178,7 +178,7 @@ struct BrowserTestRunner: TestRunner {
         try await client.goto(url: localURL)
       } else {
         disposer = {}
-        openInSystemBrowser(url: localURL)
+        try openInSystemBrowser(url: localURL)
       }
       let hadError = try await server.waitUntilTestFinished()
       try await disposer()

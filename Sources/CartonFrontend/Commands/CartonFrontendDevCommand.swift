@@ -162,7 +162,11 @@ struct CartonFrontendDevCommand: AsyncParsableCommand {
     )
     let localURL = try await server.start()
     if !skipAutoOpen {
-      openInSystemBrowser(url: localURL)
+      do {
+        try openInSystemBrowser(url: localURL)
+      } catch {
+        terminal.write("open browser failed: \(error)", inColor: .red)
+      }
     }
     try await server.waitUntilStop()
   }
