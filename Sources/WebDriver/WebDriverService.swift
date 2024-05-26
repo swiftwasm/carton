@@ -15,7 +15,7 @@ extension WebDriverService {
   public func client(
     httpClient: (any WebDriverHTTPClient)? = nil
   ) async throws -> WebDriverClient {
-    let httpClient = httpClient ?? WebDriverHTTPClients.find()
+    let httpClient = try httpClient ?? WebDriverHTTPClients.find()
 
     return try await withRetry(
       maxAttempts: 5,

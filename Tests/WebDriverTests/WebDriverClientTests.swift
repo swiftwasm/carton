@@ -17,6 +17,8 @@ import WebDriver
 import XCTest
 
 final class WebDriverClientTests: XCTestCase {
+  #if os(Linux)
+  #else
   func testGotoURLSession() async throws {
     let terminal = InteractiveWriter.stdout
     let service = try await WebDriverServices.find(terminal: terminal)
@@ -30,6 +32,7 @@ final class WebDriverClientTests: XCTestCase {
     try await client.goto(url: "https://example.com")
     try await client.closeSession()
   }
+  #endif
 
   func testGotoCurl() async throws {
     let terminal = InteractiveWriter.stdout

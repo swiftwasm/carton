@@ -17,6 +17,7 @@ import Foundation
 public enum WebDriverError: Error & CustomStringConvertible {
   case invalidRemoteURL(String)
   case failedToFindWebDriver
+  case failedToFindHTTPClient
   case curlError(path: URL, status: Int32, body: String?)
   case httpError(String)
 
@@ -42,6 +43,13 @@ public enum WebDriverError: Error & CustomStringConvertible {
       1. Set `WEBDRIVER_REMOTE_URL` with the address of remote WebDriver like `WEBDRIVER_REMOTE_URL=http://localhost:9515`.
       2. Set `WEBDRIVER_PATH` with the path to your WebDriver executable.
       3. `chromedriver`, `geckodriver`, `safaridriver`, or `msedgedriver` has been installed in `PATH`
+      """
+    case .failedToFindHTTPClient:
+      return """
+      The HTTPClient for use with WebDriver could not be found.
+      On Linux, please ensure that curl is installed.
+      On Mac, URLSession can be used, so this error should not appear.
+      If this error is displayed, an unknown bug may have occurred.
       """
     case .httpError(let string): return "http error: \(string)"
     }

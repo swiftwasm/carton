@@ -18,6 +18,11 @@ import Foundation
 import FoundationNetworking
 #endif
 
+#if os(Linux)
+
+#else
+
+// Due to a broken URLSession in swift-corelibs-foundation, this class cannot be used on Linux.
 public struct URLSessionWebDriverHTTPClient: WebDriverHTTPClient {
   public init(session: URLSession) {
     self.session = session
@@ -36,3 +41,5 @@ public struct URLSessionWebDriverHTTPClient: WebDriverHTTPClient {
     return data
   }
 }
+
+#endif

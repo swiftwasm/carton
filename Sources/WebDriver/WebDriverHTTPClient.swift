@@ -23,11 +23,16 @@ public protocol WebDriverHTTPClient {
 }
 
 public enum WebDriverHTTPClients {
-  public static func find() -> any WebDriverHTTPClient {
+  public static func find() throws -> any WebDriverHTTPClient {
     if let curl = CurlWebDriverHTTPClient.find() {
       return curl
     }
 
+    #if os(Linux)
+    #else
     return URLSessionWebDriverHTTPClient(session: .shared)
+    #endif
+
+    throw WebDriverError.failedToFindHTTPClient
   }
 }
