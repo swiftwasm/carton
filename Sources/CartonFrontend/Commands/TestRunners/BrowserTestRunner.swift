@@ -71,85 +71,6 @@ struct BrowserTestRunner: TestRunner {
     self.terminal = terminal
   }
 
-  typealias Disposer = () -> Void
-
-  func findAvailablePort() async throws -> SocketAddress {
-    let bootstrap = ServerBootstrap(group: eventLoopGroup)
-    let address = try SocketAddress.makeAddressResolvingHost("127.0.0.1", port: 0)
-    let channel = try await bootstrap.bind(to: address).get()
-    let localAddr = channel.localAddress!
-    try await channel.close()
-    return localAddr
-  }
-
-  func launchDriver(executablePath: String) async throws -> (URL, Disposer) {
-    let address = try await findAvailablePort()
-    let process = Process(arguments: [
-      executablePath, "--port=\(address.port!)",
-    ])
-    terminal.logLookup("Launch WebDriver executable: ", executablePath)
-    try process.launch()
-    let disposer = { process.signal(SIGKILL) }
-    return (URL(string: "http://\(address.ipAddress!):\(address.port!)")!, disposer)
-  }
-
-  func selectWebDriver() async throws -> (URL, Disposer) {
-    let strategies: [() async throws -> (URL, Disposer)?] = [
-      {
-        terminal.logLookup("- checking WebDriver endpoint: ", "WEBDRIVER_REMOTE_URL")
-        guard let value = ProcessInfo.processInfo.environment["WEBDRIVER_REMOTE_URL"] else {
-          return nil
-        }
-        guard let url = URL(string: value) else {
-          throw BrowserTestRunnerError.invalidRemoteURL(value)
-        }
-        return (url, {})
-      },
-      {
-        terminal.logLookup("- checking WebDriver executable: ", "WEBDRIVER_PATH")
-        guard let executable = ProcessInfo.processInfo.environment["WEBDRIVER_PATH"] else {
-          return nil
-        }
-        let (url, disposer) = try await launchDriver(executablePath: executable)
-        return (url, disposer)
-      },
-      {
-        let driverCandidates = [
-          "chromedriver", "geckodriver", "safaridriver", "msedgedriver",
-        ]
-        terminal.logLookup(
-          "- checking WebDriver executable in PATH: ", driverCandidates.joined(separator: ", "))
-        guard let found = driverCandidates.lazy.compactMap({ Process.findExecutable($0) }).first
-        else {
-          return nil
-        }
-        return try await launchDriver(executablePath: found.pathString)
-      },
-    ]
-    for strategy in strategies {
-      if let (url, disposer) = try await strategy() {
-        return (url, disposer)
-      }
-    }
-    throw BrowserTestRunnerError.failedToFindWebDriver
-  }
-
-  func makeClient(endpoint: URL) async throws -> WebDriverClient {
-    let maxRetries = 3
-    var retries = 0
-    while true {
-      do {
-        return try await WebDriverClient.newSession(endpoint: endpoint)
-      } catch {
-        if retries >= maxRetries {
-          throw error
-        }
-        retries += 1
-        try await _Concurrency.Task.sleep(nanoseconds: 1_000_000_000)
-      }
-    }
-  }
-
   func run() async throws {
     let server = try await Server(
       .init(
@@ -168,11 +89,11 @@ struct BrowserTestRunner: TestRunner {
     var disposer: () async throws -> Void = {}
     do {
       if headless {
-        let (endpoint, clientDisposer) = try await selectWebDriver()
-        let client = try await makeClient(endpoint: endpoint)
+        let webDriver = try await WebDriverServices.find(terminal: terminal)
+        let client = try await webDriver.client()
         disposer = {
           try await client.closeSession()
-          clientDisposer()
+          webDriver.dispose()
         }
         try await client.goto(url: localURL)
       } else {

@@ -12,20 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import CartonHelpers
 import WebDriver
 import XCTest
 
 final class WebDriverClientTests: XCTestCase {
-  func checkRemoteURL() throws -> URL {
-    guard let value = ProcessInfo.processInfo.environment["WEBDRIVER_REMOTE_URL"] else {
-      throw XCTSkip("Skip WebDriver tests due to no WEBDRIVER_REMOTE_URL env var")
-    }
-    return try XCTUnwrap(URL(string: value), "Invalid URL string: \(value)")
-  }
-
   func testGotoURLSession() async throws {
-    let client = try await WebDriverClient.newSession(
-      endpoint: checkRemoteURL(), 
+    let terminal = InteractiveWriter.stdout
+    let service = try await WebDriverServices.find(terminal: terminal)
+    defer {
+      service.dispose()
+    }
+
+    let client = try await service.client(
       httpClient: URLSessionWebDriverHTTPClient(session: .shared)
     )
     try await client.goto(url: "https://example.com")
@@ -33,8 +32,13 @@ final class WebDriverClientTests: XCTestCase {
   }
 
   func testGotoCurl() async throws {
-    let client = try await WebDriverClient.newSession(
-      endpoint: checkRemoteURL(),
+    let terminal = InteractiveWriter.stdout
+    let service = try await WebDriverServices.find(terminal: terminal)
+    defer {
+      service.dispose()
+    }
+
+    let client = try await service.client(
       httpClient: try XCTUnwrap(CurlWebDriverHTTPClient.find())
     )
     try await client.goto(url: "https://example.com")

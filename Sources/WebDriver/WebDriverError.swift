@@ -14,6 +14,36 @@
 
 import Foundation
 
-public enum WebDriverError: Error {
+public enum WebDriverError: Error & CustomStringConvertible {
+  case invalidRemoteURL(String)
+  case failedToFindWebDriver
+  case curlError(path: URL, status: Int32, body: String?)
   case httpError(String)
+
+  public var description: String {
+    switch self {
+    case .invalidRemoteURL(let url): return "invalid remote webdriver URL: \(url)"
+    case .curlError(path: let path, status: let status, body: let body):
+      var lines: [String] = [
+        "curl command at \(path.path) failed with status \(status)."
+      ]
+
+      if let body {
+        lines += [
+          "body:", body
+        ]
+      }
+
+      return lines.joined(separator: "\n")
+    case .failedToFindWebDriver:
+      return """
+      Failed to find WebDriver executable or remote URL to a running driver process.
+      Please make sure that you are satisfied with one of the followings (in order of priority)
+      1. Set `WEBDRIVER_REMOTE_URL` with the address of remote WebDriver like `WEBDRIVER_REMOTE_URL=http://localhost:9515`.
+      2. Set `WEBDRIVER_PATH` with the path to your WebDriver executable.
+      3. `chromedriver`, `geckodriver`, `safaridriver`, or `msedgedriver` has been installed in `PATH`
+      """
+    case .httpError(let string): return "http error: \(string)"
+    }
+  }
 }

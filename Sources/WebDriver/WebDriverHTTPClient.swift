@@ -17,3 +17,13 @@ import Foundation
 public protocol WebDriverHTTPClient {
   func data(for request: URLRequest) async throws -> Data
 }
+
+public enum WebDriverHTTPClients {
+  public static func find() -> any WebDriverHTTPClient {
+    if let curl = CurlWebDriverHTTPClient.find() {
+      return curl
+    }
+
+    return URLSessionWebDriverHTTPClient(session: .shared)
+  }
+}

@@ -58,8 +58,12 @@ public struct CurlWebDriverHTTPClient: WebDriverHTTPClient {
     process.waitUntilExit()
     let responseBody = try stdout.fileHandleForReading.readToEnd()
     guard process.terminationStatus == 0 else {
-      throw WebDriverError.httpError(
-        responseBody.flatMap { String(data: $0, encoding: .utf8) } ?? ""
+      let body: String? = responseBody.map { String(decoding: $0, as: UTF8.self) }
+
+      throw WebDriverError.curlError(
+        path: cliPath, 
+        status: process.terminationStatus,
+        body: body
       )
     }
     return responseBody ?? Data()

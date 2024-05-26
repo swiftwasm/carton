@@ -53,7 +53,7 @@ public struct WebDriverClient {
   public static func newSession(
     endpoint: URL, 
     body: String = defaultSessionRequestBody,
-    httpClient: (any WebDriverHTTPClient)? = nil
+    httpClient: any WebDriverHTTPClient
   ) async throws -> WebDriverClient {
     struct Response: Decodable {
       let sessionId: String
@@ -62,9 +62,6 @@ public struct WebDriverClient {
       let capabilities: [String: String] = [:]
       let desiredCapabilities: [String: String] = [:]
     }
-    let httpClient = httpClient ??
-      CurlWebDriverHTTPClient.find() ??
-      URLSessionWebDriverHTTPClient(session: .shared)
     
     var request = URLRequest(url: endpoint.appendingPathComponent("session"))
     request.httpMethod = "POST"

@@ -149,7 +149,13 @@ let package = Package(
       name: "CartonCore",
       exclude: ["README.md"]
     ),
-    .target(name: "WebDriver", dependencies: []),
+    .target(
+      name: "WebDriver",
+      dependencies: [
+        .product(name: "NIO", package: "swift-nio"),
+        "CartonHelpers"
+      ]
+    ),
     // This target is used only for release automation tasks and
     // should not be installed by `carton` users.
     .executableTarget(
