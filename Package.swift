@@ -113,7 +113,7 @@ let package = Package(
         .product(name: "NIO", package: "swift-nio"),
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
         "CartonHelpers",
-        "WebDriverClient",
+        "WebDriver",
         "WasmTransformer",
       ],
       exclude: ["Utilities/README.md"]
@@ -149,7 +149,7 @@ let package = Package(
       name: "CartonCore",
       exclude: ["README.md"]
     ),
-    .target(name: "WebDriverClient", dependencies: []),
+    .target(name: "WebDriver", dependencies: []),
     // This target is used only for release automation tasks and
     // should not be installed by `carton` users.
     .executableTarget(
@@ -176,6 +176,6 @@ let package = Package(
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
       ]
     ),
-    .testTarget(name: "WebDriverClientTests", dependencies: ["WebDriverClient"]),
+    .testTarget(name: "WebDriverTests", dependencies: ["WebDriver"]),
   ]
 )

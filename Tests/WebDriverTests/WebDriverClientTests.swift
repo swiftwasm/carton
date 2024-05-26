@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import WebDriverClient
+import WebDriver
 import XCTest
 
 final class WebDriverClientTests: XCTestCase {
@@ -23,9 +23,19 @@ final class WebDriverClientTests: XCTestCase {
     return try XCTUnwrap(URL(string: value), "Invalid URL string: \(value)")
   }
 
-  func testGoto() async throws {
+  func testGotoURLSession() async throws {
     let client = try await WebDriverClient.newSession(
-      endpoint: checkRemoteURL(), httpClient: .shared
+      endpoint: checkRemoteURL(), 
+      httpClient: URLSessionWebDriverHTTPClient(session: .shared)
+    )
+    try await client.goto(url: "https://example.com")
+    try await client.closeSession()
+  }
+
+  func testGotoCurl() async throws {
+    let client = try await WebDriverClient.newSession(
+      endpoint: checkRemoteURL(),
+      httpClient: try XCTUnwrap(CurlWebDriverHTTPClient.find())
     )
     try await client.goto(url: "https://example.com")
     try await client.closeSession()

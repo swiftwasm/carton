@@ -17,7 +17,7 @@ import CartonKit
 import Foundation
 import NIOCore
 import NIOPosix
-import WebDriverClient
+import WebDriver
 
 #if canImport(FoundationNetworking)
   import FoundationNetworking
@@ -139,8 +139,7 @@ struct BrowserTestRunner: TestRunner {
     var retries = 0
     while true {
       do {
-        return try await WebDriverClient.newSession(
-          endpoint: endpoint, httpClient: URLSession.shared)
+        return try await WebDriverClient.newSession(endpoint: endpoint)
       } catch {
         if retries >= maxRetries {
           throw error
