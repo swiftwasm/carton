@@ -13,7 +13,7 @@ public func withRetry<R>(
       return try await body()
     } catch {
       if attempt < maxAttempts {
-        print("attempt \(attempt) failed: \(error), retrying...")
+        print("attempt \(attempt)/\(maxAttempts) failed: \(error), retrying in \(retryInterval)...")
 
         try await Task.sleep(for: retryInterval)
         continue

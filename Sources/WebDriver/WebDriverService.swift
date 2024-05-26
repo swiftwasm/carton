@@ -17,7 +17,11 @@ extension WebDriverService {
   ) async throws -> WebDriverClient {
     let httpClient = httpClient ?? WebDriverHTTPClients.find()
 
-    return try await withRetry(maxAttempts: 3, initialDelay: .zero, retryInterval: .seconds(1)) {
+    return try await withRetry(
+      maxAttempts: 5,
+      initialDelay: .seconds(3),
+      retryInterval: .seconds(10)
+    ) {
       try await WebDriverClient.newSession(
         endpoint: endpoint,
         httpClient: httpClient
