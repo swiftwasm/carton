@@ -25,7 +25,7 @@ public enum WebDriverError: Error & CustomStringConvertible {
     case .invalidRemoteURL(let url): return "invalid remote webdriver URL: \(url)"
     case .curlError(path: let path, status: let status, body: let body):
       var lines: [String] = [
-        "curl command at \(path.path) failed with status \(status)."
+        "\(path.path) failed with status \(status)."
       ]
 
       if let body {

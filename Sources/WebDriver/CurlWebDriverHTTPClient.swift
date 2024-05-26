@@ -14,6 +14,10 @@
 
 import Foundation
 
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
+
 public struct CurlWebDriverHTTPClient: WebDriverHTTPClient {
   public init(cliPath: URL) {
     self.cliPath = cliPath

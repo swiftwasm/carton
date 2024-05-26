@@ -14,6 +14,10 @@
 
 import Foundation
 
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
+
 public protocol WebDriverHTTPClient {
   func data(for request: URLRequest) async throws -> Data
 }
