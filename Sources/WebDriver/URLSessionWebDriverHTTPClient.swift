@@ -15,7 +15,6 @@
 import Foundation
 
 #if canImport(FoundationNetworking)
-import FoundationNetworking
 #else
 
 // Due to a broken URLSession in swift-corelibs-foundation, this class cannot be used on Linux.
