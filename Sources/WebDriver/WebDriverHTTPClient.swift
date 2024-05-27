@@ -28,11 +28,10 @@ public enum WebDriverHTTPClients {
       return curl
     }
 
-    #if os(Linux)
+    #if canImport(FoundationNetworking)
+    throw WebDriverError.failedToFindHTTPClient
     #else
     return URLSessionWebDriverHTTPClient(session: .shared)
     #endif
-
-    throw WebDriverError.failedToFindHTTPClient
   }
 }

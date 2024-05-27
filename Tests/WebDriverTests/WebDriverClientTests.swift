@@ -17,7 +17,7 @@ import WebDriver
 import XCTest
 
 final class WebDriverClientTests: XCTestCase {
-  #if os(Linux)
+  #if canImport(FoundationNetworking)
   #else
   func testGotoURLSession() async throws {
     let terminal = InteractiveWriter.stdout
