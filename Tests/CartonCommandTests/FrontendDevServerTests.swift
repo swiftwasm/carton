@@ -3,6 +3,7 @@ import CartonCore
 import CartonHelpers
 import CartonKit
 import SwiftToolchain
+import WebDriver
 
 final class FrontendDevServerTests: XCTestCase {
   func testDevServerPublish() async throws {
@@ -103,15 +104,23 @@ final class FrontendDevServerTests: XCTestCase {
       XCTAssertEqual(styleCss, expected)
     }
 
-    try openInSystemBrowser(url: host)
-
-    for _ in 0..<30 {
-      try await Task.sleep(for: .seconds(1))
-      if gotHelloStdout, gotHelloStderr { break }
+    let service = try await WebDriverServices.find(terminal: terminal)
+    defer {
+      service.dispose()
     }
 
-    XCTAssertTrue(gotHelloStdout)
-    XCTAssertTrue(gotHelloStderr)
+    let client = try await service.client()
+
+    try await client.goto(url: host)
+
+    try await withRetry(maxAttempts: 10, initialDelay: .seconds(3), retryInterval: .seconds(3)) {
+      if gotHelloStdout, gotHelloStderr {
+        return
+      }
+      throw CommandTestError("no output")
+    }
+
+    try await client.closeSession()
   }
 
   private func fetchBinary(
