@@ -3,6 +3,7 @@ import CartonCore
 import CartonHelpers
 import CartonKit
 import SwiftToolchain
+import WebDriver
 
 final class FrontendDevServerTests: XCTestCase {
   func testDevServerPublish() async throws {
@@ -29,13 +30,31 @@ final class FrontendDevServerTests: XCTestCase {
 
     try await Process.run(["swift", "build", "--target", "carton-frontend"], terminal)
 
+    var gotHelloStdout = false
+    var gotHelloStderr = false
+
     let devServer = Process(
       arguments: [
         "swift", "run", "carton-frontend", "dev",
         "--skip-auto-open", "--verbose",
         "--main-wasm-path", wasmFile.pathString,
         "--resources", resourcesDir.pathString
-      ]
+      ],
+      outputRedirection: .stream(
+        stdout: { (chunk) in
+          let string = String(decoding: chunk, as: UTF8.self)
+
+          if string.contains("stdout: hello stdout") {
+            gotHelloStdout = true
+          }
+          if string.contains("stderr: hello stderr") {
+            gotHelloStderr = true
+          }
+
+          terminal.write(string)
+        }, stderr: { (_) in },
+        redirectStderr: true
+      )
     )
     try devServer.launch()
     defer {
@@ -84,6 +103,24 @@ final class FrontendDevServerTests: XCTestCase {
       let expected = try String(contentsOf: resourcesDir.appending(component: name).asURL)
       XCTAssertEqual(styleCss, expected)
     }
+
+    let service = try await WebDriverServices.find(terminal: terminal)
+    defer {
+      service.dispose()
+    }
+
+    let client = try await service.client()
+
+    try await client.goto(url: host)
+
+    try await withRetry(maxAttempts: 10, initialDelay: .seconds(3), retryInterval: .seconds(3)) {
+      if gotHelloStdout, gotHelloStderr {
+        return
+      }
+      throw CommandTestError("no output")
+    }
+
+    try await client.closeSession()
   }
 
   private func fetchBinary(

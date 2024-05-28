@@ -179,6 +179,7 @@ let package = Package(
       dependencies: [
         "CartonFrontend",
         "SwiftToolchain",
+        "WebDriver",
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
       ]
     ),

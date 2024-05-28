@@ -29,7 +29,7 @@ final class WebDriverClientTests: XCTestCase {
     let client = try await service.client(
       httpClient: URLSessionWebDriverHTTPClient(session: .shared)
     )
-    try await client.goto(url: "https://example.com")
+    try await client.goto(url: URL(string: "https://example.com")!)
     try await client.closeSession()
   }
   #endif
@@ -44,7 +44,7 @@ final class WebDriverClientTests: XCTestCase {
     let client = try await service.client(
       httpClient: try XCTUnwrap(CurlWebDriverHTTPClient.find())
     )
-    try await client.goto(url: "https://example.com")
+    try await client.goto(url: URL(string: "https://example.com")!)
     try await client.closeSession()
   }
 }

@@ -69,6 +69,18 @@ public protocol BuilderProtocol {
 }
 
 public actor Server {
+  public enum Error: Swift.Error & CustomStringConvertible {
+    case invalidURL(String)
+    case noOpenBrowserPlatform
+
+    public var description: String {
+      switch self {
+      case .invalidURL(let string): "Invalid URL: \(string)"
+      case .noOpenBrowserPlatform: "This platform cannot launch a browser."
+      }
+    }
+  }
+
   final class Connection: Hashable {
     let channel: Channel
 
@@ -105,8 +117,8 @@ public actor Server {
 
   private var serverChannel: (any Channel)!
 
-  /// Local URL of this server, `https://128.0.0.1:8080/` by default.
-  private let localURL: String
+  /// Local URL of this server, `https://127.0.0.1:8080/` by default.
+  private let localURL: URL
 
   /// Whether a build that could be triggered by this server is currently running.
   private var isBuildCurrentlyRunning = false
@@ -156,7 +168,11 @@ public actor Server {
   public init(
     _ configuration: Configuration
   ) async throws {
-    localURL = "http://\(configuration.host):\(configuration.port)/"
+    let localURLString = "http://\(configuration.host):\(configuration.port)/"
+    guard let localURL = URL(string: localURLString) else {
+      throw Error.invalidURL(localURLString)
+    }
+    self.localURL = localURL
     watcher = nil
     self.configuration = configuration
 
@@ -222,7 +238,7 @@ public actor Server {
     connections.remove(connection)
   }
 
-  public func start() async throws -> String {
+  public func start() async throws -> URL {
     let group = MultiThreadedEventLoopGroup.singleton
     let upgrader = NIOWebSocketServerUpgrader(
       maxFrameSize: Int(UInt32.max),
@@ -421,25 +437,18 @@ extension Server {
 }
 
 /// Attempts to open the specified URL string in system browser on macOS and Linux.
-/// - Returns: true if launching command returns successfully.
-@discardableResult
-public func openInSystemBrowser(url: String) -> Bool {
+public func openInSystemBrowser(url: URL) throws {
   #if os(macOS)
     let openCommand = "open"
   #elseif os(Linux)
     let openCommand = "xdg-open"
   #else
-    return false
+    throw Server.Error.noOpenBrowserPlatform
   #endif
   let process = Process(
-    arguments: [openCommand, url],
+    arguments: [openCommand, url.absoluteString],
     outputRedirection: .none,
     startNewProcessGroup: true
   )
-  do {
-    try process.launch()
-    return true
-  } catch {
-    return false
-  }
+  try process.launch()
 }
