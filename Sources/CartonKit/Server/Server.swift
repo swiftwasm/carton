@@ -304,7 +304,7 @@ public actor Server {
       }
       // Enable SO_REUSEADDR for the accepted Channels
       .childChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
-      .bind(host: configuration.host, port: configuration.port)
+      .bind(host: "0.0.0.0", port: configuration.port)
       .get()
 
     self.serverChannel = channel
