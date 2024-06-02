@@ -135,6 +135,7 @@ public actor Server {
     let builder: BuilderProtocol?
     let mainWasmPath: AbsolutePath
     let verbose: Bool
+    let listen: String
     let port: Int
     let host: String
     let customIndexPath: AbsolutePath?
@@ -146,6 +147,7 @@ public actor Server {
       builder: BuilderProtocol?,
       mainWasmPath: AbsolutePath,
       verbose: Bool,
+      listen: String,
       port: Int,
       host: String,
       customIndexPath: AbsolutePath?,
@@ -156,12 +158,19 @@ public actor Server {
       self.builder = builder
       self.mainWasmPath = mainWasmPath
       self.verbose = verbose
+      self.listen = listen
       self.port = port
       self.host = host
       self.customIndexPath = customIndexPath
       self.resourcesPaths = resourcesPaths
       self.entrypoint = entrypoint
       self.terminal = terminal
+    }
+
+    public static func host(listen: String, host: String?) -> String {
+      if let host { return host }
+      if listen == "0.0.0.0" { return "127.0.0.1" }
+      return listen
     }
   }
 
@@ -304,7 +313,7 @@ public actor Server {
       }
       // Enable SO_REUSEADDR for the accepted Channels
       .childChannelOption(ChannelOptions.socketOption(.so_reuseaddr), value: 1)
-      .bind(host: "0.0.0.0", port: configuration.port)
+      .bind(host: configuration.listen, port: configuration.port)
       .get()
 
     self.serverChannel = channel

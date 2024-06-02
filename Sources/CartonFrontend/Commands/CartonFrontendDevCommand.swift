@@ -51,14 +51,25 @@ struct CartonFrontendDevCommand: AsyncParsableCommand {
   @Flag(name: .shortAndLong, help: "Don't clear terminal window after files change.")
   var verbose = false
 
+  @Option(
+    name: .shortAndLong,
+    help: """
+      Set the address where the development server will listen for connections.
+      """
+  )
+  var listen: String = "0.0.0.0"
+
   @Option(name: .shortAndLong, help: "Set the HTTP port the development server will run on.")
   var port = 8080
 
   @Option(
     name: .shortAndLong,
-    help: "Set the location where the development server will run. Default is `127.0.0.1`."
+    help: """
+      Set the location where the development server will run.
+      The default value is derived from the –-listen option.
+      """
   )
-  var host = "127.0.0.1"
+  var host: String?
 
   @Flag(name: .long, help: "Skip automatically opening app in system browser.")
   var skipAutoOpen = false
@@ -150,8 +161,9 @@ struct CartonFrontendDevCommand: AsyncParsableCommand {
         mainWasmPath: AbsolutePath(
           validating: mainWasmPath, relativeTo: localFileSystem.currentWorkingDirectory!),
         verbose: verbose,
+        listen: listen,
         port: port,
-        host: host,
+        host: Server.Configuration.host(listen: listen, host: host),
         customIndexPath: customIndexPage.map {
           try AbsolutePath(validating: $0, relativeTo: localFileSystem.currentWorkingDirectory!)
         },
