@@ -52,7 +52,7 @@ struct CartonFrontendDevCommand: AsyncParsableCommand {
   var verbose = false
 
   @Option(
-    name: .shortAndLong,
+    name: .long,
     help: """
       Set the address where the development server will listen for connections.
       """
