@@ -58,15 +58,26 @@ struct CartonFrontendTestCommand: AsyncParsableCommand {
 
   @Option(
     name: .shortAndLong,
+    help: """
+      Set the address where the development server will listen for connections.
+      """
+  )
+  var bind: String = "0.0.0.0"
+
+  @Option(
+    name: .shortAndLong,
     help: "Set the HTTP port the testing server will run on for browser environment."
   )
   var port = 8080
 
   @Option(
     name: .shortAndLong,
-    help: "Set the location where the testing server will run. Default is `127.0.0.1`."
+    help: """
+      Set the location where the development server will run.
+      The default value is derived from the –-bind option.
+      """
   )
-  var host = "127.0.0.1"
+  var host: String?
 
   @Option(help: "Use the given bundle instead of building the test target")
   var prebuiltTestBundlePath: String
@@ -117,7 +128,8 @@ struct CartonFrontendTestCommand: AsyncParsableCommand {
     case .browser:
       try await BrowserTestRunner(
         testFilePath: bundlePath,
-        host: host,
+        bindingAddress: bind,
+        host: Server.Configuration.host(bindOption: bind, hostOption: host),
         port: port,
         headless: headless,
         resourcesPaths: resources,
