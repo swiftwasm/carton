@@ -60,6 +60,12 @@ struct CartonFrontendBundleCommand: AsyncParsableCommand {
   )
   var wasmOptimizations: WasmOptimizations = .size
 
+  @Option(
+    name: .customLong("Xwasm-opt", withSingleDash: true),
+    help: "Extra flags to pass to wasm-opt when optimizing the .wasm binary."
+  )
+  var extraWasmOptFlags: [String] = []
+
   @Flag(inversion: .prefixedNo, help: "Use a content hash for the output file names.")
   var contentHash: Bool = true
 
@@ -141,6 +147,7 @@ struct CartonFrontendBundleCommand: AsyncParsableCommand {
     if debugInfo {
       wasmOptArgs.append("--debuginfo")
     }
+    wasmOptArgs.append(contentsOf: extraWasmOptFlags)
     try await Process.run(wasmOptArgs, terminal)
     try terminal.logLookup(
       "After stripping debug info the main binary size is ",
