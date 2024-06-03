@@ -85,12 +85,12 @@ struct CartonBundlePluginCommand: CommandPlugin {
         ["--resources", $0.string]
       } + extractor.remainingArguments
     let frontend = try makeCartonFrontendProcess(context: context, arguments: frontendArguments)
-    frontend.forwardTerminationSignals()
-    try frontend.run()
-    frontend.waitUntilExit()
-    if frontend.terminationStatus == 0 {
-      print("Bundle written in \(bundleDirectory)")
-    }
-    frontend.checkNonZeroExit()
+    try frontend.checkRun(
+      printsLoadingMessage: false,
+      didExit: {
+        print("Bundle written in \(bundleDirectory)")
+      },
+      forwardExit: true
+    )
   }
 }

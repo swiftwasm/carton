@@ -100,17 +100,7 @@ func swiftRunProcess(
 
   try process.launch()
 
-  func setSignalForwarding(_ signalNo: Int32) {
-    signal(signalNo, SIG_IGN)
-    let signalSource = DispatchSource.makeSignalSource(signal: signalNo)
-    signalSource.setEventHandler {
-      signalSource.cancel()
-      process.signal(SIGINT)
-    }
-    signalSource.resume()
-  }
-  setSignalForwarding(SIGINT)
-  setSignalForwarding(SIGTERM)
+  process.forwardTerminationSignals()
 
   return SwiftRunProcess(
     process: process,

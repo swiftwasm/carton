@@ -109,10 +109,7 @@ struct CartonTestPluginCommand: CommandPlugin {
         ["--resources", $0.string]
       } + extractor.remainingArguments
     let frontend = try makeCartonFrontendProcess(context: context, arguments: frontendArguments)
-    frontend.forwardTerminationSignals()
-    try frontend.run()
-    frontend.waitUntilExit()
-    frontend.checkNonZeroExit()
+    try frontend.checkRun(printsLoadingMessage: false, forwardExit: true)
   }
 
   private func buildDirectory(context: PluginContext) throws -> Path {

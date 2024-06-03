@@ -114,7 +114,7 @@ struct CartonDevPluginCommand: CommandPlugin {
     }
 
     frontend.waitUntilExit()
-    frontend.checkNonZeroExit()
+    frontend.forwardExit()
   }
 
   private func defaultProduct(context: PluginContext) throws -> String {

@@ -30,6 +30,7 @@
 //
 // This executable should be eventually removed once SwiftPM provides a way to express those requirements.
 
+import CartonCore
 import CartonHelpers
 import Foundation
 import SwiftToolchain
@@ -39,49 +40,6 @@ struct CartonDriverError: Error & CustomStringConvertible {
     self.description = description
   }
   var description: String
-}
-
-extension Foundation.Process {
-  internal static func checkRun(
-    _ executableURL: URL, arguments: [String], forwardExit: Bool = false
-  ) throws {
-    let commandLine: String = ([executableURL.path] + arguments)
-      .map { "\"\($0)\"" }.joined(separator: " ")
-
-    fputs("Running \(commandLine)\n", stderr)
-    fflush(stderr)
-
-    let process = Foundation.Process()
-    process.executableURL = executableURL
-    process.arguments = arguments
-
-    // Monitor termination/interrruption signals to forward them to child process
-    func setSignalForwarding(_ signalNo: Int32) {
-      signal(signalNo, SIG_IGN)
-      let signalSource = DispatchSource.makeSignalSource(signal: signalNo)
-      signalSource.setEventHandler {
-        signalSource.cancel()
-        process.interrupt()
-      }
-      signalSource.resume()
-    }
-    setSignalForwarding(SIGINT)
-    setSignalForwarding(SIGTERM)
-
-    try process.run()
-    process.waitUntilExit()
-
-    if forwardExit {
-      exit(process.terminationStatus)
-    }
-
-    if process.terminationStatus != 0 {
-      throw CartonDriverError(
-        "Process failed with status \(process.terminationStatus).\n" +
-        "Command line: \(commandLine)"
-      )
-    }
-  }
 }
 
 func derivePackageCommandArguments(
@@ -184,7 +142,10 @@ func pluginSubcommand(subcommand: String, argv0: String, arguments: [String]) as
     extraArguments: extraArguments
   )
 
-  try Foundation.Process.checkRun(swiftExec, arguments: pluginArguments, forwardExit: true)
+  try Foundation.Process.checkRun(
+    swiftExec, arguments: pluginArguments,
+    forwardExit: true
+  )
 }
 
 public func main(arguments: [String]) async throws {
@@ -213,7 +174,8 @@ public func main(arguments: [String]) async throws {
     let (swiftPath, _) = try await toolchainSystem.inferSwiftPath(terminal)
     try Foundation.Process.checkRun(
       URL(fileURLWithPath: swiftPath.pathString),
-      arguments: ["package"] + arguments.dropFirst(), forwardExit: true
+      arguments: ["package"] + arguments.dropFirst(),
+      forwardExit: true
     )
   case "--version":
     print(cartonVersion)
