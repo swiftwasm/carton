@@ -48,7 +48,7 @@ enum BrowserTestRunnerError: Error, CustomStringConvertible {
 
 struct BrowserTestRunner: TestRunner {
   let testFilePath: AbsolutePath
-  let listen: String
+  let bindingAddress: String
   let host: String
   let port: Int
   let headless: Bool
@@ -58,7 +58,7 @@ struct BrowserTestRunner: TestRunner {
 
   init(
     testFilePath: AbsolutePath,
-    listen: String,
+    bindingAddress: String,
     host: String,
     port: Int,
     headless: Bool,
@@ -66,7 +66,7 @@ struct BrowserTestRunner: TestRunner {
     terminal: InteractiveWriter
   ) {
     self.testFilePath = testFilePath
-    self.listen = listen
+    self.bindingAddress = bindingAddress
     self.host = host
     self.port = port
     self.headless = headless
@@ -80,7 +80,7 @@ struct BrowserTestRunner: TestRunner {
         builder: nil,
         mainWasmPath: testFilePath,
         verbose: true,
-        listen: listen,
+        bindingAddress: bindingAddress,
         port: port,
         host: host,
         customIndexPath: nil,

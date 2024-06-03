@@ -57,12 +57,12 @@ struct CartonFrontendTestCommand: AsyncParsableCommand {
   private var sanitize: SanitizeVariant?
 
   @Option(
-    name: .long,
+    name: .shortAndLong,
     help: """
       Set the address where the development server will listen for connections.
       """
   )
-  var listen: String = "0.0.0.0"
+  var bind: String = "0.0.0.0"
 
   @Option(
     name: .shortAndLong,
@@ -74,7 +74,7 @@ struct CartonFrontendTestCommand: AsyncParsableCommand {
     name: .shortAndLong,
     help: """
       Set the location where the development server will run.
-      The default value is derived from the –-listen option.
+      The default value is derived from the –-bind option.
       """
   )
   var host: String?
@@ -128,8 +128,8 @@ struct CartonFrontendTestCommand: AsyncParsableCommand {
     case .browser:
       try await BrowserTestRunner(
         testFilePath: bundlePath,
-        listen: listen,
-        host: Server.Configuration.host(listen: listen, host: host),
+        bindingAddress: bind,
+        host: Server.Configuration.host(bindOption: bind, hostOption: host),
         port: port,
         headless: headless,
         resourcesPaths: resources,

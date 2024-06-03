@@ -52,12 +52,12 @@ struct CartonFrontendDevCommand: AsyncParsableCommand {
   var verbose = false
 
   @Option(
-    name: .long,
+    name: .shortAndLong,
     help: """
       Set the address where the development server will listen for connections.
       """
   )
-  var listen: String = "0.0.0.0"
+  var bind: String = "0.0.0.0"
 
   @Option(name: .shortAndLong, help: "Set the HTTP port the development server will run on.")
   var port = 8080
@@ -66,7 +66,7 @@ struct CartonFrontendDevCommand: AsyncParsableCommand {
     name: .shortAndLong,
     help: """
       Set the location where the development server will run.
-      The default value is derived from the –-listen option.
+      The default value is derived from the –-bind option.
       """
   )
   var host: String?
@@ -161,9 +161,9 @@ struct CartonFrontendDevCommand: AsyncParsableCommand {
         mainWasmPath: AbsolutePath(
           validating: mainWasmPath, relativeTo: localFileSystem.currentWorkingDirectory!),
         verbose: verbose,
-        listen: listen,
+        bindingAddress: bind,
         port: port,
-        host: Server.Configuration.host(listen: listen, host: host),
+        host: Server.Configuration.host(bindOption: bind, hostOption: host),
         customIndexPath: customIndexPage.map {
           try AbsolutePath(validating: $0, relativeTo: localFileSystem.currentWorkingDirectory!)
         },
