@@ -126,4 +126,19 @@ final class BundleCommandTests: XCTestCase {
       XCTAssertGreaterThan(none, optimized)
     }
   }
+
+  func testExtraOptions() async throws {
+    try await withFixture("EchoExecutable") { packageDirectory in
+      let result = try await swiftRun(
+        ["carton", "bundle", "-Xwasm-opt=--enable-threads"],
+        packageDirectory: packageDirectory.asURL
+      )
+      try result.checkNonZeroExit()
+      let output = try result.utf8Output()
+      let hasExpectedLine = output.split(whereSeparator: \.isNewline).contains {
+          $0.contains(#/wasm-opt (.+ )?--enable-threads/#)
+      }
+      XCTAssert(hasExpectedLine, "wasm-opt invocation log with extra options not found in output: \(output)")
+    }
+  }
 }
