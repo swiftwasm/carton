@@ -10,6 +10,14 @@ extension ProcessResult {
       stderrOutput: stderrOutput
     )
   }
+
+  @discardableResult
+  public func checkNonZeroExit() throws -> String {
+    guard exitStatus == .terminated(code: 0) else {
+        throw ProcessResult.Error.nonZeroExit(self)
+    }
+    return try utf8Output()
+  }
 }
 
 @discardableResult
