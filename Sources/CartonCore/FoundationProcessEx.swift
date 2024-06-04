@@ -14,7 +14,7 @@ extension Foundation.Process {
 
   public func forwardTerminationSignals() {
     setSignalForwarding(SIGINT)
-    setSignalForwarding(SIGKILL)
+    setSignalForwarding(SIGTERM)
   }
 
   public var commandLine: String {

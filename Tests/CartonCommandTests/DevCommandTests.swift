@@ -43,24 +43,23 @@ final class DevCommandTests: XCTestCase {
       // FIXME: Don't assume a specific port is available since it can be used by others or tests
       try await withFixture("EchoExecutable") { packageDirectory in
         let process = try swiftRunProcess(
-          ["carton", "dev", "--verbose", "--port", "8081", "--skip-auto-open"],
+          ["carton", "dev", "--verbose", "--port", "8080", "--skip-auto-open"],
           packageDirectory: packageDirectory.asURL
         )
 
-        try await checkForExpectedContent(process: process, at: "http://127.0.0.1:8081")
+        try await checkForExpectedContent(process: process, at: "http://127.0.0.1:8080")
       }
     }
   #endif
 
   private func fetchDevServerWithRetry(at url: URL) async throws -> (response: HTTPURLResponse, body: Data) {
     // client time out for connecting and responding
-    let timeOut: Duration = .seconds(60)
+    let timeOut: Duration = .seconds(10)
 
     // client delay... let the server start up
-    let delay: Duration = .seconds(30)
+    let delay: Duration = .seconds(3)
 
-    // only try 5 times.
-    let count = 5
+    let count = 100
 
     do {
       return try await withRetry(maxAttempts: count, initialDelay: delay, retryInterval: delay) {
@@ -78,7 +77,7 @@ final class DevCommandTests: XCTestCase {
   func checkForExpectedContent(process: SwiftRunProcess, at url: String) async throws {
     defer {
       // end the process regardless of success
-      process.process.signal(SIGTERM)
+      process.process.signal(SIGINT)
     }
 
     let (response, data) = try await fetchDevServerWithRetry(at: try URL(string: url).unwrap("url"))

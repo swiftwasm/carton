@@ -127,7 +127,7 @@ func fetchWebContent(at url: URL, timeout: Duration) async throws -> (response: 
   )
 
   let (body, response) = try await session.data(for: request)
-  
+
   guard let response = response as? HTTPURLResponse else {
     throw CommandTestError("Response from \(url.absoluteString) is not HTTPURLResponse")
   }
