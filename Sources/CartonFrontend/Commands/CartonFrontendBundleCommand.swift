@@ -135,7 +135,7 @@ struct CartonFrontendBundleCommand: AsyncParsableCommand {
       topLevelResourcePaths: resources
     )
 
-    terminal.write("Bundle generation finished successfully\n", inColor: .green, bold: true)
+    terminal.write("Bundle successfully generated at \(bundleDirectory)\n", inColor: .green, bold: true)
   }
 
   func optimize(_ inputPath: AbsolutePath, outputPath: AbsolutePath, terminal: InteractiveWriter)

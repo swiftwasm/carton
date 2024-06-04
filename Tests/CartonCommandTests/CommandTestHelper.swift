@@ -100,17 +100,7 @@ func swiftRunProcess(
 
   try process.launch()
 
-  func setSignalForwarding(_ signalNo: Int32) {
-    signal(signalNo, SIG_IGN)
-    let signalSource = DispatchSource.makeSignalSource(signal: signalNo)
-    signalSource.setEventHandler {
-      signalSource.cancel()
-      process.signal(SIGINT)
-    }
-    signalSource.resume()
-  }
-  setSignalForwarding(SIGINT)
-  setSignalForwarding(SIGTERM)
+  process.forwardTerminationSignals()
 
   return SwiftRunProcess(
     process: process,
@@ -137,7 +127,7 @@ func fetchWebContent(at url: URL, timeout: Duration) async throws -> (response: 
   )
 
   let (body, response) = try await session.data(for: request)
-  
+
   guard let response = response as? HTTPURLResponse else {
     throw CommandTestError("Response from \(url.absoluteString) is not HTTPURLResponse")
   }

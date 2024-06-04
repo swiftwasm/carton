@@ -184,10 +184,7 @@ internal func checkHelpFlag(_ arguments: [String], subcommand: String, context: 
   if arguments.contains("--help") || arguments.contains("-h") {
     let frontend = try makeCartonFrontendProcess(
       context: context, arguments: [subcommand, "--help"])
-    frontend.forwardTerminationSignals()
-    try frontend.run()
-    frontend.waitUntilExit()
-    exit(frontend.terminationStatus)
+    try frontend.checkRun(printsLoadingMessage: false, forwardExit: true)
   }
 }
 
@@ -202,37 +199,4 @@ internal func makeCartonFrontendProcess(context: PluginContext, arguments: [Stri
   process.executableURL = URL(fileURLWithPath: frontend.path.string)
   process.arguments = arguments
   return process
-}
-
-internal func runCartonFrontend(context: PluginContext, arguments: [String]) throws -> Process {
-  let process = try makeCartonFrontendProcess(context: context, arguments: arguments)
-  try process.run()
-  return process
-}
-
-extension Process {
-  internal func forwardTerminationSignals() {
-    // Monitor termination/interrruption signals to forward them to child process
-    func setSignalForwarding(_ signalNo: Int32) {
-      signal(signalNo, SIG_IGN)
-      let signalSource = DispatchSource.makeSignalSource(signal: signalNo)
-      signalSource.setEventHandler {
-        signalSource.cancel()
-        self.interrupt()
-      }
-      signalSource.resume()
-    }
-    setSignalForwarding(SIGINT)
-    setSignalForwarding(SIGTERM)
-
-    self.terminationHandler = {
-      // Exit plugin process itself when child process exited
-      exit($0.terminationStatus)
-    }
-  }
-  internal func checkNonZeroExit() {
-    if terminationStatus != 0 {
-      exit(terminationStatus)
-    }
-  }
 }
