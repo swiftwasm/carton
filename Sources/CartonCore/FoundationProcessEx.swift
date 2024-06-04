@@ -38,19 +38,15 @@ extension Foundation.Process {
 
   public func checkRun(
     printsLoadingMessage: Bool,
-    didExit: (() -> Void)? = nil,
     forwardExit: Bool = false
   ) throws {
     if printsLoadingMessage {
-      fputs("Running \(try commandLine)\n", stderr)
-      fflush(stderr)
+      print("Running \(try commandLine)")
     }
 
     try run()
     forwardTerminationSignals()
     waitUntilExit()
-
-    didExit?()
 
     if forwardExit {
       self.forwardExit()
@@ -76,7 +72,6 @@ extension Foundation.Process {
     _ executableURL: URL,
     arguments: [String],
     printsLoadingMessage: Bool = true,
-    didExit: (() -> Void)? = nil,
     forwardExit: Bool = false
   ) throws {
     let process = Foundation.Process()
@@ -84,7 +79,6 @@ extension Foundation.Process {
     process.arguments = arguments
     try process.checkRun(
       printsLoadingMessage: printsLoadingMessage,
-      didExit: didExit,
       forwardExit: forwardExit
     )
   }
