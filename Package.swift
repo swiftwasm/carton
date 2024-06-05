@@ -116,7 +116,10 @@ let package = Package(
         "WebDriver",
         "WasmTransformer",
       ],
-      exclude: ["Utilities/README.md"]
+      exclude: ["Utilities/README.md"],
+      swiftSettings: [
+        .enableUpcomingFeature("BareSlashRegexLiterals")
+      ]
     ),
     .target(
       name: "SwiftToolchain",
