@@ -82,6 +82,7 @@ final class DevCommandTests: XCTestCase {
 
     let (response, data) = try await fetchDevServerWithRetry(at: try URL(string: url).unwrap("url"))
     XCTAssertEqual(response.statusCode, 200, "Response was not ok")
+    try checkServerNameField(response: response, expectedPID: process.process.processID)
 
     let expectedHtml = """
       <!DOCTYPE html>

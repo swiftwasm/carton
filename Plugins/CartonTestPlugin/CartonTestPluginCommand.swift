@@ -20,11 +20,16 @@ struct CartonTestPluginCommand: CommandPlugin {
   struct Options {
     var environment: Environment
     var prebuiltTestBundlePath: String?
+    var pid: String?
 
     static func parse(from extractor: inout ArgumentExtractor) throws -> Options {
       let environment = try Environment.parse(from: &extractor)
       let prebuiltTestBundlePath = extractor.extractOption(named: "prebuilt-test-bundle-path").first
-      return Options(environment: environment, prebuiltTestBundlePath: prebuiltTestBundlePath)
+      let pid = extractor.extractOption(named: "pid").last
+      return Options(
+        environment: environment, prebuiltTestBundlePath: prebuiltTestBundlePath,
+        pid: pid
+      )
     }
   }
 
@@ -98,17 +103,18 @@ struct CartonTestPluginCommand: CommandPlugin {
       package: context.package
     )
 
-    let frontendArguments =
-      [
-        "test",
-        "--prebuilt-test-bundle-path", testProductArtifactPath,
-        "--environment", options.environment.rawValue,
-        "--plugin-work-directory", context.pluginWorkDirectory.string
-      ]
-      + resourcesPaths.flatMap {
-        ["--resources", $0.string]
-      } + extractor.remainingArguments
-    let frontend = try makeCartonFrontendProcess(context: context, arguments: frontendArguments)
+    var args: [String] = [
+      "test",
+      "--prebuilt-test-bundle-path", testProductArtifactPath,
+      "--environment", options.environment.rawValue,
+      "--plugin-work-directory", context.pluginWorkDirectory.string
+    ]
+    args += (options.pid.map { ["--pid", $0] } ?? [])
+    args += resourcesPaths.flatMap {
+      ["--resources", $0.string]
+    }
+    args += extractor.remainingArguments
+    let frontend = try makeCartonFrontendProcess(context: context, arguments: args)
     try frontend.checkRun(printsLoadingMessage: false, forwardExit: true)
   }
 

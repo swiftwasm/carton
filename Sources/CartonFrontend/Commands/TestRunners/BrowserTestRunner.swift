@@ -53,6 +53,7 @@ struct BrowserTestRunner: TestRunner {
   let port: Int
   let headless: Bool
   let resourcesPaths: [String]
+  let pid: Int32?
   let terminal: InteractiveWriter
   let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 
@@ -63,6 +64,7 @@ struct BrowserTestRunner: TestRunner {
     port: Int,
     headless: Bool,
     resourcesPaths: [String],
+    pid: Int32?,
     terminal: InteractiveWriter
   ) {
     self.testFilePath = testFilePath
@@ -71,6 +73,7 @@ struct BrowserTestRunner: TestRunner {
     self.port = port
     self.headless = headless
     self.resourcesPaths = resourcesPaths
+    self.pid = pid
     self.terminal = terminal
   }
 
@@ -86,6 +89,7 @@ struct BrowserTestRunner: TestRunner {
         customIndexPath: nil,
         resourcesPaths: resourcesPaths,
         entrypoint: Constants.entrypoint,
+        pid: pid,
         terminal: terminal
       )
     )
