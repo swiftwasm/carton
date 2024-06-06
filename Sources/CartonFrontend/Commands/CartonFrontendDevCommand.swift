@@ -113,7 +113,7 @@ struct CartonFrontendDevCommand: AsyncParsableCommand {
   )
   var mainWasmPath: String
 
-  @Option(name: .long) var pid: Int32?
+  @Option(name: .long, help: .hidden) var pid: Int32?
 
   static let configuration = CommandConfiguration(
     commandName: "dev",

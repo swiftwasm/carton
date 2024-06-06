@@ -96,7 +96,7 @@ struct CartonFrontendTestCommand: AsyncParsableCommand {
   ))
   var pluginWorkDirectory: String = "./"
 
-  @Option(name: .long) var pid: Int32?
+  @Option(name: .long, help: .hidden) var pid: Int32?
 
   func validate() throws {
     if headless && environment != .browser {
