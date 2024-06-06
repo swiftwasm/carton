@@ -1,3 +1,12 @@
+# 1.1.0 (6 Jun 2024)
+
+This release adds support for 5.10.0 toolchain, CLI options, and internal improvements.
+
+* Update default toolchain version to 5.10.0
+* Add `--bind` to `dev` subcommand to specify serving address with relaxed default (`0.0.0.0`)
+* Add `-Xwasm-opt` option to `bundle` subcommand to pass additional arguments to `wasm-opt`
+* Many internal refactorings and test improvements
+
 # 1.0.4 (22 May 2024)
 
 This release includes several bug fixes and internal improvements:
