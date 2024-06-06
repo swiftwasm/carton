@@ -5,5 +5,5 @@ let package = Package(
   name: "Foo",
   products: [.executable(name: "my-echo", targets: ["my-echo"])],
   dependencies: [.package(path: "../../..")],
-  targets: [.target(name: "my-echo")]
+  targets: [.executableTarget(name: "my-echo")]
 )

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import CartonCore
 import CartonHelpers
 import Foundation
 import Logging
@@ -106,6 +107,42 @@ public actor Server {
       hasher.combine(ObjectIdentifier(self))
     }
   }
+
+  public static let serverName = "carton dev server"
+
+  public struct ServerNameField: CustomStringConvertible {
+    public init(
+      name: String = serverName,
+      version: String = cartonVersion,
+      pid: Int32
+    ) {
+      self.name = name
+      self.version = version
+      self.pid = pid
+    }
+    
+    public var name: String
+    public var version: String
+    public var pid: Int32
+
+    public var description: String {
+      "\(name)/\(version) (PID \(pid))"
+    }
+
+    private static let regex = #/([\w ]+)/([\w\.]+) \(PID (\d+)\)/#
+
+    public static func parse(_ string: String) throws -> ServerNameField {
+      guard let m = try regex.wholeMatch(in: string),
+            let pid = Int32(m.output.3) else {
+        throw CartonCoreError("invalid server name: \(string)")
+      }
+
+      let name = String(m.output.1)
+      let version = String(m.output.2)
+      return ServerNameField(name: name, version: version, pid: pid)
+    }
+  }
+
   /// Used for decoding `Event` values sent from the WebSocket client.
   private let decoder = JSONDecoder()
 
@@ -131,6 +168,8 @@ public actor Server {
 
   private let configuration: Configuration
 
+  private let serverName: ServerNameField
+
   public struct Configuration {
     let builder: BuilderProtocol?
     let mainWasmPath: AbsolutePath
@@ -141,6 +180,7 @@ public actor Server {
     let customIndexPath: AbsolutePath?
     let resourcesPaths: [String]
     let entrypoint: Entrypoint
+    let pid: Int32?
     let terminal: InteractiveWriter
 
     public init(
@@ -153,6 +193,7 @@ public actor Server {
       customIndexPath: AbsolutePath?,
       resourcesPaths: [String],
       entrypoint: Entrypoint,
+      pid: Int32?,
       terminal: InteractiveWriter
     ) {
       self.builder = builder
@@ -164,6 +205,7 @@ public actor Server {
       self.customIndexPath = customIndexPath
       self.resourcesPaths = resourcesPaths
       self.entrypoint = entrypoint
+      self.pid = pid
       self.terminal = terminal
     }
 
@@ -184,6 +226,9 @@ public actor Server {
     self.localURL = localURL
     watcher = nil
     self.configuration = configuration
+    self.serverName = ServerNameField(
+      pid: configuration.pid ?? ProcessInfo.processInfo.processIdentifier
+    )
 
     guard let builder = configuration.builder else {
       return
@@ -293,7 +338,8 @@ public actor Server {
       mainWasmPath: configuration.mainWasmPath,
       customIndexPath: configuration.customIndexPath,
       resourcesPaths: configuration.resourcesPaths,
-      entrypoint: configuration.entrypoint
+      entrypoint: configuration.entrypoint,
+      serverName: serverName.description
     )
     let channel = try await ServerBootstrap(group: group)
       // Specify backlog and enable SO_REUSEADDR for the server itself

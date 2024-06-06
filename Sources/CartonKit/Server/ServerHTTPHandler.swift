@@ -28,6 +28,7 @@ final class ServerHTTPHandler: ChannelInboundHandler, RemovableChannelHandler {
     let customIndexPath: AbsolutePath?
     let resourcesPaths: [String]
     let entrypoint: Entrypoint
+    let serverName: String
   }
 
   let configuration: Configuration
@@ -93,6 +94,7 @@ final class ServerHTTPHandler: ChannelInboundHandler, RemovableChannelHandler {
     self.responseBody = response.body
 
     var headers = HTTPHeaders()
+    headers.add(name: "Server", value: configuration.serverName)
     headers.add(name: "Content-Type", value: response.contentType)
     headers.add(name: "Content-Length", value: String(response.body.readableBytes))
     headers.add(name: "Connection", value: "close")

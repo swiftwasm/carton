@@ -21,12 +21,17 @@ struct CartonDevPluginCommand: CommandPlugin {
     var product: String?
     var release: Bool
     var verbose: Bool
+    var pid: String?
 
     static func parse(from extractor: inout ArgumentExtractor) throws -> Options {
       let product = extractor.extractOption(named: "product").last
       let release = extractor.extractFlag(named: "release")
       let verbose = extractor.extractFlag(named: "verbose")
-      return Options(product: product, release: release != 0, verbose: verbose != 0)
+      let pid = extractor.extractOption(named: "pid").last
+      return Options(
+        product: product, release: release != 0, verbose: verbose != 0,
+        pid: pid
+      )
     }
   }
 
@@ -82,19 +87,19 @@ struct CartonDevPluginCommand: CommandPlugin {
     let buildRequestPipe = try createFifo(hint: "build-request", directory: tempDirectory)
     let buildResponsePipe = try createFifo(hint: "build-response", directory: tempDirectory)
 
-    let frontend = try makeCartonFrontendProcess(
-      context: context,
-      arguments: [
-        "dev",
-        "--main-wasm-path", productArtifact.path.string,
-        "--build-request", buildRequestPipe,
-        "--build-response", buildResponsePipe,
-      ]
-        + resourcesPaths.flatMap { ["--resources", $0.string] }
-        + pathsToWatch.flatMap { ["--watch-path", $0] }
-        + (options.verbose ? ["--verbose"] : [])
-        + extractor.remainingArguments
-    )
+    var args: [String] = [
+      "dev",
+      "--main-wasm-path", productArtifact.path.string,
+      "--build-request", buildRequestPipe,
+      "--build-response", buildResponsePipe
+    ]
+    args += (options.pid.map { ["--pid", $0] } ?? [])
+    args += resourcesPaths.flatMap { ["--resources", $0.string] }
+    args += pathsToWatch.flatMap { ["--watch-path", $0] }
+    args += (options.verbose ? ["--verbose"] : [])
+    args += extractor.remainingArguments
+
+    let frontend = try makeCartonFrontendProcess(context: context, arguments: args)
     frontend.forwardTerminationSignals()
 
     try frontend.run()

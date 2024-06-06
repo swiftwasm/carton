@@ -96,6 +96,8 @@ struct CartonFrontendTestCommand: AsyncParsableCommand {
   ))
   var pluginWorkDirectory: String = "./"
 
+  @Option(name: .long, help: .hidden) var pid: Int32?
+
   func validate() throws {
     if headless && environment != .browser {
       throw TestError(
@@ -133,6 +135,7 @@ struct CartonFrontendTestCommand: AsyncParsableCommand {
         port: port,
         headless: headless,
         resourcesPaths: resources,
+        pid: pid,
         terminal: terminal
       ).run()
     case .node:

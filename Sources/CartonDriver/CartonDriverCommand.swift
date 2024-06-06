@@ -54,6 +54,8 @@ func derivePackageCommandArguments(
   let pluginArguments: [String] = ["plugin"]
   var cartonPluginArguments: [String] = extraArguments
 
+  let pid = ProcessInfo.processInfo.processIdentifier
+
   switch subcommand {
   case "bundle":
     packageArguments += ["--disable-sandbox"]
@@ -64,6 +66,7 @@ func derivePackageCommandArguments(
     cartonPluginArguments = ["--output", "Bundle"] + cartonPluginArguments
   case "dev":
     packageArguments += ["--disable-sandbox"]
+    cartonPluginArguments += ["--pid", pid.description]
   case "test":
     // 1. Ask the plugin process to generate the build command based on the given options
     let commandFile = try makeTemporaryFile(prefix: "test-build")
@@ -92,6 +95,7 @@ func derivePackageCommandArguments(
 
     // "--environment browser" launches a http server
     packageArguments += ["--disable-sandbox"]
+    cartonPluginArguments += ["--pid", pid.description]
   default: break
   }
 
