@@ -17,23 +17,27 @@ import CartonHelpers
 import CartonKit
 import Foundation
 
-struct CartonFrontendDevCommand: AsyncParsableCommand {
-  enum Error: Swift.Error & CustomStringConvertible {
-    case noBuildRequestOption
-    case noBuildResponseOption
-    case failedToOpenBuildRequestPipe
-    case failedToOpenBuildResponsePipe
+enum DevCommandError: Error & CustomStringConvertible {
+  case noBuildRequestOption
+  case noBuildResponseOption
+  case failedToOpenBuildRequestPipe
+  case failedToOpenBuildResponsePipe
+  case pluginConnectionClosed
+  case brokenPluginResponse
 
-    var description: String {
-      switch self {
-      case .noBuildRequestOption: "--build-request option is necessary if you want to watch, but has not been specified."
-      case .noBuildResponseOption: "--build-response option is necessary if you want to watch, but has not been specified."
-      case .failedToOpenBuildRequestPipe: "failed to open build request pipe"
-      case .failedToOpenBuildResponsePipe: "failed to open build response pipe"
-      }
+  var description: String {
+    switch self {
+    case .noBuildRequestOption: "--build-request option is necessary if you want to watch, but has not been specified."
+    case .noBuildResponseOption: "--build-response option is necessary if you want to watch, but has not been specified."
+    case .failedToOpenBuildRequestPipe: "failed to open build request pipe."
+    case .failedToOpenBuildResponsePipe: "failed to open build response pipe."
+    case .pluginConnectionClosed: "connection with the plugin has been closed."
+    case .brokenPluginResponse: "response from the plugin was broken."
     }
   }
+}
 
+struct CartonFrontendDevCommand: AsyncParsableCommand {
   static let entrypoint = Entrypoint(fileName: "dev.js", content: StaticResource.dev)
 
   @Option(help: "Specify name of an executable product in development.")
@@ -126,10 +130,10 @@ struct CartonFrontendDevCommand: AsyncParsableCommand {
     }
 
     guard let buildRequest else {
-      throw Error.noBuildRequestOption
+      throw DevCommandError.noBuildRequestOption
     }
     guard let buildResponse else {
-      throw Error.noBuildResponseOption
+      throw DevCommandError.noBuildResponseOption
     }
 
     let pathsToWatch = try watchPaths.map {
@@ -137,10 +141,10 @@ struct CartonFrontendDevCommand: AsyncParsableCommand {
     }
 
     guard let buildRequest = FileHandle(forWritingAtPath: buildRequest) else {
-      throw Error.failedToOpenBuildRequestPipe
+      throw DevCommandError.failedToOpenBuildRequestPipe
     }
     guard let buildResponse = FileHandle(forReadingAtPath: buildResponse) else {
-      throw Error.failedToOpenBuildResponsePipe
+      throw DevCommandError.failedToOpenBuildResponsePipe
     }
 
     return SwiftPMPluginBuilder(
@@ -202,6 +206,20 @@ struct SwiftPMPluginBuilder: BuilderProtocol {
   func run() async throws {
     // We expect single response per request
     try buildRequest.write(contentsOf: Data([1]))
-    _ = try buildResponse.read(upToCount: 1)
+    guard let responseMessage = try buildResponse.read(upToCount: 1) else {
+      throw DevCommandError.pluginConnectionClosed
+    }
+    if responseMessage.count < 1 {
+      throw DevCommandError.brokenPluginResponse
+    }
+    switch responseMessage[0] {
+    case 0:
+      throw BuilderProtocolSimpleBuildFailedError()
+    case 1:
+      // build succeeded
+      return
+    default:
+      throw DevCommandError.brokenPluginResponse
+    }
   }
 }

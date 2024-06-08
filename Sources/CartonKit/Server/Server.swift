@@ -63,6 +63,10 @@ extension Event: Decodable {
   }
 }
 
+public struct BuilderProtocolSimpleBuildFailedError: Error {
+  public init() {}
+}
+
 /// A protocol for a builder that can be used to build the app.
 public protocol BuilderProtocol {
   var pathsToWatch: [AbsolutePath] { get }
@@ -392,9 +396,19 @@ public actor Server {
     _ builder: any BuilderProtocol,
     _ terminal: InteractiveWriter
   ) async throws {
-    try await builder.run()
+    do {
+      try await builder.run()
+    } catch {
+      terminal.write("Build failed\n", inColor: .red)
+      switch error {
+      case is BuilderProtocolSimpleBuildFailedError: break
+      default:
+        terminal.write("\(error)\n", inColor: .red)
+      }
+      return
+    }
 
-    terminal.write("\nBuild completed successfully\n", inColor: .green, bold: false)
+    terminal.write("Build completed successfully\n", inColor: .green)
     terminal.logLookup("The app is currently hosted at ", localURL)
     connections.forEach { $0.reload() }
   }

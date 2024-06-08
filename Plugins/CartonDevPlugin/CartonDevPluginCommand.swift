@@ -109,13 +109,16 @@ struct CartonDevPluginCommand: CommandPlugin {
     while let _ = try buildRequestFileHandle.read(upToCount: 1) {
       Diagnostics.remark("[Plugin] Received build request")
       let buildResult = try self.packageManager.build(buildSubset, parameters: parameters)
+      let responseMessage: Data
       if !buildResult.succeeded {
         Diagnostics.remark("[Plugin] **Build Failed**")
-        print(buildResult.logText)
+        print(buildResult.logText, terminator: "")
+        responseMessage = Data([0])
       } else {
         Diagnostics.remark("[Plugin] **Build Succeeded**")
+        responseMessage = Data([1])
       }
-      try buildResponseFileHandle.write(contentsOf: Data([1]))
+      try buildResponseFileHandle.write(contentsOf: responseMessage)
     }
 
     frontend.waitUntilExit()
