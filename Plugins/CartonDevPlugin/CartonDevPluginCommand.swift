@@ -49,7 +49,7 @@ struct CartonDevPluginCommand: CommandPlugin {
     // Build products
     var parameters = PackageManager.BuildParameters(
       configuration: options.release ? .release : .debug,
-      logging: options.verbose ? .debug : .concise
+      logging: options.verbose ? .verbose : .concise
     )
     #if compiler(>=5.11) || compiler(>=6)
     parameters.echoLogs = true
