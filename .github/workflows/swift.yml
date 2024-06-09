@@ -16,6 +16,12 @@ jobs:
         include:
           - os: macos-14
             xcode: "15.4"
+            swift: "6.0"
+            swift-install:
+              dir: "swift-6.0-branch/xcode"
+              version: "swift-6.0-DEVELOPMENT-SNAPSHOT-2024-06-07-a"
+          - os: macos-14
+            xcode: "15.4"
             swift: "5.10"
           - os: macos-13
             xcode: "15.2"
@@ -27,6 +33,13 @@ jobs:
 
       - name: Select Xcode version
         run: sudo xcode-select --switch /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
+
+      - name: Install Swift ${{ matrix.swift }}
+        if: ${{ matrix.swift-install != null }}
+        run: bash ci/mac/install-swift.bash
+        env:
+          SWIFT_DIR: ${{ matrix.swift-install.dir }}
+          SWIFT_VERSION: ${{ matrix.swift-install.version }}
 
       - name: Check Swift version
         run: swift --version
@@ -47,15 +60,14 @@ jobs:
     timeout-minutes: 40
     runs-on: ubuntu-22.04
     strategy:
-      matrix:
-        include:
-          - swift:
-              dir: "swift-5.10-release/ubuntu2204"
-              version: "swift-5.10-RELEASE"
-          - swift:
-              dir: "swift-5.9.2-release/ubuntu2204"
-              version: "swift-5.9.2-RELEASE"
-
+       matrix:
+         include:
+           - swift:
+               dir: "swift-5.10-release/ubuntu2204"
+               version: "swift-5.10-RELEASE"
+           - swift:
+               dir: "swift-5.9.2-release/ubuntu2204"
+               version: "swift-5.9.2-RELEASE"
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
