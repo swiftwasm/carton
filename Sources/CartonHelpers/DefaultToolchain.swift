@@ -14,7 +14,7 @@
 
 #if compiler(>=6.0)
 public let defaultToolchainVersion = "wasm-6.0-SNAPSHOT-2024-06-08-a"
-#elseif compiler(>=5.10)
+#if compiler(>=5.10)
 public let defaultToolchainVersion = "wasm-5.10.0-RELEASE"
 #else
 public let defaultToolchainVersion = "wasm-5.9.2-RELEASE"
