@@ -68,7 +68,10 @@ public enum Environment: String, CaseIterable {
     case .node, .browser:
       parameters.otherSwiftcFlags += ["-Xclang-linker", "-mexec-model=reactor"]
       #if compiler(>=6.0) || compiler(>=5.11)
-      parameters.otherLinkerFlags += ["--export-if-defined=__main_argc_argv"]
+      parameters.otherLinkerFlags += [
+        "--export-if-defined=__main_argc_argv",
+        "-lswift_RegexParser"
+      ]
       #else
       // Before Swift 6.0, the main function is defined as "main" instead of mangled "__main_argc_argv"
       parameters.otherLinkerFlags += ["--export-if-defined=main"]
