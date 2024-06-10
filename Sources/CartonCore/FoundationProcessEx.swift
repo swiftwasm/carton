@@ -71,12 +71,14 @@ extension Foundation.Process {
   public static func checkRun(
     _ executableURL: URL,
     arguments: [String],
+    environment: [String: String]? = nil,
     printsLoadingMessage: Bool = true,
     forwardExit: Bool = false
   ) throws {
     let process = Foundation.Process()
     process.executableURL = executableURL
     process.arguments = arguments
+    process.environment = environment
     try process.checkRun(
       printsLoadingMessage: printsLoadingMessage,
       forwardExit: forwardExit

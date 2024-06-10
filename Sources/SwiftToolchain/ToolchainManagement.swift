@@ -235,13 +235,19 @@ public class ToolchainSystem {
     }
   }
 
+  public struct SwiftPath {
+    public var verison: String
+    public var swift: AbsolutePath
+    public var toolchain: AbsolutePath
+  }
+
   /** Infer `swift` binary path matching a given version if any is present, or infer the
    version from the `.swift-version` file. If neither version is installed, download it.
    */
   public func inferSwiftPath(
     from versionSpec: String? = nil,
     _ terminal: InteractiveWriter
-  ) async throws -> (AbsolutePath, String) {
+  ) async throws -> SwiftPath {
     let specURL = versionSpec.flatMap { (string: String) -> Foundation.URL? in
       guard
         let url = Foundation.URL(string: string),
@@ -254,11 +260,9 @@ public class ToolchainSystem {
     let swiftVersion = try inferSwiftVersion(from: versionSpec, terminal)
 
     for resolver in resolvers {
-      if let path = try checkAndLog(
-        installationPath: resolver.toolchain(for: swiftVersion),
-        terminal
-      ) {
-        return (path, swiftVersion)
+      let toolchain = resolver.toolchain(for: swiftVersion)
+      if let path = try checkAndLog(installationPath: toolchain, terminal) {
+        return SwiftPath(verison: swiftVersion, swift: path, toolchain: toolchain)
       }
     }
 
@@ -291,7 +295,7 @@ public class ToolchainSystem {
       throw ToolchainError.invalidInstallationArchive(installationPath)
     }
 
-    return (path, swiftVersion)
+    return SwiftPath(verison: swiftVersion, swift: path, toolchain: installationPath)
   }
 
   public func fetchAllSwiftVersions() throws -> [String] {
