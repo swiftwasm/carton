@@ -136,8 +136,11 @@ extension ToolchainSystem {
       ]
       print(try process.commandLine)
       try process.run()
+
+      // Hack for using sudo
       // https://stackoverflow.com/questions/76088356/process-cannot-read-from-the-standard-input-in-swift
       tcsetpgrp(STDIN_FILENO, process.processIdentifier)
+      
       process.waitUntilExit()
       try process.checkNonZeroExit()
     }
