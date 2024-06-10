@@ -70,7 +70,7 @@ public enum Environment: String, CaseIterable {
       #if compiler(>=6.0) || compiler(>=5.11)
       parameters.otherLinkerFlags += [
         "--export-if-defined=__main_argc_argv",
-        "-lswift_RegexParser"
+        "-lswift_StringProcessing", "-lswift_RegexParser"
       ]
       #else
       // Before Swift 6.0, the main function is defined as "main" instead of mangled "__main_argc_argv"
