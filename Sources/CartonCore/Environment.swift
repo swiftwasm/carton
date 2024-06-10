@@ -63,15 +63,18 @@ public enum Environment: String, CaseIterable {
     // for future dynamic linking support.
     parameters.otherSwiftcFlags += ["-static-stdlib"]
 
+    #if compiler(>=6.0)
+    // A workaround for the linker issue.
+    // https://github.com/swiftwasm/swift/issues/5580
+    parameters.otherLinkerFlags += ["-lswift_RegexParser"]
+    #endif
+
     switch self {
     case .command: break
     case .node, .browser:
       parameters.otherSwiftcFlags += ["-Xclang-linker", "-mexec-model=reactor"]
       #if compiler(>=6.0) || compiler(>=5.11)
-      parameters.otherLinkerFlags += [
-        "--export-if-defined=__main_argc_argv",
-        "-lswift_StringProcessing", "-lswift_RegexParser"
-      ]
+      parameters.otherLinkerFlags += ["--export-if-defined=__main_argc_argv"]
       #else
       // Before Swift 6.0, the main function is defined as "main" instead of mangled "__main_argc_argv"
       parameters.otherLinkerFlags += ["--export-if-defined=main"]
