@@ -311,4 +311,8 @@ public class ToolchainSystem {
 
     return version
   }
+
+  public static func isSnapshotVersion(_ version: String) -> Bool {
+    version.contains("SNAPSHOT")
+  }
 }

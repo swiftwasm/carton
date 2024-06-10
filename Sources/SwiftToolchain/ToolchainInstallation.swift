@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import CartonCore
 import CartonHelpers
 import Foundation
 
@@ -109,6 +110,36 @@ extension ToolchainSystem {
     terminal.logLookup("Unpacking the archive: ", arguments.joined(separator: " "))
     try await Process.run(arguments, terminal)
 
+    if ext == "pkg", Self.isSnapshotVersion(version) {
+      try patchSnapshotForMac(path: installationPath, terminal: terminal)
+    }
+
     return installationPath
+  }
+
+  func patchSnapshotForMac(path: AbsolutePath, terminal: InteractiveWriter) throws {
+    let binDir = path.appending(components: ["usr", "bin"])
+    
+    terminal.write(
+      "To avoid issues with the snapshot, the toolchain will be re-signed. " +
+      "Please enter the root password.\n", inColor: .yellow)
+
+    for file in try fileSystem.traverseRecursively(binDir) {
+      guard fileSystem.isFile(file) else { continue }
+
+      let process = Foundation.Process()
+      process.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
+      process.arguments = [
+        "codesign", "--force",
+        "--preserve-metadata=identifier,entitlements",
+        "--sign", "-", file.pathString
+      ]
+      print(try process.commandLine)
+      try process.run()
+      // https://stackoverflow.com/questions/76088356/process-cannot-read-from-the-standard-input-in-swift
+      tcsetpgrp(STDIN_FILENO, process.processIdentifier)
+      process.waitUntilExit()
+      try process.checkNonZeroExit()
+    }
   }
 }

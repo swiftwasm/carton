@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #if compiler(>=5.10)
-public let defaultToolchainVersion = "wasm-5.10.0-RELEASE"
+public let defaultToolchainVersion = "wasm-6.0-SNAPSHOT-2024-06-08-a"
 #else
 public let defaultToolchainVersion = "wasm-5.9.2-RELEASE"
 #endif
