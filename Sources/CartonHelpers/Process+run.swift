@@ -94,7 +94,6 @@ extension Process {
 
           switch result.map(\.exitStatus) {
           case .success(.terminated(code: EXIT_SUCCESS)):
-            terminal.write("\n")
             if let parser = parser {
               if parser.parsingConditions.contains(.success) {
                 parser.parse(stdoutBuffer, terminal)
@@ -103,7 +102,7 @@ extension Process {
               terminal.write(stdoutBuffer)
             }
             terminal.write(
-              "\n`\(processName)` process finished successfully\n",
+              "`\(processName)` process finished successfully\n",
               inColor: .green,
               bold: false
             )

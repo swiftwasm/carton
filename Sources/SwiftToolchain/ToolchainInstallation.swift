@@ -66,6 +66,8 @@ extension ToolchainSystem {
         stream: stdoutStream,
         header: "Downloading the archive"
       )
+      defer { terminal.write("\n") }
+      
       var previouslyReceived = 0
       for try await progress in fileDownload.progressStream {
         guard progress.receivedBytes - previouslyReceived >= (progress.totalOrEstimatedBytes / 100)
@@ -111,42 +113,31 @@ extension ToolchainSystem {
     try await Process.run(arguments, terminal)
 
     if ext == "pkg", Self.isSnapshotVersion(version) {
-      try patchSnapshotForMac(path: installationPath, terminal: terminal)
+      try await patchSnapshotForMac(path: installationPath, terminal: terminal)
     }
 
     return installationPath
   }
 
-  func patchSnapshotForMac(path: AbsolutePath, terminal: InteractiveWriter) throws {
+  func patchSnapshotForMac(path: AbsolutePath, terminal: InteractiveWriter) async throws {
     let binDir = path.appending(components: ["usr", "bin"])
     
     terminal.write(
-      "To avoid issues with the snapshot, the toolchain will be re-signed. " +
-      "Please enter the root password.\n", inColor: .yellow)
+      "To avoid issues with the snapshot, the toolchain will be re-signed.\n",
+      inColor: .yellow
+    )
 
     for file in try fileSystem.traverseRecursively(binDir) {
       guard fileSystem.isFile(file) else { continue }
 
-      let process = Foundation.Process()
-      process.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
-      process.arguments = [
-        "codesign", "--force",
-        "--preserve-metadata=identifier,entitlements",
-        "--sign", "-", file.pathString
-      ]
-      print(try process.commandLine)
-      try process.run()
-
-      let originalProcessGroup = tcgetpgrp(STDIN_FILENO)
-      // Hack for using sudo
-      // https://stackoverflow.com/questions/76088356/process-cannot-read-from-the-standard-input-in-swift
-      tcsetpgrp(STDIN_FILENO, process.processIdentifier)
-
-      process.waitUntilExit()
-
-      tcsetpgrp(STDIN_FILENO, originalProcessGroup)
-
-      try process.checkNonZeroExit()
+      try Foundation.Process.checkRun(
+        URL(fileURLWithPath: "/usr/bin/codesign"),
+        arguments: [
+          "--force",
+          "--preserve-metadata=identifier,entitlements",
+          "--sign", "-", file.pathString
+        ]
+      )
     }
   }
 }
