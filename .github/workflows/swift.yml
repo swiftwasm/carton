@@ -60,14 +60,14 @@ jobs:
     timeout-minutes: 40
     runs-on: ubuntu-22.04
     strategy:
-       matrix:
-         include:
-           - swift:
-               dir: "swift-5.10-release/ubuntu2204"
-               version: "swift-5.10-RELEASE"
-           - swift:
-               dir: "swift-5.9.2-release/ubuntu2204"
-               version: "swift-5.9.2-RELEASE"
+      matrix:
+        include:
+          - swift:
+              dir: "swift-5.10-release/ubuntu2204"
+              version: "swift-5.10-RELEASE"
+          - swift:
+              dir: "swift-5.9.2-release/ubuntu2204"
+              version: "swift-5.9.2-RELEASE"
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
