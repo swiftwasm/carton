@@ -36,9 +36,16 @@ struct CommandTestRunner: TestRunner {
     var arguments = [program, testFilePath.pathString]
     if listTestCases {
       arguments.append(contentsOf: ["--", "-l"])
-    } else if !testCases.isEmpty {
-      arguments.append("--")
-      arguments.append(contentsOf: testCases)
+    } else {
+      let programName = (program as NSString).lastPathComponent
+      if programName == "wasmtime" {
+        arguments += ["--dir", "."]
+      }
+
+      if !testCases.isEmpty {
+        arguments.append("--")
+        arguments.append(contentsOf: testCases)
+      }
     }
     try await Process.run(arguments, parser: TestsParser(), terminal)
   }

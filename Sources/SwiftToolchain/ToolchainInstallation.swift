@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import CartonCore
 import CartonHelpers
 import Foundation
 
@@ -65,6 +66,8 @@ extension ToolchainSystem {
         stream: stdoutStream,
         header: "Downloading the archive"
       )
+      defer { terminal.write("\n") }
+      
       var previouslyReceived = 0
       for try await progress in fileDownload.progressStream {
         guard progress.receivedBytes - previouslyReceived >= (progress.totalOrEstimatedBytes / 100)
@@ -109,6 +112,32 @@ extension ToolchainSystem {
     terminal.logLookup("Unpacking the archive: ", arguments.joined(separator: " "))
     try await Process.run(arguments, terminal)
 
+    if ext == "pkg", Self.isSnapshotVersion(version) {
+      try await patchSnapshotForMac(path: installationPath, terminal: terminal)
+    }
+
     return installationPath
+  }
+
+  func patchSnapshotForMac(path: AbsolutePath, terminal: InteractiveWriter) async throws {
+    let binDir = path.appending(components: ["usr", "bin"])
+    
+    terminal.write(
+      "To avoid issues with the snapshot, the toolchain will be re-signed.\n",
+      inColor: .yellow
+    )
+
+    for file in try fileSystem.traverseRecursively(binDir) {
+      guard fileSystem.isFile(file) else { continue }
+
+      try Foundation.Process.checkRun(
+        URL(fileURLWithPath: "/usr/bin/codesign"),
+        arguments: [
+          "--force",
+          "--preserve-metadata=identifier,entitlements",
+          "--sign", "-", file.pathString
+        ]
+      )
+    }
   }
 }

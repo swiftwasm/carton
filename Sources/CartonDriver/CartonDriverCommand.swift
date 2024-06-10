@@ -135,10 +135,10 @@ func pluginSubcommand(subcommand: String, argv0: String, arguments: [String]) as
 
   let terminal = InteractiveWriter.stdout
   let toolchainSystem = try ToolchainSystem(fileSystem: localFileSystem)
-  let (swiftPath, _) = try await toolchainSystem.inferSwiftPath(terminal)
+  let swiftPath = try await toolchainSystem.inferSwiftPath(terminal)
   let extraArguments = arguments
 
-  let swiftExec = URL(fileURLWithPath: swiftPath.pathString)
+  let swiftExec = URL(fileURLWithPath: swiftPath.swift.pathString)
   let pluginArguments = try derivePackageCommandArguments(
     swiftExec: swiftExec,
     subcommand: subcommand,
@@ -146,8 +146,19 @@ func pluginSubcommand(subcommand: String, argv0: String, arguments: [String]) as
     extraArguments: extraArguments
   )
 
+  var env: [String: String] = ProcessInfo.processInfo.environment
+  if ToolchainSystem.isSnapshotVersion(swiftPath.verison),
+     swiftPath.toolchain.extension == "xctoolchain"
+  {
+    env["DYLD_LIBRARY_PATH"] = swiftPath.toolchain.appending(
+      components: ["usr", "lib", "swift", "macosx"]
+    ).pathString
+  }
+
   try Foundation.Process.checkRun(
-    swiftExec, arguments: pluginArguments,
+    swiftExec, 
+    arguments: pluginArguments,
+    environment: env,
     forwardExit: true
   )
 }
@@ -175,9 +186,10 @@ public func main(arguments: [String]) async throws {
   case "package":
     let terminal = InteractiveWriter.stdout
     let toolchainSystem = try ToolchainSystem(fileSystem: localFileSystem)
-    let (swiftPath, _) = try await toolchainSystem.inferSwiftPath(terminal)
+    let swiftPath = try await toolchainSystem.inferSwiftPath(terminal)
+
     try Foundation.Process.checkRun(
-      URL(fileURLWithPath: swiftPath.pathString),
+      URL(fileURLWithPath: swiftPath.swift.pathString),
       arguments: ["package"] + arguments.dropFirst(),
       forwardExit: true
     )

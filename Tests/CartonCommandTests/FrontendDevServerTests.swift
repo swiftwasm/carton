@@ -82,10 +82,10 @@ final class FrontendDevServerTests: XCTestCase {
 
     if !fs.exists(wasmFile) {
       let tools = try ToolchainSystem(fileSystem: fs)
-      let (builderSwift, _) = try await tools.inferSwiftPath(terminal)
+      let builderSwift = try await tools.inferSwiftPath(terminal)
 
       var args: [String] = [
-        builderSwift.pathString, "build", "--triple", "wasm32-unknown-wasi"
+        builderSwift.swift.pathString, "build", "--triple", "wasm32-unknown-wasi"
       ]
       args += Environment.browser.buildParameters().asBuildArguments()
 

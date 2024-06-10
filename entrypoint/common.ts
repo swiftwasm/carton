@@ -167,7 +167,7 @@ export const WasmRunner = (rawOptions: Options, SwiftRuntime: SwiftRuntimeConstr
 };
 
 const defaultRunnerOptions = (options: Options): Options => {
-  if (options.args != null) {
+  if (options.args == null) {
     options.args = ["main.wasm"];
   }
   return options;
