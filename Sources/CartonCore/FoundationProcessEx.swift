@@ -78,7 +78,9 @@ extension Foundation.Process {
     let process = Foundation.Process()
     process.executableURL = executableURL
     process.arguments = arguments
-    process.environment = environment
+    if let environment {
+      process.environment = environment
+    }
     try process.checkRun(
       printsLoadingMessage: printsLoadingMessage,
       forwardExit: forwardExit
