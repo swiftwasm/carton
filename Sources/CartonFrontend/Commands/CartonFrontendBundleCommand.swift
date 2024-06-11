@@ -142,7 +142,8 @@ struct CartonFrontendBundleCommand: AsyncParsableCommand {
     async throws
   {
     var wasmOptArgs = [
-      "wasm-opt", "-Os", "--enable-bulk-memory", inputPath.pathString, "-o", outputPath.pathString,
+      "wasm-opt", "-Os", "--enable-bulk-memory", "--enable-sign-ext",
+      inputPath.pathString, "-o", outputPath.pathString,
     ]
     if debugInfo {
       wasmOptArgs.append("--debuginfo")
