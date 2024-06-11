@@ -63,6 +63,9 @@ jobs:
       matrix:
         include:
           - swift:
+              dir: "swift-6.0-branch/ubuntu2204"
+              version: "swift-6.0-DEVELOPMENT-SNAPSHOT-2024-06-08-a"
+          - swift:
               dir: "swift-5.10-release/ubuntu2204"
               version: "swift-5.10-RELEASE"
           - swift:
