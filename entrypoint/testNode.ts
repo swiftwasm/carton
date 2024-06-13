@@ -46,7 +46,15 @@ const startWasiTask = async () => {
     // No JavaScriptKit module found, run the Wasm module without JSKit
   }
 
-  const wasmRunner = WasmRunner({ args: testArgs }, runtimeConstructor);
+  const wasmRunner = WasmRunner({
+    args: testArgs,
+    onStdoutLine: (line) => {
+      console.log(line);
+    },
+    onStderrLine: (line) => {
+      console.error(line);
+    },
+  }, runtimeConstructor);
   let procExitCalled = false;
 
   process.on("beforeExit", () => {
