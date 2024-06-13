@@ -14,6 +14,12 @@
 
 import { WASI, File, OpenFile, ConsoleStdout, PreopenDirectory } from "@bjorn3/browser_wasi_shim";
 import type { SwiftRuntime, SwiftRuntimeConstructor } from "./JavaScriptKit_JavaScriptKit.resources/Runtime";
+import { polyfill as polyfillWebAssemblyTypeReflection } from "wasm-imports-parser/polyfill";
+import type { ImportEntry } from "wasm-imports-parser";
+
+// Apply polyfill for WebAssembly Type Reflection JS API to inspect imported memory info.
+// https://github.com/WebAssembly/js-types/blob/main/proposals/js-types/Overview.md
+globalThis.WebAssembly = polyfillWebAssemblyTypeReflection(globalThis.WebAssembly);
 
 export class LineDecoder {
   constructor(onLine: (line: string) => void) {
@@ -111,14 +117,28 @@ export const WasmRunner = (rawOptions: Options, SwiftRuntime: SwiftRuntimeConstr
       }
     }
 
-    for (const importEntry of WebAssembly.Module.imports(module)) {
+    for (const _importEntry of WebAssembly.Module.imports(module)) {
+      const importEntry = _importEntry as ImportEntry;
       if (!importObject[importEntry.module]) {
         importObject[importEntry.module] = {};
       }
-      if (importEntry.kind == "function" && !importObject[importEntry.module][importEntry.name]) {
+      // Skip if the import is already provided
+      if (importObject[importEntry.module][importEntry.name]) {
+        continue;
+      }
+      if (importEntry.kind == "function") {
         importObject[importEntry.module][importEntry.name] = () => {
           throw new Error(`Imported function ${importEntry.module}.${importEntry.name} not implemented`);
         }
+      } else if (importEntry.kind == "memory" && importEntry.module == "env" && importEntry.name == "memory") {
+        // Create a new WebAssembly.Memory instance with the same descriptor as the imported memory
+        const type = importEntry.type
+        const descriptor: WebAssembly.MemoryDescriptor = {
+          initial: type.minimum,
+          maximum: type.maximum,
+          shared: type.shared,
+        }
+        importObject[importEntry.module][importEntry.name] = new WebAssembly.Memory(descriptor);
       }
     }
 
