@@ -43,6 +43,8 @@ final class TestCommandTests: XCTestCase {
         ["carton", "test", "--environment", "node"], packageDirectory: packageDirectory.asURL
       )
       try result.checkNonZeroExit()
+      let output = try result.utf8stderrOutput()
+      XCTAssertTrue(output.contains("Test Suite 'All tests' passed"))
     }
   }
 
