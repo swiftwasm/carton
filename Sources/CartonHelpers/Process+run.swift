@@ -83,7 +83,7 @@ extension Process {
             outputRedirection: .stream(stdout: stdout, stderr: stderr),
             startNewProcessGroup: true,
             loggingHandler: {
-              terminal.write($0)
+              terminal.write($0 + "\n")
             }
           )
 
