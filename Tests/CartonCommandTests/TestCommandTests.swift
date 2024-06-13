@@ -43,8 +43,11 @@ final class TestCommandTests: XCTestCase {
         ["carton", "test", "--environment", "node"], packageDirectory: packageDirectory.asURL
       )
       try result.checkNonZeroExit()
-      let output = try result.utf8stderrOutput()
-      XCTAssertTrue(output.contains("Test Suite 'All tests' passed"))
+      let stdout = try result.utf8Output()
+      let stderr = try result.utf8stderrOutput()
+      let expectedContent = "Test Suite 'All tests' passed"
+      // SwiftPM changed the output destination of SwiftPM Plugin in 6.0
+      XCTAssertTrue(stdout.contains(expectedContent) || stderr.contains(expectedContent))
     }
   }
 
