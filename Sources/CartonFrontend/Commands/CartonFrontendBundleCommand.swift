@@ -178,8 +178,7 @@ struct CartonFrontendBundleCommand: AsyncParsableCommand {
 
     // Copy the bundle entrypoint, point to the binary, and give it a cachebuster name.
     let entrypoint = ByteString(
-      encodingAsUTF8: StaticResource.bundle
-        .description
+      encodingAsUTF8: String(decoding: StaticResource.bundle, as: UTF8.self)
         .replacingOccurrences(
           of: "REPLACE_THIS_WITH_THE_MAIN_WEBASSEMBLY_MODULE",
           with: mainModuleName
