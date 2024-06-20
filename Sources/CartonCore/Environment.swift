@@ -63,12 +63,6 @@ public enum Environment: String, CaseIterable {
     // for future dynamic linking support.
     parameters.otherSwiftcFlags += ["-static-stdlib"]
 
-    #if compiler(>=6.0) && compiler(<6.1)
-    // A workaround for the linker issue.
-    // https://github.com/swiftwasm/swift/issues/5580
-    parameters.otherLinkerFlags += ["-lswift_RegexParser"]
-    #endif
-
     switch self {
     case .command: break
     case .node, .browser:

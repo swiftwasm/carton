@@ -19,7 +19,7 @@ jobs:
             swift: "6.0"
             swift-install:
               dir: "swift-6.0-branch/xcode"
-              version: "swift-6.0-DEVELOPMENT-SNAPSHOT-2024-06-07-a"
+              version: "swift-6.0-DEVELOPMENT-SNAPSHOT-2024-06-19-a"
           - os: macos-14
             xcode: "15.4"
             swift: "5.10"
