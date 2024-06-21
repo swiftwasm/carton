@@ -33,20 +33,23 @@ struct CommandTestRunner: TestRunner {
   func run() async throws {
     let program = try ProcessInfo.processInfo.environment["CARTON_TEST_RUNNER"] ?? defaultWASIRuntime()
     terminal.write("\nRunning the test bundle with \"\(program)\":\n", inColor: .yellow)
-    var arguments = [program, testFilePath.pathString]
+
+    var arguments = [program]
+    var xctestArgs: [String] = []
     if listTestCases {
-      arguments.append(contentsOf: ["--", "-l"])
+      xctestArgs.append(contentsOf: ["--", "-l"])
     } else {
-      let programName = (program as NSString).lastPathComponent
+      let programName = URL(fileURLWithPath: program).lastPathComponent
       if programName == "wasmtime" {
         arguments += ["--dir", "."]
       }
 
       if !testCases.isEmpty {
-        arguments.append("--")
-        arguments.append(contentsOf: testCases)
+        xctestArgs.append("--")
+        xctestArgs.append(contentsOf: testCases)
       }
     }
+    arguments += [testFilePath.pathString] + xctestArgs
     try await Process.run(arguments, parser: TestsParser(), terminal)
   }
 
