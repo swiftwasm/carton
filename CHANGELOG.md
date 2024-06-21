@@ -1,3 +1,14 @@
+# 1.1.1 (21 Jun 2024)
+
+This release adds support for 6.0 toolchain, regression fixes, and internal improvements.
+
+* Support SwiftWasm 6.0 toolchain
+* Default toolchain version is now based on builder Swift version
+* Skip hot-reloading if build fails
+* Fix `carton bundle` regression introduced in 1.0.4
+* Fix `carton test` regression introduced in 1.0.0
+* Experimental support for `wasm32-unknown-wasip1-threads` target in test harness
+
 # 1.1.0 (6 Jun 2024)
 
 This release adds support for 5.10.0 toolchain, CLI options, and internal improvements.
