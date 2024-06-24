@@ -141,8 +141,12 @@ final class ServerHTTPHandler: ChannelInboundHandler, RemovableChannelHandler {
         self.makeStaticResourcesResponder(baseDirectory: URL(fileURLWithPath: mainResourcesPath)))
     }
 
+    guard let uri = head.uri.removingPercentEncoding else {
+      configuration.logger.error("Failed to percent decode uri: \(head.uri)")
+      return nil
+    }
     for responder in responders {
-      if let response = try responder(context, head.uri) {
+      if let response = try responder(context, uri) {
         return response
       }
     }

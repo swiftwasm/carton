@@ -146,8 +146,7 @@ final class FrontendDevServerTests: XCTestCase {
       XCTAssertEqual(mainWasm, expected)
     }
 
-    do {
-      let name = "style.css"
+    for name in ["style.css", "space separated.txt"] {
       let styleCss = try await cl.fetchString(at: host.appendingPathComponent(name))
       let expected = try String(contentsOf: resourcesDir.appending(component: name).asURL)
       XCTAssertEqual(styleCss, expected)
