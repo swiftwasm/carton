@@ -1,3 +1,10 @@
+# 1.1.2 (24 Jun 2024)
+
+This release includes several bug fixes.
+
+* Fix regressions in the built-in HTTP server introduced in 1.0
+* Fix CLI test harness to work with the latest wasmtime
+
 # 1.1.1 (21 Jun 2024)
 
 This release adds support for 6.0 toolchain, regression fixes, and internal improvements.
