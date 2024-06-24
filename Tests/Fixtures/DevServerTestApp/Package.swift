@@ -14,7 +14,8 @@ let package = Package(
     .target(
       name: "app",
       resources: [
-        .copy("style.css")
+        .copy("style.css"),
+        .copy("space separated.txt"),
       ]
     )
   ]

@@ -31,6 +31,10 @@ final class ServerHTTPHandler: ChannelInboundHandler, RemovableChannelHandler {
     let serverName: String
   }
 
+  struct ServerError: Error, CustomStringConvertible {
+    let description: String
+  }
+
   let configuration: Configuration
   private var responseBody: ByteBuffer!
 
@@ -52,22 +56,33 @@ final class ServerHTTPHandler: ChannelInboundHandler, RemovableChannelHandler {
     guard case .head(let head) = reqPart else {
       return
     }
-
-    // GETs only.
-    guard case .GET = head.method else {
-      self.respond405(context: context)
+    let constructBody: (StaticResponse) throws -> ByteBuffer
+    // GET or HEAD only.
+    switch head.method {
+    case .GET:
+      constructBody = { response in
+        try response.readBody()
+      }
+    case .HEAD:
+      constructBody = { _ in ByteBuffer() }
+    default:
+      self.respondEmpty(context: context, status: .methodNotAllowed)
       return
     }
+
+    let configuration = self.configuration
     configuration.logger.info("\(head.method) \(head.uri)")
 
     let response: StaticResponse
+    let body: ByteBuffer
     do {
       switch head.uri {
       case "/":
         response = try respondIndexPage(context: context)
       case "/main.wasm":
+        let contentSize = try localFileSystem.getFileInfo(configuration.mainWasmPath).size
         response = StaticResponse(
-          contentType: "application/wasm",
+          contentType: "application/wasm", contentSize: Int(contentSize),
           body: try context.channel.allocator.buffer(
             bytes: localFileSystem.readFileContents(configuration.mainWasmPath).contents
           )
@@ -75,35 +90,34 @@ final class ServerHTTPHandler: ChannelInboundHandler, RemovableChannelHandler {
       case "/" + configuration.entrypoint.fileName:
         response = StaticResponse(
           contentType: "application/javascript",
+          contentSize: configuration.entrypoint.content.count,
           body: ByteBuffer(bytes: configuration.entrypoint.content.contents)
         )
       default:
         guard let staticResponse = try self.respond(context: context, head: head) else {
-          self.respond404(context: context)
+          self.respondEmpty(context: context, status: .notFound)
           return
         }
         response = staticResponse
       }
+      body = try constructBody(response)
     } catch {
       configuration.logger.error("Failed to respond to \(head.uri): \(error)")
-      response = StaticResponse(
-        contentType: "text/plain",
-        body: context.channel.allocator.buffer(string: "Internal server error")
-      )
+      self.respondEmpty(context: context, status: .internalServerError)
+      return
     }
-    self.responseBody = response.body
 
     var headers = HTTPHeaders()
     headers.add(name: "Server", value: configuration.serverName)
     headers.add(name: "Content-Type", value: response.contentType)
-    headers.add(name: "Content-Length", value: String(response.body.readableBytes))
+    headers.add(name: "Content-Length", value: String(response.contentSize))
     headers.add(name: "Connection", value: "close")
     let responseHead = HTTPResponseHead(
-      version: .init(major: 1, minor: 1),
+      version: .http1_1,
       status: .ok,
       headers: headers)
     context.write(self.wrapOutboundOut(.head(responseHead)), promise: nil)
-    context.write(self.wrapOutboundOut(.body(.byteBuffer(response.body))), promise: nil)
+    context.write(self.wrapOutboundOut(.body(.byteBuffer(body))), promise: nil)
     context.write(self.wrapOutboundOut(.end(nil))).whenComplete { (_: Result<Void, Error>) in
       context.close(promise: nil)
     }
@@ -112,7 +126,18 @@ final class ServerHTTPHandler: ChannelInboundHandler, RemovableChannelHandler {
 
   struct StaticResponse {
     let contentType: String
-    let body: ByteBuffer
+    let contentSize: Int
+    private let _body: () throws -> ByteBuffer
+
+    init(contentType: String, contentSize: Int, body: @autoclosure @escaping () throws -> ByteBuffer) {
+      self.contentType = contentType
+      self.contentSize = contentSize
+      self._body = body
+    }
+
+    func readBody() throws -> ByteBuffer {
+      return try self._body()
+    }
   }
 
   private func respond(context: ChannelHandlerContext, head: HTTPRequestHead) throws
@@ -141,8 +166,12 @@ final class ServerHTTPHandler: ChannelInboundHandler, RemovableChannelHandler {
         self.makeStaticResourcesResponder(baseDirectory: URL(fileURLWithPath: mainResourcesPath)))
     }
 
+    guard let uri = head.uri.removingPercentEncoding else {
+      configuration.logger.error("Failed to percent decode uri: \(head.uri)")
+      return nil
+    }
     for responder in responders {
-      if let response = try responder(context, head.uri) {
+      if let response = try responder(context, uri) {
         return response
       }
     }
@@ -162,9 +191,13 @@ final class ServerHTTPHandler: ChannelInboundHandler, RemovableChannelHandler {
         return nil
       }
       let contentType = contentType(of: fileURL) ?? "application/octet-stream"
+      let attributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
+      guard let contentSize = (attributes[.size] as? NSNumber)?.intValue else {
+        throw ServerError(description: "Failed to get content size of \(fileURL)")
+      }
 
       return StaticResponse(
-        contentType: contentType,
+        contentType: contentType, contentSize: contentSize,
         body: try context.channel.allocator.buffer(bytes: Data(contentsOf: fileURL))
       )
     }
@@ -180,18 +213,18 @@ final class ServerHTTPHandler: ChannelInboundHandler, RemovableChannelHandler {
       entrypointName: configuration.entrypoint.fileName
     )
     return StaticResponse(
-      contentType: "text/html",
+      contentType: "text/html", contentSize: htmlContent.utf8.count,
       body: context.channel.allocator.buffer(string: htmlContent)
     )
   }
 
-  private func respond405(context: ChannelHandlerContext) {
+  private func respondEmpty(context: ChannelHandlerContext, status: HTTPResponseStatus) {
     var headers = HTTPHeaders()
     headers.add(name: "Connection", value: "close")
     headers.add(name: "Content-Length", value: "0")
     let head = HTTPResponseHead(
       version: .http1_1,
-      status: .methodNotAllowed,
+      status: status,
       headers: headers)
     context.write(self.wrapOutboundOut(.head(head)), promise: nil)
     context.write(self.wrapOutboundOut(.end(nil))).whenComplete { (_: Result<Void, Error>) in
