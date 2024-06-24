@@ -138,6 +138,18 @@ func fetchWebContent(at url: URL, timeout: Duration) async throws -> (response: 
   return (response: response, body: body)
 }
 
+func fetchHead(at url: URL, timeout: Duration) async throws -> HTTPURLResponse {
+  let session = URLSession.shared
+  var request = URLRequest(url: url)
+  request.httpMethod = "HEAD"
+  let (_, response) = try await URLSession.shared.data(for: request)
+  guard let httpResponse = response as? HTTPURLResponse else {
+    throw CommandTestError("Response from \(url.absoluteString) is not HTTPURLResponse")
+  }
+
+  return httpResponse
+}
+
 func checkServerNameField(response: HTTPURLResponse, expectedPID: Int32) throws {
   guard let string = response.value(forHTTPHeaderField: "Server") else {
     throw CommandTestError("no Server header")

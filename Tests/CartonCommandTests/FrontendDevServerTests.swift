@@ -59,13 +59,21 @@ struct DevServerClient {
     at url: URL,
     file: StaticString = #file, line: UInt = #line
   ) async throws -> String {
-    let data = try await fetchBinary(at: url)
+    let data = try await fetchBinary(at: url, file: file, line: line)
 
     guard let string = String(data: data, encoding: .utf8) else {
       throw CommandTestError("not UTF-8 string content")
     }
 
     return string
+  }
+
+  func fetchContentSize(
+    at url: URL, file: StaticString = #file, line: UInt = #line
+  ) async throws -> Int {
+    let httpResponse = try await fetchHead(at: url, timeout: .seconds(10))
+    let contentLength = try XCTUnwrap(httpResponse.allHeaderFields["Content-Length"] as? String)
+    return Int(contentLength)!
   }
 }
 
@@ -132,24 +140,34 @@ final class FrontendDevServerTests: XCTestCase {
         </html>
         """
       )
+      let contentSize = try await cl.fetchContentSize(at: host)
+      XCTAssertEqual(contentSize, indexHtml.utf8.count)
     }
 
     do {
-      let devJs = try await cl.fetchString(at: host.appendingPathComponent("dev.js"))
+      let url = host.appendingPathComponent("dev.js")
+      let devJs = try await cl.fetchString(at: url)
       let expected = try XCTUnwrap(String(data: StaticResource.dev, encoding: .utf8))
       XCTAssertEqual(devJs, expected)
+      let contentSize = try await cl.fetchContentSize(at: url)
+      XCTAssertEqual(contentSize, expected.utf8.count)
     }
 
     do {
-      let mainWasm = try await cl.fetchBinary(at: host.appendingPathComponent("main.wasm"))
+      let url = host.appendingPathComponent("main.wasm")
+      let mainWasm = try await cl.fetchBinary(at: url)
       let expected = try Data(contentsOf: wasmFile.asURL)
       XCTAssertEqual(mainWasm, expected)
+      let contentSize = try await cl.fetchContentSize(at: url)
+      XCTAssertEqual(contentSize, expected.count)
     }
 
     for name in ["style.css", "space separated.txt"] {
       let styleCss = try await cl.fetchString(at: host.appendingPathComponent(name))
       let expected = try String(contentsOf: resourcesDir.appending(component: name).asURL)
       XCTAssertEqual(styleCss, expected)
+      let contentSize = try await cl.fetchContentSize(at: host.appendingPathComponent(name))
+      XCTAssertEqual(contentSize, expected.utf8.count)
     }
 
     let webDriver = try await WebDriverServices.find(terminal: terminal)
