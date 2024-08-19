@@ -21,7 +21,7 @@ public protocol ProgressAnimationProtocol {
 
   /// Complete the animation.
   /// - Parameters:
-  ///   - success: Defines if the operation the animation represents was succesful.
+  ///   - success: Defines if the operation the animation represents was successful.
   func complete(success: Bool)
 
   /// Clear the animation.

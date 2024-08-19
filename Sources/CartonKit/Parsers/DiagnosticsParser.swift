@@ -16,7 +16,7 @@ import Foundation
 
 /// Parses and re-formats diagnostics output by the Swift compiler.
 ///
-/// The compiler output often repeats iteself, and the diagnostics can sometimes be
+/// The compiler output often repeats itself, and the diagnostics can sometimes be
 /// difficult to read.
 /// This reformats them to a more readable output.
 struct DiagnosticsParser {

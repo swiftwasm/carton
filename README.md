@@ -116,7 +116,7 @@ and `carton` 0.15. All version combinations of `carton` and JavaScriptKit higher
 other.
 
 You still have to keep in mind that older versions of SwiftWasm may be incompatible with newer `carton`. You can follow
-the compatibility matrix if you need to use older verions:
+the compatibility matrix if you need to use older versions:
 
 | `carton` version | SwiftWasm version | JavaScriptKit version | Tokamak version |
 | ---------------- | ----------------- | --------------------- | --------------- |
@@ -172,7 +172,7 @@ Refer to [the pre-commit documentation page](https://pre-commit.com/) for more d
 and installation instructions for other platforms.
 
 SwiftFormat and SwiftLint also run on CI for every PR and thus a CI build can
-fail with incosistent formatting or style. We require CI builds to pass for all
+fail with inconsistent formatting or style. We require CI builds to pass for all
 PRs before merging.
 
 ### Code of Conduct
