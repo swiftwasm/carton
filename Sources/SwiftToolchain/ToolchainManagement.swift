@@ -201,7 +201,7 @@ public class ToolchainSystem {
     #endif
 
     terminal.logLookup(
-      "Response succesfully parsed, choosing from this number of assets: ",
+      "Response successfully parsed, choosing from this number of assets: ",
       release.assets.count
     )
     let nameSuffixes = platformSuffixes.map { "\($0)_\(archSuffix)" }
@@ -236,7 +236,7 @@ public class ToolchainSystem {
   }
 
   public struct SwiftPath {
-    public var verison: String
+    public var version: String
     public var swift: AbsolutePath
     public var toolchain: AbsolutePath
   }
@@ -262,7 +262,7 @@ public class ToolchainSystem {
     for resolver in resolvers {
       let toolchain = resolver.toolchain(for: swiftVersion)
       if let path = try checkAndLog(installationPath: toolchain, terminal) {
-        return SwiftPath(verison: swiftVersion, swift: path, toolchain: toolchain)
+        return SwiftPath(version: swiftVersion, swift: path, toolchain: toolchain)
       }
     }
 
@@ -295,7 +295,7 @@ public class ToolchainSystem {
       throw ToolchainError.invalidInstallationArchive(installationPath)
     }
 
-    return SwiftPath(verison: swiftVersion, swift: path, toolchain: installationPath)
+    return SwiftPath(version: swiftVersion, swift: path, toolchain: installationPath)
   }
 
   public func fetchAllSwiftVersions() throws -> [String] {

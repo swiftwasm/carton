@@ -147,7 +147,7 @@ func pluginSubcommand(subcommand: String, argv0: String, arguments: [String]) as
   )
 
   var env: [String: String] = ProcessInfo.processInfo.environment
-  if ToolchainSystem.isSnapshotVersion(swiftPath.verison),
+  if ToolchainSystem.isSnapshotVersion(swiftPath.version),
      swiftPath.toolchain.extension == "xctoolchain"
   {
     env["DYLD_LIBRARY_PATH"] = swiftPath.toolchain.appending(
