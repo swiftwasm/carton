@@ -16,6 +16,7 @@ import ArgumentParser
 import CartonHelpers
 import CartonKit
 import CartonCore
+import Foundation
 
 enum SanitizeVariant: String, CaseIterable, ExpressibleByArgument {
   case stackOverflow
@@ -37,6 +38,24 @@ struct CartonFrontendTestCommand: AsyncParsableCommand {
 
   @Flag(name: .shortAndLong, help: "When specified, list all available test cases.")
   var list = false
+
+  @Option(name: .long, help: ArgumentHelp(
+    """
+    Pass an environment variable to the test process.
+    --env NAME=VALUE will set the environment variable NAME to VALUE.
+    --env NAME will inherit the environment variable NAME from the parent process.
+    """,
+    valueName: "NAME=VALUE or NAME"
+  ), transform: Self.parseEnvOption(_:))
+  var env: [(key: String, value: String?)] = []
+
+  static func parseEnvOption(_ value: String) -> (key: String, value: String?) {
+    let parts = value.split(separator: "=", maxSplits: 1)
+    if parts.count == 1 {
+      return (String(parts[0]), nil)
+    }
+    return (String(parts[0]), String(parts[1]))
+  }
 
   @Argument(help: "The list of test cases to run in the test suite.")
   var testCases = [String]()
@@ -119,16 +138,26 @@ struct CartonFrontendTestCommand: AsyncParsableCommand {
       throw ExitCode.failure
     }
 
+    let runner = try deriveRunner(bundlePath: bundlePath, terminal: terminal, cwd: cwd)
+    let options = deriveRunnerOptions()
+    try await runner.run(options: options)
+  }
+
+  func deriveRunner(
+    bundlePath: AbsolutePath,
+    terminal: InteractiveWriter,
+    cwd: AbsolutePath
+  ) throws -> TestRunner {
     switch environment {
     case .command:
-      try await CommandTestRunner(
+      return CommandTestRunner(
         testFilePath: bundlePath,
         listTestCases: list,
         testCases: testCases,
         terminal: terminal
-      ).run()
+      )
     case .browser:
-      try await BrowserTestRunner(
+      return BrowserTestRunner(
         testFilePath: bundlePath,
         bindingAddress: bind,
         host: Server.Configuration.host(bindOption: bind, hostOption: host),
@@ -137,15 +166,28 @@ struct CartonFrontendTestCommand: AsyncParsableCommand {
         resourcesPaths: resources,
         pid: pid,
         terminal: terminal
-      ).run()
+      )
     case .node:
-      try await NodeTestRunner(
+      return try NodeTestRunner(
         pluginWorkDirectory: AbsolutePath(validating: pluginWorkDirectory, relativeTo: cwd),
         testFilePath: bundlePath,
         listTestCases: list,
         testCases: testCases,
         terminal: terminal
-      ).run()
+      )
     }
+  }
+
+  func deriveRunnerOptions() -> TestRunnerOptions {
+    let parentEnv = ProcessInfo.processInfo.environment
+    var env: [String: String] = parentEnv
+    for (key, value) in self.env {
+      if let value = value {
+        env[key] = value
+      } else {
+        env[key] = parentEnv[key]
+      }
+    }
+    return TestRunnerOptions(env: env)
   }
 }

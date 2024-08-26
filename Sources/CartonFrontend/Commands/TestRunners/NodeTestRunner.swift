@@ -28,7 +28,7 @@ struct NodeTestRunner: TestRunner {
   let testCases: [String]
   let terminal: InteractiveWriter
 
-  func run() async throws {
+  func run(options: TestRunnerOptions) async throws {
     terminal.write("\nRunning the test bundle with Node.js:\n", inColor: .yellow)
 
     let entrypointPath = try Constants.entrypoint.write(
@@ -63,6 +63,6 @@ struct NodeTestRunner: TestRunner {
     } else if !testCases.isEmpty {
       nodeArguments.append(contentsOf: testCases)
     }
-    try await Process.run(nodeArguments, terminal)
+    try await Process.run(nodeArguments, environment: options.env, terminal)
   }
 }

@@ -30,7 +30,7 @@ struct CommandTestRunner: TestRunner {
   let testCases: [String]
   let terminal: InteractiveWriter
 
-  func run() async throws {
+  func run(options: TestRunnerOptions) async throws {
     let program = try ProcessInfo.processInfo.environment["CARTON_TEST_RUNNER"] ?? defaultWASIRuntime()
     terminal.write("\nRunning the test bundle with \"\(program)\":\n", inColor: .yellow)
 
@@ -42,6 +42,9 @@ struct CommandTestRunner: TestRunner {
       let programName = URL(fileURLWithPath: program).lastPathComponent
       if programName == "wasmtime" {
         arguments += ["--dir", "."]
+      }
+      for (key, value) in options.env {
+        arguments += ["--env", "\(key)=\(value)"]
       }
 
       if !testCases.isEmpty {

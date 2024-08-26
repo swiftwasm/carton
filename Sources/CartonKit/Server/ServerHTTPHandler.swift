@@ -29,6 +29,7 @@ final class ServerHTTPHandler: ChannelInboundHandler, RemovableChannelHandler {
     let resourcesPaths: [String]
     let entrypoint: Entrypoint
     let serverName: String
+    let env: [String: String]?
   }
 
   struct ServerError: Error, CustomStringConvertible {
@@ -87,6 +88,8 @@ final class ServerHTTPHandler: ChannelInboundHandler, RemovableChannelHandler {
             bytes: localFileSystem.readFileContents(configuration.mainWasmPath).contents
           )
         )
+      case "/process-info.json":
+        response = try respondProcessInfo(context: context)
       case "/" + configuration.entrypoint.fileName:
         response = StaticResponse(
           contentType: "application/javascript",
@@ -215,6 +218,18 @@ final class ServerHTTPHandler: ChannelInboundHandler, RemovableChannelHandler {
     return StaticResponse(
       contentType: "text/html", contentSize: htmlContent.utf8.count,
       body: context.channel.allocator.buffer(string: htmlContent)
+    )
+  }
+
+  private func respondProcessInfo(context: ChannelHandlerContext) throws -> StaticResponse {
+    struct ProcessInfoBody: Encodable {
+      let env: [String: String]?
+    }
+    let config = ProcessInfoBody(env: configuration.env)
+    let json = try JSONEncoder().encode(config)
+    return StaticResponse(
+      contentType: "application/json", contentSize: json.count,
+      body: context.channel.allocator.buffer(bytes: json)
     )
   }
 

@@ -77,7 +77,7 @@ struct BrowserTestRunner: TestRunner {
     self.terminal = terminal
   }
 
-  func run() async throws {
+  func run(options: TestRunnerOptions) async throws {
     let server = try await Server(
       .init(
         builder: nil,
@@ -86,6 +86,7 @@ struct BrowserTestRunner: TestRunner {
         bindingAddress: bindingAddress,
         port: port,
         host: host,
+        env: options.env,
         customIndexPath: nil,
         resourcesPaths: resourcesPaths,
         entrypoint: Constants.entrypoint,

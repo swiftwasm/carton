@@ -46,8 +46,18 @@ const startWasiTask = async () => {
     // No JavaScriptKit module found, run the Wasm module without JSKit
   }
 
+  // carton-frontend passes all environment variables to the test Node process.
+  const env: Record<string, string> = {};
+  for (const key in process.env) {
+    const value = process.env[key];
+    if (value) {
+      env[key] = value;
+    }
+  }
+
   const wasmRunner = WasmRunner({
     args: testArgs,
+    env,
     onStdoutLine: (line) => {
       console.log(line);
     },

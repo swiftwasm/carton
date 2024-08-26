@@ -25,6 +25,7 @@ private enum Constants {
   static let nodeJSKitPackageName = "NodeJSKitTest"
   static let crashTestPackageName = "CrashTest"
   static let failTestPackageName = "FailTest"
+  static let envVarTestPackageName = "EnvVarTest"
 }
 
 final class TestCommandTests: XCTestCase {
@@ -89,6 +90,23 @@ final class TestCommandTests: XCTestCase {
         packageDirectory: packageDirectory.asURL
       )
       try result.checkNonZeroExit()
+    }
+  }
+
+  func testEnvVar() async throws {
+    var environmentsToTest: [String] = ["node", "command"]
+    if Process.findExecutable("safaridriver") != nil {
+      environmentsToTest.append("browser")
+    }
+    for environment in environmentsToTest {
+      try await withFixture(Constants.envVarTestPackageName) { packageDirectory in
+        let result = try await swiftRun(
+          ["carton", "test", "--environment", environment, "--env", "FOO=BAR"],
+          packageDirectory: packageDirectory.asURL,
+          environment: ["BAZ": "QUX"]
+        )
+        try result.checkNonZeroExit()
+      }
     }
   }
 
