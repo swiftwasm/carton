@@ -181,6 +181,8 @@ public actor Server {
     let bindingAddress: String
     let port: Int
     let host: String
+    /// Environment variables to be passed to the test process.
+    let env: [String: String]?
     let customIndexPath: AbsolutePath?
     let resourcesPaths: [String]
     let entrypoint: Entrypoint
@@ -194,6 +196,7 @@ public actor Server {
       bindingAddress: String,
       port: Int,
       host: String,
+      env: [String: String]? = nil,
       customIndexPath: AbsolutePath?,
       resourcesPaths: [String],
       entrypoint: Entrypoint,
@@ -206,6 +209,7 @@ public actor Server {
       self.bindingAddress = bindingAddress
       self.port = port
       self.host = host
+      self.env = env
       self.customIndexPath = customIndexPath
       self.resourcesPaths = resourcesPaths
       self.entrypoint = entrypoint
@@ -343,7 +347,8 @@ public actor Server {
       customIndexPath: configuration.customIndexPath,
       resourcesPaths: configuration.resourcesPaths,
       entrypoint: configuration.entrypoint,
-      serverName: serverName.description
+      serverName: serverName.description,
+      env: configuration.env
     )
     let channel = try await ServerBootstrap(group: group)
       // Specify backlog and enable SO_REUSEADDR for the server itself

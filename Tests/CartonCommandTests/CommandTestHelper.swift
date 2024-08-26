@@ -79,14 +79,21 @@ struct SwiftRunProcess {
 
 func swiftRunProcess(
   _ arguments: [String],
-  packageDirectory: URL
+  packageDirectory: URL,
+  environment: [String: String]? = nil
 ) throws -> SwiftRunProcess {
   let swiftBin = try findSwiftExecutable().pathString
 
   var outputBuffer = Array<UInt8>()
 
+  var environmentBlock = ProcessEnv.block
+  for (key, value) in environment ?? [:] {
+    environmentBlock[ProcessEnvironmentKey(key)] = value
+  }
+
   let process = CartonHelpers.Process(
     arguments: [swiftBin, "run"] + arguments,
+    environmentBlock: environmentBlock,
     workingDirectory: try AbsolutePath(validating: packageDirectory.path),
     outputRedirection: .stream(
       stdout: { (chunk) in
@@ -112,10 +119,10 @@ func swiftRunProcess(
 }
 
 @discardableResult
-func swiftRun(_ arguments: [String], packageDirectory: URL) async throws
+func swiftRun(_ arguments: [String], packageDirectory: URL, environment: [String: String]? = nil) async throws
   -> CartonHelpers.ProcessResult
 {
-  let process = try swiftRunProcess(arguments, packageDirectory: packageDirectory)
+  let process = try swiftRunProcess(arguments, packageDirectory: packageDirectory, environment: environment)
   var result = try await process.process.waitUntilExit()
   result.setOutput(.success(process.output()))
   return result

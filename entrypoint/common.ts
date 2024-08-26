@@ -46,6 +46,7 @@ export class LineDecoder {
 
 export type Options = {
   args?: string[];
+  env?: Record<string, string>;
   onStdout?: (chunk: Uint8Array) => void;
   onStdoutLine?: (line: string) => void;
   onStderr?: (chunk: Uint8Array) => void;
@@ -90,7 +91,10 @@ export const WasmRunner = (rawOptions: Options, SwiftRuntime: SwiftRuntimeConstr
     new PreopenDirectory("/", new Map()),
   ];
 
-  const wasi = new WASI(args, [], fds, {
+  // Convert env Record to array of "key=value" strings
+  const envs = options.env ? Object.entries(options.env).map(([key, value]) => `${key}=${value}`) : [];
+
+  const wasi = new WASI(args, envs, fds, {
     debug: false
   });
 

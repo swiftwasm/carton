@@ -12,6 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+struct TestRunnerOptions {
+  /// The environment variables to pass to the test process.
+  let env: [String: String]
+}
+
 protocol TestRunner {
-  func run() async throws
+  func run(options: TestRunnerOptions) async throws
 }

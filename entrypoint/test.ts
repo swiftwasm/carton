@@ -42,9 +42,13 @@ const startWasiTask = async () => {
     );
   }
 
+  // Load configuration from the server
+  const config = await fetch("/process-info.json").then((response) => response.json());
+
   let testRunOutput = "";
   const wasmRunner = WasmRunner(
     {
+      env: config.env,
       onStdoutLine: (line) => {
         console.log(line);
         testRunOutput += line + "\n";
