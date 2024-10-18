@@ -1,29 +1,40 @@
 import CartonHelpers
 import Foundation
-import NIOCore
-import NIOPosix
+import FlyingSocks
 
 public struct CommandWebDriverService: WebDriverService {
-  private static func findAvailablePort() async throws -> SocketAddress {
-    let bootstrap = ServerBootstrap(group: .singletonMultiThreadedEventLoopGroup)
-    let address = try SocketAddress.makeAddressResolvingHost("127.0.0.1", port: 0)
-    let channel = try await bootstrap.bind(to: address).get()
-    let localAddr = channel.localAddress!
-    try await channel.close()
-    return localAddr
+  private static func findAvailablePort() throws -> (address: String, port: UInt16) {
+    let address = try sockaddr_in.inet(ip4: "127.0.0.1", port: 0)
+    let socket = try Socket(domain: Int32(sockaddr_in.family))
+    do {
+      try socket.bind(to: address)
+    } catch {
+      try socket.close()
+      throw error
+    }
+    do {
+      guard case let .ip4(address, port) = try socket.sockname() else {
+        fatalError("Non-ip4 address!?")
+      }
+      try socket.close()
+      return (address, port)
+    } catch {
+      try socket.close()
+      throw error
+    }
   }
 
   private static func launchDriver(
     terminal: InteractiveWriter,
     executablePath: String
   ) async throws -> (URL, CartonHelpers.Process) {
-    let address = try await findAvailablePort()
+    let (address, port) = try findAvailablePort()
     let process = CartonHelpers.Process(arguments: [
-      executablePath, "--port=\(address.port!)",
+      executablePath, "--port=\(port)",
     ])
     terminal.logLookup("Launch WebDriver executable: ", executablePath)
     try process.launch()
-    let url = URL(string: "http://\(address.ipAddress!):\(address.port!)")!
+    let url = URL(string: "http://\(address):\(port)")!
     return (url, process)
   }
 
