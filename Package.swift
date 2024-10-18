@@ -29,14 +29,13 @@ let package = Package(
       url: "https://github.com/apple/swift-argument-parser.git",
       .upToNextMinor(from: "1.3.0")
     ),
-    .package(url: "https://github.com/apple/swift-nio.git", from: "2.34.0"),
     .package(
       url: "https://github.com/swiftwasm/WasmTransformer",
       .upToNextMinor(from: "0.5.0")
     ),
     .package(
       url: "https://github.com/swhitty/FlyingFox.git",
-      .upToNextMajor(from: "0.18.0")
+      .upToNextMinor(from: "0.16.0")
     ),
   ],
   targets: [
@@ -112,9 +111,6 @@ let package = Package(
     .target(
       name: "CartonKit",
       dependencies: [
-        .product(name: "NIOWebSocket", package: "swift-nio"),
-        .product(name: "NIOHTTP1", package: "swift-nio"),
-        .product(name: "NIO", package: "swift-nio"),
         .product(name: "FlyingFox", package: "FlyingFox"),
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
         "CartonHelpers",

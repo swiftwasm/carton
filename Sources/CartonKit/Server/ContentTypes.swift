@@ -13,8 +13,24 @@
 // limitations under the License.
 
 import Foundation
+import FlyingFox
 
-func contentType(of filePath: URL) -> String? {
+struct AutoContentTypeHandler: HTTPHandler {
+    let handler: any HTTPHandler
+
+    func handleRequest(_ request: HTTPRequest) async throws -> HTTPResponse {
+        var response = try await handler.handleRequest(request)
+        guard let fileName = request.path.split(separator: "/").last,
+              let pathExtension = fileName.split(separator: ".").last else {
+            return response
+        }
+        let type = contentType(of: String(pathExtension))
+        response.headers[.contentType] = type
+        return response
+    }
+}
+
+func contentType(of pathExtension: String) -> String? {
   // List of common MIME types derived from https://github.com/vapor/vapor/blob/4.92.5/Sources/Vapor/HTTP/Headers/HTTPMediaType.swift
   // License: MIT
   let typeByExtension = [
@@ -550,5 +566,5 @@ func contentType(of filePath: URL) -> String? {
     "zmt": "chemical/x-mopac-input",
     "~": "application/x-trash",
   ]
-  return typeByExtension[filePath.pathExtension]
+  return typeByExtension[pathExtension]
 }

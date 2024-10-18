@@ -13,75 +13,182 @@
 // limitations under the License.
 
 import Foundation
-import NIO
-import NIOWebSocket
+import FlyingFox
+import CartonHelpers
 
-final class ServerWebSocketHandler: ChannelInboundHandler {
-  typealias InboundIn = WebSocketFrame
-  typealias OutboundOut = WebSocketFrame
-
-  struct Configuration {
-    var onText: @Sendable (String) -> Void
-    var onBinary: @Sendable (Data) -> Void
+private enum Event {
+  enum CodingKeys: String, CodingKey {
+    case kind
+    case stackTrace
+    case testRunOutput
+    case errorReport
   }
 
-  private var awaitingClose: Bool = false
-  let configuration: Configuration
-
-  init(configuration: Configuration) {
-    self.configuration = configuration
+  enum Kind: String, Decodable {
+    case stackTrace
+    case testRunOutput
+    case testPassed
+    case errorReport
   }
 
-  public func handlerAdded(context: ChannelHandlerContext) {
-  }
+  case stackTrace(String)
+  case testRunOutput(String)
+  case testPassed
+  case errorReport(String)
+}
 
-  public func channelRead(context: ChannelHandlerContext, data: NIOAny) {
-    let frame = self.unwrapInboundIn(data)
+extension Event: Decodable {
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
 
-    switch frame.opcode {
-    case .connectionClose:
-      self.receivedClose(context: context, frame: frame)
-    case .text:
-      var data = frame.unmaskedData
-      let text = data.readString(length: data.readableBytes) ?? ""
-      self.configuration.onText(text)
-    case .binary:
-      let nioData = frame.unmaskedData
-      let data = Data(nioData.readableBytesView)
-      self.configuration.onBinary(data)
-    case .continuation, .pong:
-      // We ignore these frames.
-      break
-    default:
-      // Unknown frames are errors.
-      self.closeOnError(context: context)
+    let kind = try container.decode(Kind.self, forKey: .kind)
+
+    switch kind {
+    case .stackTrace:
+      let rawStackTrace = try container.decode(String.self, forKey: .stackTrace)
+      self = .stackTrace(rawStackTrace)
+    case .testRunOutput:
+      let output = try container.decode(String.self, forKey: .testRunOutput)
+      self = .testRunOutput(output)
+    case .testPassed:
+      self = .testPassed
+    case .errorReport:
+      let output = try container.decode(String.self, forKey: .errorReport)
+      self = .errorReport(output)
     }
   }
+}
 
-  public func channelReadComplete(context: ChannelHandlerContext) {
-    context.flush()
-  }
+struct ServerWebSocketHandler: HTTPHandler {
+  let server: Server
 
-  private func receivedClose(context: ChannelHandlerContext, frame: WebSocketFrame) {
-    if awaitingClose {
-      context.close(promise: nil)
+  func handleRequest(_ request: HTTPRequest) async throws -> HTTPResponse {
+    let userAgent = request.headers[HTTPHeader(rawValue: "User-Agent")]
+    let environment: DestinationEnvironment = if let userAgent {
+      DestinationEnvironment(userAgent: userAgent) ?? .other
     } else {
-      var data = frame.unmaskedData
-      let closeDataCode = data.readSlice(length: 2) ?? ByteBuffer()
-      let closeFrame = WebSocketFrame(fin: true, opcode: .connectionClose, data: closeDataCode)
-      _ = context.write(self.wrapOutboundOut(closeFrame)).map { () in
-        context.close(promise: nil)
+      .other
+    }
+    
+    let underlying = WebSocketHTTPHandler(
+      handler: MessageFrameWSHandler(
+        handler: WSHandler(environment: environment, server: server),
+        frameSize: .max
+      )
+    )
+    return try await underlying.handleRequest(request)
+  }
+  
+  struct WSHandler: WSMessageHandler {
+    let environment: DestinationEnvironment
+    let server: Server
+    /// Used for decoding `Event` values sent from the WebSocket client.
+    private let decoder = JSONDecoder()
+    
+    func makeMessages(for client: AsyncStream<WSMessage>) async throws -> AsyncStream<WSMessage> {
+      let (response, continuation) = AsyncStream<WSMessage>.makeStream()
+      let connection = Server.Connection(channel: continuation)
+      let subscription = Task {
+        for await message in client {
+          switch message {
+          case .text(let text):
+            self.webSocketTextHandler(text: text, environment: environment)
+          case .data(let data):
+            self.webSocketBinaryHandler(data: data)
+          }
+        }
+        await server.remove(connection: connection)
+      }
+      continuation.onTermination = { _ in
+        subscription.cancel()
+      }
+      await server.add(connection: connection)
+      return response
+    }
+    
+    /// Respond to WebSocket messages coming from the browser.
+    func webSocketTextHandler(
+      text: String,
+      environment: DestinationEnvironment
+    ) {
+      guard
+        let data = text.data(using: .utf8),
+        let event = try? self.decoder.decode(Event.self, from: data)
+      else {
+        return
+      }
+      
+      let terminal = server.configuration.terminal
+      
+      switch event {
+      case let .stackTrace(rawStackTrace):
+        if let stackTrace = rawStackTrace.parsedStackTrace(in: environment) {
+          terminal.write("\nAn error occurred, here's a stack trace for it:\n", inColor: .red)
+          stackTrace.forEach { item in
+            terminal.write("  \(item.symbol)", inColor: .cyan)
+            terminal.write(" at \(item.location ?? "<unknown>")\n", inColor: .gray)
+          }
+        } else {
+          terminal.write("\nAn error occurred, here's the raw stack trace for it:\n", inColor: .red)
+          terminal.write(
+            "  Please create an issue or PR to the Carton repository\n"
+            + "  with your browser name and this raw stack trace so\n"
+            + "  we can add support for it: https://github.com/swiftwasm/carton\n", inColor: .gray
+          )
+          terminal.write(rawStackTrace + "\n")
+        }
+        
+      case let .testRunOutput(output):
+        TestsParser().parse(output, terminal)
+        
+      case .testPassed:
+        Task { await server.stopTest(hadError: false) }
+        
+      case let .errorReport(output):
+        terminal.write("\nAn error occurred:\n", inColor: .red)
+        terminal.write(output + "\n")
+        
+        Task { await server.stopTest(hadError: true) }
       }
     }
-  }
-
-  private func closeOnError(context: ChannelHandlerContext) {
-    var data = context.channel.allocator.buffer(capacity: 2)
-    data.write(webSocketErrorCode: .protocolError)
-    let frame = WebSocketFrame(fin: true, opcode: .connectionClose, data: data)
-    context.write(self.wrapOutboundOut(frame)).whenComplete { (_: Result<Void, Error>) in
-      context.close(mode: .output, promise: nil)
+    
+    private static func decodeLines(data: Data) -> [String] {
+      let text = String(decoding: data, as: UTF8.self)
+      return text.components(separatedBy: .newlines)
     }
-    awaitingClose = true
+    
+    func webSocketBinaryHandler(data: Data) {
+      let terminal = server.configuration.terminal
+      
+      if data.count < 2 {
+        return
+      }
+      
+      var kind: UInt16 = 0
+      _ = withUnsafeMutableBytes(of: &kind) { (buffer) in
+        data.copyBytes(to: buffer, from: 0..<2)
+      }
+      kind = UInt16(littleEndian: kind)
+      
+      switch kind {
+      case 1001:
+        // stdout
+        let chunk = data.subdata(in: 2..<data.count)
+        if chunk.isEmpty { return }
+        
+        for line in Self.decodeLines(data: chunk) {
+          terminal.write("stdout: " + line + "\n")
+        }
+      case 1002:
+        // stderr
+        let chunk = data.subdata(in: 2..<data.count)
+        if chunk.isEmpty { return }
+        
+        for line in Self.decodeLines(data: chunk) {
+          terminal.write("stderr: " + line + "\n", inColor: .red)
+        }
+      default: break
+      }
+    }
   }
 }

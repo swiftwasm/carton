@@ -15,8 +15,6 @@
 import CartonHelpers
 import CartonKit
 import Foundation
-import NIOCore
-import NIOPosix
 import WebDriver
 
 #if canImport(FoundationNetworking)
@@ -55,7 +53,6 @@ struct BrowserTestRunner: TestRunner {
   let resourcesPaths: [String]
   let pid: Int32?
   let terminal: InteractiveWriter
-  let eventLoopGroup = MultiThreadedEventLoopGroup(numberOfThreads: 1)
 
   init(
     testFilePath: AbsolutePath,
