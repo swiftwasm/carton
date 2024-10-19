@@ -24,7 +24,6 @@ let package = Package(
     .executable(name: "carton-plugin-helper", targets: ["carton-plugin-helper"]),
   ],
   dependencies: [
-    .package(url: "https://github.com/apple/swift-log.git", from: "1.5.4"),
     .package(
       url: "https://github.com/apple/swift-argument-parser.git",
       .upToNextMinor(from: "1.3.0")
@@ -101,7 +100,6 @@ let package = Package(
     .target(
       name: "CartonFrontend",
       dependencies: [
-        .product(name: "Logging", package: "swift-log"),
         "CartonKit",
       ]
     ),

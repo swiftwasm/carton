@@ -15,7 +15,6 @@
 import CartonCore
 import CartonHelpers
 import Foundation
-import Logging
 import NIO
 import NIOHTTP1
 import NIOWebSocket
@@ -65,6 +64,18 @@ extension Event: Decodable {
 
 public struct BuilderProtocolSimpleBuildFailedError: Error {
   public init() {}
+}
+
+/// A simple logger that logs messages to the console.
+struct Logger {
+  let label: String
+
+  func info(_ message: String) {
+    Swift.print("INFO [\(label)] \(message)")
+  }
+  func error(_ message: String) {
+    Swift.print("ERROR [\(label)] \(message)")
+  }
 }
 
 /// A protocol for a builder that can be used to build the app.
