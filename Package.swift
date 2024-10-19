@@ -11,11 +11,6 @@ let package = Package(
   name: "carton",
   platforms: [.macOS(.v13)],
   products: [
-    .library(name: "SwiftToolchain", targets: ["SwiftToolchain"]),
-    .library(name: "CartonHelpers", targets: ["CartonHelpers"]),
-    .library(name: "CartonDriver", targets: ["CartonDriver"]),
-    .library(name: "CartonKit", targets: ["CartonKit"]),
-    .library(name: "CartonFrontend", targets: ["CartonFrontend"]),
     .executable(name: "carton", targets: ["carton"]),
     .executable(name: "carton-release", targets: ["carton-release"]),
     .plugin(name: "CartonBundlePlugin", targets: ["CartonBundlePlugin"]),
