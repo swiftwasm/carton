@@ -11,11 +11,6 @@ let package = Package(
   name: "carton",
   platforms: [.macOS(.v13)],
   products: [
-    .library(name: "SwiftToolchain", targets: ["SwiftToolchain"]),
-    .library(name: "CartonHelpers", targets: ["CartonHelpers"]),
-    .library(name: "CartonDriver", targets: ["CartonDriver"]),
-    .library(name: "CartonKit", targets: ["CartonKit"]),
-    .library(name: "CartonFrontend", targets: ["CartonFrontend"]),
     .executable(name: "carton", targets: ["carton"]),
     .executable(name: "carton-release", targets: ["carton-release"]),
     .plugin(name: "CartonBundlePlugin", targets: ["CartonBundlePlugin"]),
@@ -24,7 +19,6 @@ let package = Package(
     .executable(name: "carton-plugin-helper", targets: ["carton-plugin-helper"]),
   ],
   dependencies: [
-    .package(url: "https://github.com/apple/swift-log.git", from: "1.5.4"),
     .package(
       url: "https://github.com/apple/swift-argument-parser.git",
       .upToNextMinor(from: "1.3.0")
@@ -101,7 +95,6 @@ let package = Package(
     .target(
       name: "CartonFrontend",
       dependencies: [
-        .product(name: "Logging", package: "swift-log"),
         "CartonKit",
       ]
     ),
