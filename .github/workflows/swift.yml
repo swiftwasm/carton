@@ -18,8 +18,8 @@ jobs:
             xcode: "15.4"
             swift: "6.0"
             swift-install:
-              dir: "swift-6.0-branch/xcode"
-              version: "swift-6.0-DEVELOPMENT-SNAPSHOT-2024-06-19-a"
+              dir: "swift-6.0.2-release/xcode"
+              version: "swift-6.0.2-RELEASE"
           - os: macos-14
             xcode: "15.4"
             swift: "5.10"
@@ -63,8 +63,8 @@ jobs:
       matrix:
         include:
           - swift:
-              dir: "swift-6.0-branch/ubuntu2204"
-              version: "swift-6.0-DEVELOPMENT-SNAPSHOT-2024-06-08-a"
+              dir: "swift-6.0.2-release/ubuntu2204"
+              version: "swift-6.0.2-RELEASE"
           - swift:
               dir: "swift-5.10-release/ubuntu2204"
               version: "swift-5.10-RELEASE"
