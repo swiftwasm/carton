@@ -178,20 +178,20 @@ internal func checkSwiftVersion() throws {
   }
 }
 
-internal func checkHelpFlag(_ arguments: [String], subcommand: String, context: PluginContext)
+internal func checkHelpFlag(_ arguments: [String], frontend: String = "carton-frontend", subcommand: String, context: PluginContext)
   throws
 {
   if arguments.contains("--help") || arguments.contains("-h") {
     let frontend = try makeCartonFrontendProcess(
-      context: context, arguments: [subcommand, "--help"])
+      context: context, frontend: frontend, arguments: [subcommand, "--help"])
     try frontend.checkRun(printsLoadingMessage: false, forwardExit: true)
   }
 }
 
-internal func makeCartonFrontendProcess(context: PluginContext, arguments: [String]) throws
+internal func makeCartonFrontendProcess(context: PluginContext, frontend: String = "carton-frontend", arguments: [String]) throws
   -> Process
 {
-  let frontend = try context.tool(named: "carton-frontend")
+  let frontend = try context.tool(named: frontend)
 
   Diagnostics.remark(
     "Running " + ([frontend.path.string] + arguments).map { "\"\($0)\"" }.joined(separator: " "))

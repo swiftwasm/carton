@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import CartonHelpers
-
 enum HTMLError: String, Error {
   case customIndexPageWithoutHead = """
     The custom `index.html` page does not have a `<head></head>` element to allow entrypoint injection

@@ -33,7 +33,7 @@ struct CartonBundlePluginCommand: CommandPlugin {
 
   func performCommand(context: PluginContext, arguments: [String]) async throws {
     try checkSwiftVersion()
-    try checkHelpFlag(arguments, subcommand: "bundle", context: context)
+    try checkHelpFlag(arguments, frontend: "carton-frontend-slim", subcommand: "bundle", context: context)
 
     var extractor = ArgumentExtractor(arguments)
     let options = Options.parse(from: &extractor)
@@ -84,7 +84,11 @@ struct CartonBundlePluginCommand: CommandPlugin {
       + resourcesPaths.flatMap {
         ["--resources", $0.string]
       } + extractor.remainingArguments
-    let frontend = try makeCartonFrontendProcess(context: context, arguments: frontendArguments)
+    let frontend = try makeCartonFrontendProcess(
+        context: context,
+        frontend: "carton-frontend-slim",
+        arguments: frontendArguments
+      )
     try frontend.checkRun(printsLoadingMessage: false, forwardExit: true)
   }
 }
