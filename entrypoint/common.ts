@@ -19,7 +19,7 @@ import type { ImportEntry } from "wasm-imports-parser";
 
 // Apply polyfill for WebAssembly Type Reflection JS API to inspect imported memory info.
 // https://github.com/WebAssembly/js-types/blob/main/proposals/js-types/Overview.md
-globalThis.WebAssembly = polyfillWebAssemblyTypeReflection(globalThis.WebAssembly);
+const WebAssembly = polyfillWebAssemblyTypeReflection(globalThis.WebAssembly);
 
 export class LineDecoder {
   constructor(onLine: (line: string) => void) {
