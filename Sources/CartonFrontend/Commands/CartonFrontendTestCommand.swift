@@ -13,9 +13,9 @@
 // limitations under the License.
 
 import ArgumentParser
+import CartonCore
 import CartonHelpers
 import CartonKit
-import CartonCore
 import Foundation
 
 enum SanitizeVariant: String, CaseIterable, ExpressibleByArgument {
@@ -39,14 +39,16 @@ struct CartonFrontendTestCommand: AsyncParsableCommand {
   @Flag(name: .shortAndLong, help: "When specified, list all available test cases.")
   var list = false
 
-  @Option(name: .long, help: ArgumentHelp(
-    """
-    Pass an environment variable to the test process.
-    --env NAME=VALUE will set the environment variable NAME to VALUE.
-    --env NAME will inherit the environment variable NAME from the parent process.
-    """,
-    valueName: "NAME=VALUE or NAME"
-  ), transform: Self.parseEnvOption(_:))
+  @Option(
+    name: .long,
+    help: ArgumentHelp(
+      """
+      Pass an environment variable to the test process.
+      --env NAME=VALUE will set the environment variable NAME to VALUE.
+      --env NAME will inherit the environment variable NAME from the parent process.
+      """,
+      valueName: "NAME=VALUE or NAME"
+    ), transform: Self.parseEnvOption(_:))
   var env: [(key: String, value: String?)] = []
 
   static func parseEnvOption(_ value: String) -> (key: String, value: String?) {
@@ -102,6 +104,11 @@ struct CartonFrontendTestCommand: AsyncParsableCommand {
   var prebuiltTestBundlePath: String
 
   @Option(
+    name: .customLong("Xnode", withSingleDash: true),
+    help: "Arguments to pass to the Node.js process")
+  var nodeArguments: [String] = []
+
+  @Option(
     name: .long,
     help: ArgumentHelp(
       "Internal: Path to resources directory built by the SwiftPM Plugin process.",
@@ -110,9 +117,11 @@ struct CartonFrontendTestCommand: AsyncParsableCommand {
   )
   var resources: [String] = []
 
-  @Option(name: .long, help: ArgumentHelp(
-    "Internal: Path to writable directory", visibility: .private
-  ))
+  @Option(
+    name: .long,
+    help: ArgumentHelp(
+      "Internal: Path to writable directory", visibility: .private
+    ))
   var pluginWorkDirectory: String = "./"
 
   @Option(name: .long, help: .hidden) var pid: Int32?
@@ -173,6 +182,7 @@ struct CartonFrontendTestCommand: AsyncParsableCommand {
         testFilePath: bundlePath,
         listTestCases: list,
         testCases: testCases,
+        nodeArguments: nodeArguments,
         terminal: terminal
       )
     }
