@@ -49,6 +49,14 @@ let package = Package(
         "CartonFrontend"
       ]
     ),
+    .executableTarget(
+      name: "carton-frontend-slim",
+      dependencies: [
+        .product(name: "ArgumentParser", package: "swift-argument-parser"),
+        "CartonHelpers",
+        "WasmTransformer",
+      ]
+    ),
     .plugin(
         name: "CartonBundlePlugin",
         capability: .command(
@@ -57,7 +65,7 @@ let package = Package(
                 description: "Produces an optimized app bundle for distribution."
             )
         ),
-        dependencies: ["carton-frontend"],
+        dependencies: ["carton-frontend-slim"],
         exclude: [
           "CartonCore/README.md",
           "CartonPluginShared/README.md"

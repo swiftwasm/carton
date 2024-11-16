@@ -102,11 +102,11 @@ final class BundleCommandTests: XCTestCase {
     let fs = localFileSystem
 
     try await withFixture("EchoExecutable") { packageDirectory in
-      func getFileSizeOfWasmBinary(wasmOptimizations: WasmOptimizations) async throws -> UInt64 {
+      func getFileSizeOfWasmBinary(wasmOptimizations: String) async throws -> UInt64 {
         let bundleDirectory = packageDirectory.appending(component: "Bundle")
 
         let result = try await swiftRun(
-          ["carton", "bundle", "--wasm-optimizations", wasmOptimizations.rawValue],
+          ["carton", "bundle", "--wasm-optimizations", wasmOptimizations],
           packageDirectory: packageDirectory.asURL
         )
         try result.checkNonZeroExit()
@@ -121,8 +121,8 @@ final class BundleCommandTests: XCTestCase {
         return try localFileSystem.getFileInfo(wasmFile).size
       }
 
-      let none = try await getFileSizeOfWasmBinary(wasmOptimizations: .none)
-      let optimized = try await getFileSizeOfWasmBinary(wasmOptimizations: .size)
+      let none = try await getFileSizeOfWasmBinary(wasmOptimizations: "none")
+      let optimized = try await getFileSizeOfWasmBinary(wasmOptimizations: "size")
       XCTAssertGreaterThan(none, optimized)
     }
   }

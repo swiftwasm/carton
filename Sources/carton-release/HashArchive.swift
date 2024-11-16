@@ -89,7 +89,7 @@ struct HashArchive: AsyncParsableCommand {
       AbsolutePath(
         cwd,
         RelativePath(validating: "Sources").appending(
-          components: "CartonKit", "Server", "StaticArchive.swift")
+          components: "CartonHelpers", "StaticArchive.swift")
       ),
       bytes: ByteString(encodingAsUTF8: fileContent)
     )
