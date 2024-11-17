@@ -44,24 +44,16 @@ struct HashArchive: AsyncParsableCommand {
 
       """
 
-    for entrypoint in ["dev", "bundle", "test", "testNode", "intrinsics"] {
+    for entrypoint in ["dev", "bundle", "intrinsics"] {
       let tsFilename = "\(entrypoint).ts"
       let filename = "\(entrypoint).js"
-      var arguments = [
+      let arguments = [
         "esbuild", "--bundle", "entrypoint/\(tsFilename)", "--outfile=static/\(filename)",
+        "--external:node:url", "--external:node:path",
+        "--external:node:module", "--external:playwright",
+        "--format=esm",
+        "--external:./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs",
       ]
-
-      if entrypoint == "testNode" {
-        arguments.append(contentsOf: [
-          "--format=cjs", "--platform=node",
-          "--external:./JavaScriptKit_JavaScriptKit.resources/Runtime/index.js",
-        ])
-      } else {
-        arguments.append(contentsOf: [
-          "--format=esm",
-          "--external:./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs",
-        ])
-      }
 
       let npx = try Process.which("npx")
       try Foundation.Process.run(npx, arguments: arguments).waitUntilExit()
@@ -80,6 +72,7 @@ struct HashArchive: AsyncParsableCommand {
       }
       """
 
-    try fileContent.write(toFile: "Sources/CartonHelpers/StaticArchive.swift", atomically: true, encoding: .utf8)
+    try fileContent.write(
+      toFile: "Sources/CartonHelpers/StaticArchive.swift", atomically: true, encoding: .utf8)
   }
 }

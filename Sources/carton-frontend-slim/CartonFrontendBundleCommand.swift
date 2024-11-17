@@ -82,6 +82,7 @@ struct CartonFrontendBundleCommand: AsyncParsableCommand {
 
     var mainWasmPath = try AbsolutePath(
       validating: mainWasmPath, relativeTo: localFileSystem.currentWorkingDirectory!)
+    let mainModuleBaseName = mainWasmPath.basenameWithoutExt
     let buildDirectory = mainWasmPath.parentDirectory
     try terminal.logLookup(
       "Right after building the main binary size is ",
@@ -128,14 +129,14 @@ struct CartonFrontendBundleCommand: AsyncParsableCommand {
     }
 
     let bundle = BundleLayout(
-      mainWasmPath: mainWasmPath.pathString,
-      customIndexPage: customIndexPage,
-      wasmOutputFilePath: wasmOutputFilePath,
+      mainModuleBaseName: mainModuleBaseName,
+      wasmSourcePath: wasmOutputFilePath,
       buildDirectory: buildDirectory,
       bundleDirectory: bundleDirectory,
       topLevelResourcePaths: resources
     )
-    try bundle.copyToBundle(contentHash: contentHash, terminal: terminal)
+    try bundle.copyAppEntrypoint(
+      customIndexPage: customIndexPage, contentHash: contentHash, terminal: terminal)
 
     terminal.write(
       "Bundle successfully generated at \(bundleDirectory)\n", inColor: .green, bold: true)

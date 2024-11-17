@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import ReconnectingWebSocket from "reconnecting-websocket";
-import { instantiate } from "./intrinsics";
+import { instantiate, WebAssembly } from "./intrinsics";
 import type { SwiftRuntimeConstructor } from "./JavaScriptKit_JavaScriptKit.resources/Runtime";
 
 const socket = new ReconnectingWebSocket(`ws://${location.host}/watcher`);

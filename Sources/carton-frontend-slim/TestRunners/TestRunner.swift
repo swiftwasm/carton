@@ -15,6 +15,18 @@
 struct TestRunnerOptions {
   /// The environment variables to pass to the test process.
   let env: [String: String]
+  /// When specified, list all available test cases.
+  let listTestCases: Bool
+  /// Filter the test cases to run.
+  let testCases: [String]
+
+  func applyXCTestArguments(to arguments: inout [String]) {
+    if listTestCases {
+      arguments.append(contentsOf: ["--", "-l"])
+    } else if !testCases.isEmpty {
+      arguments.append(contentsOf: testCases)
+    }
+  }
 }
 
 protocol TestRunner {

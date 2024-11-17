@@ -4,7 +4,7 @@
 import PackageDescription
 
 #if swift(<5.9.2)
-#warning("Swift 5.9.1 or earlier is not supported by carton")
+  #warning("Swift 5.9.1 or earlier is not supported by carton")
 #endif
 
 let package = Package(
@@ -33,7 +33,7 @@ let package = Package(
     .target(
       name: "CartonDriver",
       dependencies: [
-        "SwiftToolchain",
+        "SwiftToolchain"
       ]
     ),
     .executableTarget(
@@ -57,52 +57,52 @@ let package = Package(
       ]
     ),
     .plugin(
-        name: "CartonBundlePlugin",
-        capability: .command(
-            intent: .custom(
-                verb: "carton-bundle",
-                description: "Produces an optimized app bundle for distribution."
-            )
-        ),
-        dependencies: ["carton-frontend-slim"],
-        exclude: [
-          "CartonCore/README.md",
-          "CartonPluginShared/README.md"
-        ]
+      name: "CartonBundlePlugin",
+      capability: .command(
+        intent: .custom(
+          verb: "carton-bundle",
+          description: "Produces an optimized app bundle for distribution."
+        )
+      ),
+      dependencies: ["carton-frontend-slim"],
+      exclude: [
+        "CartonCore/README.md",
+        "CartonPluginShared/README.md",
+      ]
     ),
     .plugin(
-        name: "CartonTestPlugin",
-        capability: .command(
-            intent: .custom(
-                verb: "carton-test",
-                description: "Run the tests in a WASI environment."
-            )
-        ),
-        dependencies: ["carton-frontend"],
-        exclude: [
-          "CartonCore/README.md",
-          "CartonPluginShared/README.md"
-        ]
+      name: "CartonTestPlugin",
+      capability: .command(
+        intent: .custom(
+          verb: "carton-test",
+          description: "Run the tests in a WASI environment."
+        )
+      ),
+      dependencies: ["carton-frontend-slim"],
+      exclude: [
+        "CartonCore/README.md",
+        "CartonPluginShared/README.md",
+      ]
     ),
     .plugin(
-        name: "CartonDevPlugin",
-        capability: .command(
-            intent: .custom(
-                verb: "carton-dev",
-                description: "Watch the current directory, host the app, rebuild on change."
-            )
-        ),
-        dependencies: ["carton-frontend"],
-        exclude: [
-          "CartonCore/README.md",
-          "CartonPluginShared/README.md"
-        ]
+      name: "CartonDevPlugin",
+      capability: .command(
+        intent: .custom(
+          verb: "carton-dev",
+          description: "Watch the current directory, host the app, rebuild on change."
+        )
+      ),
+      dependencies: ["carton-frontend"],
+      exclude: [
+        "CartonCore/README.md",
+        "CartonPluginShared/README.md",
+      ]
     ),
     .executableTarget(name: "carton-plugin-helper"),
     .target(
       name: "CartonFrontend",
       dependencies: [
-        "CartonKit",
+        "CartonKit"
       ]
     ),
     .target(
@@ -113,7 +113,6 @@ let package = Package(
         .product(name: "NIO", package: "swift-nio"),
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
         "CartonHelpers",
-        "WebDriver",
         "WasmTransformer",
       ],
       exclude: ["Utilities/README.md"],
@@ -124,7 +123,7 @@ let package = Package(
     .target(
       name: "SwiftToolchain",
       dependencies: [
-        "CartonCore",
+        "CartonCore"
       ],
       exclude: ["Utilities/README.md"]
     ),
@@ -132,19 +131,19 @@ let package = Package(
       /** Shim target to import missing C headers in Darwin and Glibc modulemap. */
       name: "TSCclibc",
       cSettings: [
-        .define("_GNU_SOURCE", .when(platforms: [.linux])),
+        .define("_GNU_SOURCE", .when(platforms: [.linux]))
       ]
     ),
     .target(
-        /** Cross-platform access to bare `libc` functionality. */
-        name: "TSCLibc"
+      /** Cross-platform access to bare `libc` functionality. */
+      name: "TSCLibc"
     ),
     .target(
       name: "CartonHelpers",
       dependencies: [
         "TSCclibc",
         "TSCLibc",
-        "CartonCore"
+        "CartonCore",
       ],
       exclude: ["Basics/README.md"]
     ),
@@ -156,7 +155,7 @@ let package = Package(
       name: "WebDriver",
       dependencies: [
         .product(name: "NIO", package: "swift-nio"),
-        "CartonHelpers"
+        "CartonHelpers",
       ]
     ),
     // This target is used only for release automation tasks and
@@ -165,6 +164,7 @@ let package = Package(
       name: "carton-release",
       dependencies: [
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
+        "CartonHelpers",
         "CartonCore",
       ]
     ),

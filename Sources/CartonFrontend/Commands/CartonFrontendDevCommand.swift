@@ -13,8 +13,8 @@
 // limitations under the License.
 
 import ArgumentParser
-import CartonHelpers
 import CartonCore
+import CartonHelpers
 import CartonKit
 import Foundation
 
@@ -28,8 +28,10 @@ enum DevCommandError: Error & CustomStringConvertible {
 
   var description: String {
     switch self {
-    case .noBuildRequestOption: "--build-request option is necessary if you want to watch, but has not been specified."
-    case .noBuildResponseOption: "--build-response option is necessary if you want to watch, but has not been specified."
+    case .noBuildRequestOption:
+      "--build-request option is necessary if you want to watch, but has not been specified."
+    case .noBuildResponseOption:
+      "--build-response option is necessary if you want to watch, but has not been specified."
     case .failedToOpenBuildRequestPipe: "failed to open build request pipe."
     case .failedToOpenBuildResponsePipe: "failed to open build response pipe."
     case .pluginConnectionClosed: "connection with the plugin has been closed."
@@ -49,9 +51,6 @@ struct CartonFrontendDevCommand: AsyncParsableCommand {
 
   @Flag(help: "When specified, build in the release mode.")
   var release = false
-
-  @Option(help: "Turn on runtime checks for various behavior.")
-  private var sanitize: SanitizeVariant?
 
   @Flag(name: .shortAndLong, help: "Don't clear terminal window after files change.")
   var verbose = false

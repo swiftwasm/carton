@@ -12,9 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import CartonHelpers
 import CartonCore
-import CartonKit
+import CartonHelpers
 import Foundation
 
 struct CommandTestRunnerError: Error, CustomStringConvertible {
@@ -27,32 +26,28 @@ struct CommandTestRunnerError: Error, CustomStringConvertible {
 
 struct CommandTestRunner: TestRunner {
   let testFilePath: AbsolutePath
-  let listTestCases: Bool
-  let testCases: [String]
   let terminal: InteractiveWriter
 
   func run(options: TestRunnerOptions) async throws {
-    let program = try ProcessInfo.processInfo.environment["CARTON_TEST_RUNNER"] ?? defaultWASIRuntime()
+    let program =
+      try ProcessInfo.processInfo.environment["CARTON_TEST_RUNNER"] ?? defaultWASIRuntime()
     terminal.write("\nRunning the test bundle with \"\(program)\":\n", inColor: .yellow)
 
     var arguments = [program]
     var xctestArgs: [String] = []
-    if listTestCases {
-      xctestArgs.append(contentsOf: ["--", "-l"])
-    } else {
-      let programName = URL(fileURLWithPath: program).lastPathComponent
-      if programName == "wasmtime" {
-        arguments += ["--dir", "."]
-      }
-      for (key, value) in options.env {
-        arguments += ["--env", "\(key)=\(value)"]
-      }
-
-      if !testCases.isEmpty {
-        xctestArgs.append("--")
-        xctestArgs.append(contentsOf: testCases)
-      }
+    options.applyXCTestArguments(to: &xctestArgs)
+    if !xctestArgs.isEmpty {
+      xctestArgs = ["--"] + xctestArgs
     }
+    let programName = URL(fileURLWithPath: program).lastPathComponent
+    if programName == "wasmtime" {
+      arguments += ["--dir", "."]
+    }
+    arguments += ["--wasi", "inherit-env"]
+    for (key, value) in options.env {
+      arguments += ["--env", "\(key)=\(value)"]
+    }
+
     arguments += [testFilePath.pathString] + xctestArgs
     try await Process.run(arguments, parser: TestsParser(), terminal)
   }
@@ -60,7 +55,9 @@ struct CommandTestRunner: TestRunner {
   func defaultWASIRuntime() throws -> String {
     let candidates = ["wasmtime", "wasmer"]
     guard let found = candidates.lazy.compactMap({ try? Foundation.Process.which($0) }).first else {
-      throw CommandTestRunnerError("No WASI runtime found. Please install one of the following: \(candidates.joined(separator: ", "))")
+      throw CommandTestRunnerError(
+        "No WASI runtime found. Please install one of the following: \(candidates.joined(separator: ", "))"
+      )
     }
     return found.path
   }

@@ -21,8 +21,7 @@ public struct CartonFrontendCommand: AsyncParsableCommand {
     abstract: "📦 Watcher, bundler, and test runner for your SwiftWasm apps.",
     version: cartonVersion,
     subcommands: [
-      CartonFrontendDevCommand.self,
-      CartonFrontendTestCommand.self
+      CartonFrontendDevCommand.self
     ]
   )
 

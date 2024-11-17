@@ -18,31 +18,26 @@ import Foundation
 
 struct BundleLayout {
 
-  var mainWasmPath: String
-  var customIndexPage: String?
-  var wasmOutputFilePath: AbsolutePath
+  var mainModuleBaseName: String
+  var wasmSourcePath: AbsolutePath
   var buildDirectory: AbsolutePath
   var bundleDirectory: AbsolutePath
   var topLevelResourcePaths: [String]
 
-  func copyToBundle(contentHash: Bool, terminal: InteractiveWriter) throws {
-    // Rename the final binary to use a part of its hash to bust browsers and CDN caches.
-    let wasmFileHash = try localFileSystem.readFileContents(wasmOutputFilePath).hexChecksum
-    let mainModuleBaseName = URL(fileURLWithPath: mainWasmPath).deletingPathExtension()
-      .lastPathComponent
-    let mainModuleName =
-      contentHash ? "\(mainModuleBaseName).\(wasmFileHash).wasm" : "\(mainModuleBaseName).wasm"
-    let mainModulePath = try AbsolutePath(validating: mainModuleName, relativeTo: bundleDirectory)
-    if wasmOutputFilePath != mainModulePath {
-      try localFileSystem.move(from: wasmOutputFilePath, to: mainModulePath)
+  func copyAppEntrypoint(customIndexPage: String?, contentHash: Bool, terminal: InteractiveWriter)
+    throws
+  {
+    let wasmDestinationPath = try computeWasmDestinationPath(contentHash: contentHash)
+    if wasmSourcePath != wasmDestinationPath {
+      try localFileSystem.move(from: wasmSourcePath, to: wasmDestinationPath)
     }
-
+    try copyResources(wasmDestinationPath: wasmDestinationPath, terminal: terminal)
     // Copy the bundle entrypoint, point to the binary, and give it a cachebuster name.
     let entrypoint = ByteString(
       encodingAsUTF8: String(decoding: StaticResource.bundle, as: UTF8.self)
         .replacingOccurrences(
           of: "REPLACE_THIS_WITH_THE_MAIN_WEBASSEMBLY_MODULE",
-          with: mainModuleName
+          with: wasmDestinationPath.basename
         )
     )
     let entrypointName = contentHash ? "app.\(entrypoint.hexChecksum).js" : "app.js"
@@ -59,7 +54,57 @@ struct BundleLayout {
           entrypointName: entrypointName
         ))
     )
+  }
 
+  func copyTestEntrypoint(contentHash: Bool, terminal: InteractiveWriter) throws {
+    let wasmDestinationPath = try computeWasmDestinationPath(contentHash: contentHash)
+    if wasmSourcePath != wasmDestinationPath {
+      try localFileSystem.copy(from: wasmSourcePath, to: wasmDestinationPath)
+    }
+    try copyResources(wasmDestinationPath: wasmDestinationPath, terminal: terminal)
+
+    let contents: [String: String] = [
+      "test.browser.js": """
+      import { testBrowser } from "./index.js";
+      testBrowser(process.argv.slice(2));
+
+      """,
+      "test.node.js": """
+      import { testNode } from "./index.js";
+      testNode(process.argv.slice(2))
+
+      """,
+      "test.browser.html": """
+      <!DOCTYPE html>
+      <html>
+
+      <body>
+          <script type="module">
+              import { testBrowser } from "./index.js";
+              testBrowser([], true);
+          </script>
+      </body>
+
+      </html>
+
+      """,
+    ]
+    for (filename, content) in contents {
+      try localFileSystem.writeFileContents(
+        AbsolutePath(validating: filename, relativeTo: bundleDirectory),
+        bytes: ByteString(encodingAsUTF8: content)
+      )
+    }
+  }
+
+  func computeWasmDestinationPath(contentHash: Bool) throws -> AbsolutePath {
+    let wasmFileHash = try localFileSystem.readFileContents(wasmSourcePath).hexChecksum
+    // Rename the final binary to use a part of its hash to bust browsers and CDN caches.
+    let mainModuleName = contentHash ? "\(mainModuleBaseName).\(wasmFileHash).wasm" : "\(mainModuleBaseName).wasm"
+    return try AbsolutePath(validating: mainModuleName, relativeTo: bundleDirectory)
+  }
+
+  func copyResources(wasmDestinationPath: AbsolutePath, terminal: InteractiveWriter) throws {
     try localFileSystem.writeFileContents(
       AbsolutePath(validating: "intrinsics.js", relativeTo: bundleDirectory),
       bytes: ByteString(StaticResource.intrinsics)
@@ -74,7 +119,7 @@ struct BundleLayout {
       AbsolutePath(validating: "index.js", relativeTo: bundleDirectory),
       bytes: ByteString(
         encodingAsUTF8: indexJsContent(
-          mainModuleName: mainModuleName, hasJavaScriptKitResources: hasJavaScriptKitResources)
+          mainModuleName: wasmDestinationPath.basename, hasJavaScriptKitResources: hasJavaScriptKitResources)
       )
     )
 
@@ -119,7 +164,7 @@ struct BundleLayout {
 
   private func indexJsContent(mainModuleName: String, hasJavaScriptKitResources: Bool) -> String {
     var content = """
-      import { instantiate as internalInstantiate } from './intrinsics.js';
+      import { WebAssembly, instantiate as internalInstantiate, testBrowser as internalTestBrowser, testNode as internalTestNode } from './intrinsics.js';
 
       """
     if hasJavaScriptKitResources {
@@ -142,9 +187,8 @@ struct BundleLayout {
           if (isNodeJs) {
             const module = await import(/* webpackIgnore: true */'node:module');
             const importMeta = import.meta;
-            const require = module.default.createRequire(importMeta.url);
-            const fs = require('fs/promises');
-            const url = require('url');
+            const fs = await import('fs/promises');
+            const url = await import('url');
             const filePath = import.meta.resolve('./' + wasmFileName);
             options.module = await WebAssembly.compile(await fs.readFile(url.fileURLToPath(filePath)));
           } else if (isWebBrowser) {
@@ -164,6 +208,15 @@ struct BundleLayout {
     content += """
         return internalInstantiate(options, imports);
       }
+
+      export async function testBrowser(args, inPage = false) {
+        await internalTestBrowser(instantiate, wasmFileName, args, import.meta.url, inPage);
+      }
+
+      export async function testNode(args) {
+        await internalTestNode(instantiate, wasmFileName, args);
+      }
+
       """
 
     return content

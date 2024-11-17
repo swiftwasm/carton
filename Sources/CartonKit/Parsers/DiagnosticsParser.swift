@@ -13,30 +13,3 @@
 // limitations under the License.
 
 import Foundation
-
-/// Parses and re-formats diagnostics output by the Swift compiler.
-///
-/// The compiler output often repeats itself, and the diagnostics can sometimes be
-/// difficult to read.
-/// This reformats them to a more readable output.
-struct DiagnosticsParser {
-  struct CustomDiagnostic {
-    let kind: Kind
-    let file: String
-    let line: String.SubSequence
-    let char: String.SubSequence
-    let code: String
-    let message: String
-
-    enum Kind: String {
-      case error, warning, note
-      var color: String {
-        switch self {
-        case .error: return "[41;1m"  // bright red background
-        case .warning: return "[43;1m"  // bright yellow background
-        case .note: return "[7m"  // reversed
-        }
-      }
-    }
-  }
-}

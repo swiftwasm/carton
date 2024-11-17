@@ -15,7 +15,6 @@
 import ArgumentParser
 import CartonCore
 import CartonHelpers
-import CartonKit
 import Foundation
 
 enum SanitizeVariant: String, CaseIterable, ExpressibleByArgument {
@@ -25,6 +24,8 @@ enum SanitizeVariant: String, CaseIterable, ExpressibleByArgument {
 struct TestError: Error, CustomStringConvertible {
   let description: String
 }
+
+extension Environment: ArgumentParser.ExpressibleByArgument {}
 
 struct CartonFrontendTestCommand: AsyncParsableCommand {
 
@@ -161,27 +162,23 @@ struct CartonFrontendTestCommand: AsyncParsableCommand {
     case .command:
       return CommandTestRunner(
         testFilePath: bundlePath,
-        listTestCases: list,
-        testCases: testCases,
         terminal: terminal
       )
     case .browser:
-      return BrowserTestRunner(
+      return try JavaScriptTestRunner(
+        testHarness: "test.browser.js",
+        pluginWorkDirectory: AbsolutePath(validating: pluginWorkDirectory, relativeTo: cwd),
         testFilePath: bundlePath,
-        bindingAddress: bind,
-        host: Server.Configuration.host(bindOption: bind, hostOption: host),
-        port: port,
-        headless: headless,
         resourcesPaths: resources,
-        pid: pid,
+        nodeArguments: nodeArguments,
         terminal: terminal
       )
     case .node:
-      return try NodeTestRunner(
+      return try JavaScriptTestRunner(
+        testHarness: "test.node.js",
         pluginWorkDirectory: AbsolutePath(validating: pluginWorkDirectory, relativeTo: cwd),
         testFilePath: bundlePath,
-        listTestCases: list,
-        testCases: testCases,
+        resourcesPaths: resources,
         nodeArguments: nodeArguments,
         terminal: terminal
       )
@@ -190,7 +187,7 @@ struct CartonFrontendTestCommand: AsyncParsableCommand {
 
   func deriveRunnerOptions() -> TestRunnerOptions {
     let parentEnv = ProcessInfo.processInfo.environment
-    var env: [String: String] = parentEnv
+    var env: [String: String] = [:]
     for (key, value) in self.env {
       if let value = value {
         env[key] = value
@@ -198,6 +195,6 @@ struct CartonFrontendTestCommand: AsyncParsableCommand {
         env[key] = parentEnv[key]
       }
     }
-    return TestRunnerOptions(env: env)
+    return TestRunnerOptions(env: env, listTestCases: list, testCases: testCases)
   }
 }

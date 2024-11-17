@@ -37,7 +37,8 @@ struct CartonTestPluginCommand: CommandPlugin {
 
   func performCommand(context: PluginContext, arguments: [String]) async throws {
     try checkSwiftVersion()
-    try checkHelpFlag(arguments, subcommand: "test", context: context)
+    try checkHelpFlag(
+      arguments, frontend: "carton-frontend-slim", subcommand: "test", context: context)
 
     let productName = "\(context.package.displayName)PackageTests"
 
@@ -71,25 +72,25 @@ struct CartonTestPluginCommand: CommandPlugin {
       let wasmFileName = "\(productName).wasm"
       testProductArtifactPath = buildDirectory.appending(subpath: wasmFileName).string
       #if compiler(>=5.10)
-      var buildParameters = PackageManager.BuildParameters()
-      options.environment.applyBuildParameters(&buildParameters)
-      applyExtraBuildFlags(from: &extractor, parameters: &buildParameters)
+        var buildParameters = PackageManager.BuildParameters()
+        options.environment.applyBuildParameters(&buildParameters)
+        applyExtraBuildFlags(from: &extractor, parameters: &buildParameters)
 
-      let build = try packageManager.build(.product(productName), parameters: buildParameters)
-      guard build.succeeded else {
-        throw Error("Failed to build test product: \(build.logText)")
-      }
-      guard FileManager.default.fileExists(atPath: testProductArtifactPath) else {
-        throw Error("Product \(productName) did not produce \(buildDirectory)!?")
-      }
+        let build = try packageManager.build(.product(productName), parameters: buildParameters)
+        guard build.succeeded else {
+          throw Error("Failed to build test product: \(build.logText)")
+        }
+        guard FileManager.default.fileExists(atPath: testProductArtifactPath) else {
+          throw Error("Product \(productName) did not produce \(buildDirectory)!?")
+        }
       #else
-      // NOTE: Old SwiftPM does not allow to build *only tests* from plugin, so we expect
-      // the test product to be built already by external wrapper command.
-      guard FileManager.default.fileExists(atPath: testProductArtifactPath) else {
-        throw Error(
-          "Failed to find \"\(wasmFileName)\" in \(buildDirectory). Please build \"\(productName)\" product first"
-        )
-      }
+        // NOTE: Old SwiftPM does not allow to build *only tests* from plugin, so we expect
+        // the test product to be built already by external wrapper command.
+        guard FileManager.default.fileExists(atPath: testProductArtifactPath) else {
+          throw Error(
+            "Failed to find \"\(wasmFileName)\" in \(buildDirectory). Please build \"\(productName)\" product first"
+          )
+        }
       #endif
     }
 
@@ -107,14 +108,15 @@ struct CartonTestPluginCommand: CommandPlugin {
       "test",
       "--prebuilt-test-bundle-path", testProductArtifactPath,
       "--environment", options.environment.rawValue,
-      "--plugin-work-directory", context.pluginWorkDirectory.string
+      "--plugin-work-directory", context.pluginWorkDirectory.string,
     ]
     args += (options.pid.map { ["--pid", $0] } ?? [])
     args += resourcesPaths.flatMap {
       ["--resources", $0.string]
     }
     args += extractor.remainingArguments
-    let frontend = try makeCartonFrontendProcess(context: context, arguments: args)
+    let frontend = try makeCartonFrontendProcess(
+      context: context, frontend: "carton-frontend-slim", arguments: args)
     try frontend.checkRun(printsLoadingMessage: false, forwardExit: true)
   }
 

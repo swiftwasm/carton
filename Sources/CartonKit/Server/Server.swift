@@ -23,20 +23,15 @@ private enum Event {
   enum CodingKeys: String, CodingKey {
     case kind
     case stackTrace
-    case testRunOutput
     case errorReport
   }
 
   enum Kind: String, Decodable {
     case stackTrace
-    case testRunOutput
-    case testPassed
     case errorReport
   }
 
   case stackTrace(String)
-  case testRunOutput(String)
-  case testPassed
   case errorReport(String)
 }
 
@@ -50,11 +45,6 @@ extension Event: Decodable {
     case .stackTrace:
       let rawStackTrace = try container.decode(String.self, forKey: .stackTrace)
       self = .stackTrace(rawStackTrace)
-    case .testRunOutput:
-      let output = try container.decode(String.self, forKey: .testRunOutput)
-      self = .testRunOutput(output)
-    case .testPassed:
-      self = .testPassed
     case .errorReport:
       let output = try container.decode(String.self, forKey: .errorReport)
       self = .errorReport(output)
@@ -135,7 +125,7 @@ public actor Server {
       self.version = version
       self.pid = pid
     }
-    
+
     public var name: String
     public var version: String
     public var pid: Int32
@@ -148,7 +138,8 @@ public actor Server {
 
     public static func parse(_ string: String) throws -> ServerNameField {
       guard let m = try regex.wholeMatch(in: string),
-            let pid = Int32(m.output.3) else {
+        let pid = Int32(m.output.3)
+      else {
         throw CartonCoreError("invalid server name: \(string)")
       }
 
@@ -177,9 +168,6 @@ public actor Server {
 
   /// Whether a subsequent build is currently scheduled on top of a currently running build.
   private var isSubsequentBuildScheduled = false
-
-  /// Continuation for waitUntilTestFinished, passing `hadError: Bool`
-  private var onTestFinishedContinuation: CheckedContinuation<Bool, Never>?
 
   private let configuration: Configuration
 
@@ -392,16 +380,6 @@ public actor Server {
     try closeSockets()
   }
 
-  /// Wait and handle the shutdown
-  public func waitUntilTestFinished() async throws -> Bool {
-    let hadError = await withCheckedContinuation { cont in
-      self.onTestFinishedContinuation = cont
-    }
-    self.onTestFinishedContinuation = nil
-    try closeSockets()
-    return hadError
-  }
-
   func closeSockets() throws {
     for conn in connections {
       try conn.close().wait()
@@ -427,10 +405,6 @@ public actor Server {
     terminal.write("Build completed successfully\n", inColor: .green)
     terminal.logLookup("The app is currently hosted at ", localURL)
     connections.forEach { $0.reload() }
-  }
-
-  private func stopTest(hadError: Bool) {
-    self.onTestFinishedContinuation?.resume(returning: hadError)
   }
 }
 
@@ -461,23 +435,15 @@ extension Server {
         terminal.write("\nAn error occurred, here's the raw stack trace for it:\n", inColor: .red)
         terminal.write(
           "  Please create an issue or PR to the Carton repository\n"
-          + "  with your browser name and this raw stack trace so\n"
-          + "  we can add support for it: https://github.com/swiftwasm/carton\n", inColor: .gray
+            + "  with your browser name and this raw stack trace so\n"
+            + "  we can add support for it: https://github.com/swiftwasm/carton\n", inColor: .gray
         )
         terminal.write(rawStackTrace + "\n")
       }
 
-    case let .testRunOutput(output):
-      TestsParser().parse(output, terminal)
-
-    case .testPassed:
-      Task { await self.stopTest(hadError: false) }
-
     case let .errorReport(output):
       terminal.write("\nAn error occurred:\n", inColor: .red)
       terminal.write(output + "\n")
-
-      Task { await self.stopTest(hadError: true) }
     }
   }
 
