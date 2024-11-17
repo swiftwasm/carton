@@ -86,4 +86,21 @@ extension Foundation.Process {
       forwardExit: forwardExit
     )
   }
+
+  public static func which(_ executable: String) throws -> URL {
+    let pathSeparator: Character
+#if os(Windows)
+    pathSeparator = ";"
+#else
+    pathSeparator = ":"
+#endif
+    let paths = ProcessInfo.processInfo.environment["PATH"]!.split(separator: pathSeparator)
+    for path in paths {
+      let url = URL(fileURLWithPath: String(path)).appendingPathComponent(executable)
+      if FileManager.default.isExecutableFile(atPath: url.path) {
+        return url
+      }
+    }
+    throw CartonCoreError("Executable \(executable) not found in PATH")
+  }
 }

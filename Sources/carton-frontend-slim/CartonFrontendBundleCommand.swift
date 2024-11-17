@@ -14,6 +14,7 @@
 
 import ArgumentParser
 import CartonHelpers
+import CartonCore
 import Foundation
 import WasmTransformer
 
@@ -207,8 +208,8 @@ struct CartonFrontendBundleCommand: AsyncParsableCommand {
       bytes: ByteString(StaticResource.intrinsics)
     )
 
-    let resourcesDirectoryNames = try localFileSystem.resourcesDirectoryNames(
-      relativeTo: buildDirectory)
+    let resourcesDirectoryNames = try FileManager.default.resourcesDirectoryNames(
+      relativeTo: buildDirectory.asURL)
     let hasJavaScriptKitResources = resourcesDirectoryNames.contains(
       "JavaScriptKit_JavaScriptKit.resources")
 
@@ -244,10 +245,10 @@ struct CartonFrontendBundleCommand: AsyncParsableCommand {
     for resourcesPath in topLevelResourcePaths {
       let resourcesPath = try AbsolutePath(
         validating: resourcesPath, relativeTo: localFileSystem.currentWorkingDirectory!)
-      for file in try localFileSystem.traverseRecursively(resourcesPath) {
-        let targetPath = bundleDirectory.appending(component: file.basename)
+      for file in try FileManager.default.traverseRecursively(resourcesPath.asURL) {
+        let targetPath = bundleDirectory.appending(component: file.lastPathComponent)
         let sourcePath = bundleDirectory.appending(component: resourcesPath.basename).appending(
-          component: file.basename)
+          component: file.lastPathComponent)
 
         guard localFileSystem.exists(sourcePath, followSymlink: true),
           !localFileSystem.exists(targetPath, followSymlink: true)

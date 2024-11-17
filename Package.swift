@@ -34,7 +34,6 @@ let package = Package(
       name: "CartonDriver",
       dependencies: [
         "SwiftToolchain",
-        "CartonHelpers"
       ]
     ),
     .executableTarget(
@@ -125,7 +124,7 @@ let package = Package(
     .target(
       name: "SwiftToolchain",
       dependencies: [
-        "CartonHelpers",
+        "CartonCore",
       ],
       exclude: ["Utilities/README.md"]
     ),
@@ -166,8 +165,7 @@ let package = Package(
       name: "carton-release",
       dependencies: [
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
-        "CartonHelpers",
-        "WasmTransformer",
+        "CartonCore",
       ]
     ),
     .testTarget(

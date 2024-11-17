@@ -18,11 +18,11 @@ extension String {
   public var isAbsolutePath: Bool { first == "/" }
 }
 
-extension FileSystem {
-  public func traverseRecursively(_ traversalRoot: AbsolutePath) throws -> [AbsolutePath] {
+extension FileManager {
+  public func traverseRecursively(_ traversalRoot: URL) throws -> [URL] {
     var isDirectory: ObjCBool = false
     guard
-      FileManager.default.fileExists(atPath: traversalRoot.pathString, isDirectory: &isDirectory)
+      FileManager.default.fileExists(atPath: traversalRoot.path, isDirectory: &isDirectory)
     else {
       return []
     }
@@ -33,18 +33,18 @@ extension FileSystem {
       return result
     }
 
-    let enumerator = FileManager.default.enumerator(atPath: traversalRoot.pathString)
+    let enumerator = FileManager.default.enumerator(atPath: traversalRoot.path)
 
     while let element = enumerator?.nextObject() as? String {
-      let path = try traversalRoot.appending(RelativePath(validating: element))
+        let path = traversalRoot.appendingPathComponent(element)
       result.append(path)
     }
 
     return result
   }
 
-  public func resourcesDirectoryNames(relativeTo buildDirectory: AbsolutePath) throws -> [String] {
-    try FileManager.default.contentsOfDirectory(atPath: buildDirectory.pathString).filter {
+  public func resourcesDirectoryNames(relativeTo buildDirectory: URL) throws -> [String] {
+    try FileManager.default.contentsOfDirectory(atPath: buildDirectory.path).filter {
       $0.hasSuffix(".resources")
     }
   }

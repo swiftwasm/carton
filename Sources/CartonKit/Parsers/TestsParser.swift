@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import CartonHelpers
+import CartonCore
 import Foundation
 
 extension String.StringInterpolation {

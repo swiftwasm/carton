@@ -12,4 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+public struct CartonCoreError: Error & CustomStringConvertible {
+  public init(_ description: String) {
+    self.description = description
+  }
+  public  var description: String
+}
+
 public let cartonVersion = "1.1.2"
+
+#if compiler(>=6.0)
+public let defaultToolchainVersion = "wasm-6.0.2-RELEASE"
+#elseif compiler(>=5.10)
+public let defaultToolchainVersion = "wasm-5.10.0-RELEASE"
+#else
+public let defaultToolchainVersion = "wasm-5.9.2-RELEASE"
+#endif

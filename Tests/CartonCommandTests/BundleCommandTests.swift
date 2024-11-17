@@ -16,6 +16,7 @@
 //
 
 import CartonHelpers
+import CartonCore
 import XCTest
 
 @testable import CartonFrontend
@@ -33,28 +34,26 @@ final class BundleCommandTests: XCTestCase {
       // Confirm that the files are actually in the folder
       XCTAssertTrue(fs.isDirectory(bundleDirectory), "The bundle directory should exist")
 
-      let files = try fs.traverseRecursively(bundleDirectory)
+      let files = try fs.getDirectoryContents(bundleDirectory)
 
       XCTAssertTrue(
-        files.contains { $0.basename == "index.html" },
+        files.contains { $0 == "index.html" },
         "The bundle should include an index.html file, but it was not found"
       )
 
       XCTAssertTrue(
-        files.contains { $0.extension == "wasm" },
+        files.contains { $0.pathExtension == "wasm" },
         "The bundle should include a .wasm files, but it was not found"
       )
 
       XCTAssertTrue(
-        files.contains { $0.extension == "js" },
+        files.contains { $0.pathExtension == "js" },
         "The bundle should include a .js files, but it was not found"
       )
     }
   }
 
   func testWithDebugInfo() async throws {
-    let fs = localFileSystem
-
     try await withFixture("EchoExecutable") { packageDirectory in
       let result = try await swiftRun(
         ["carton", "bundle", "--debug-info"], packageDirectory: packageDirectory.asURL
@@ -63,15 +62,15 @@ final class BundleCommandTests: XCTestCase {
 
       let bundleDirectory = packageDirectory.appending(component: "Bundle")
 
-      guard let wasmBinary = try fs.traverseRecursively(bundleDirectory)
-        .filter({ $0.extension == "wasm" }).first else
+      guard let wasmBinary = try FileManager.default.contentsOfDirectory(atPath: bundleDirectory.pathString)
+        .filter({ $0.pathExtension == "wasm" }).first else
       {
         XCTFail("No wasm binary found")
         return
       }
       
       let headers = try await Process.checkNonZeroExit(arguments: [
-        "wasm-objdump", "--headers", wasmBinary.pathString,
+        "wasm-objdump", "--headers", bundleDirectory.appending(component: wasmBinary).pathString,
       ])
       XCTAssert(headers.contains("\"name\""), "name section not found: \(headers)")
     }
@@ -88,13 +87,13 @@ final class BundleCommandTests: XCTestCase {
       try result.checkNonZeroExit()
 
       let bundleDirectory = packageDirectory.appending(component: "Bundle")
-      guard let wasmBinary = try fs.traverseRecursively(bundleDirectory)
-        .filter({ $0.extension == "wasm" }).first else
+      guard let wasmBinary = try fs.getDirectoryContents(bundleDirectory)
+        .filter({ $0.pathExtension == "wasm" }).first else
       {
         XCTFail("No wasm binary found")
         return
       }
-      XCTAssertEqual(wasmBinary.basename, "my-echo.wasm")
+      XCTAssertEqual(wasmBinary, "my-echo.wasm")
     }
   }
 
@@ -111,14 +110,16 @@ final class BundleCommandTests: XCTestCase {
         )
         try result.checkNonZeroExit()
 
-        guard let wasmFile = try fs.traverseRecursively(bundleDirectory)
-          .filter({ $0.extension == "wasm" }).first else
+        guard let wasmFile = try fs.getDirectoryContents(bundleDirectory)
+          .filter({ $0.pathExtension == "wasm" }).first else
         {
           XCTFail("No wasm binary found")
           return 0
         }
 
-        return try localFileSystem.getFileInfo(wasmFile).size
+        return try localFileSystem.getFileInfo(
+          bundleDirectory.appending(component: wasmFile)
+        ).size
       }
 
       let none = try await getFileSizeOfWasmBinary(wasmOptimizations: "none")
@@ -140,5 +141,11 @@ final class BundleCommandTests: XCTestCase {
       }
       XCTAssert(hasExpectedLine, "wasm-opt invocation log with extra options not found in output: \(output)")
     }
+  }
+}
+
+fileprivate extension String {
+  var pathExtension: String {
+    self.split(separator: ".").last.map(String.init) ?? ""
   }
 }

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import ArgumentParser
-import CartonHelpers
+import CartonCore
 import Foundation
 
 struct HashArchive: AsyncParsableCommand {
@@ -35,8 +35,7 @@ struct HashArchive: AsyncParsableCommand {
   }
 
   func run() async throws {
-    let cwd = localFileSystem.currentWorkingDirectory!
-    let staticPath = try AbsolutePath(validating: "static", relativeTo: cwd)
+    let staticPath = URL(fileURLWithPath: "static")
 
     var fileContent = """
       import Foundation
@@ -64,16 +63,12 @@ struct HashArchive: AsyncParsableCommand {
         ])
       }
 
-      guard let npx = Process.findExecutable("npx") else {
-        fatalError("\"npx\" command not found in PATH")
-      }
-      try Foundation.Process.run(npx.asURL, arguments: arguments).waitUntilExit()
-      let entrypointPath = try AbsolutePath(validating: filename, relativeTo: staticPath)
+      let npx = try Process.which("npx")
+      try Foundation.Process.run(npx, arguments: arguments).waitUntilExit()
+      let entrypointPath = URL(fileURLWithPath: filename, relativeTo: staticPath)
 
       // Base64 is not an efficient way, but too long byte array literal breaks type-checker
-      let base64Content = try localFileSystem.readFileContents(entrypointPath).withData {
-        $0.base64EncodedString()
-      }
+      let base64Content = try Data(contentsOf: entrypointPath).base64EncodedString()
       fileContent += """
           public static let \(entrypoint): Data = Data(base64Encoded: \"\(base64Content)\")!
 
@@ -85,13 +80,6 @@ struct HashArchive: AsyncParsableCommand {
       }
       """
 
-    try localFileSystem.writeFileContents(
-      AbsolutePath(
-        cwd,
-        RelativePath(validating: "Sources").appending(
-          components: "CartonHelpers", "StaticArchive.swift")
-      ),
-      bytes: ByteString(encodingAsUTF8: fileContent)
-    )
+    try fileContent.write(toFile: "Sources/CartonHelpers/StaticArchive.swift", atomically: true, encoding: .utf8)
   }
 }

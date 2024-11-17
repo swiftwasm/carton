@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import CartonCore
+
 public protocol ProcessOutputParser {
   /// Parse the output of a `Process`, format it, then output in the `InteractiveWriter`.
   func parse(_ output: String, _ terminal: InteractiveWriter)

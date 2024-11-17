@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import CartonHelpers
+import CartonCore
 import CartonKit
 import Foundation
 
@@ -41,13 +42,13 @@ struct NodeTestRunner: TestRunner {
     let staticDirectory = pluginWorkDirectory
 
     // Clean up existing symlinks before creating new ones.
-    for existingSymlink in try localFileSystem.resourcesDirectoryNames(relativeTo: staticDirectory)
+      for existingSymlink in try FileManager.default.resourcesDirectoryNames(relativeTo: staticDirectory.asURL)
     {
       try localFileSystem.removeFileTree(staticDirectory.appending(component: existingSymlink))
     }
 
-    let resourceDirectories = try localFileSystem.resourcesDirectoryNames(
-      relativeTo: buildDirectory)
+    let resourceDirectories = try FileManager.default.resourcesDirectoryNames(
+      relativeTo: buildDirectory.asURL)
 
     // Create new symlink for each resource directory.
     for resourcesDirectoryName in resourceDirectories {

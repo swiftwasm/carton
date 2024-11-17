@@ -31,7 +31,6 @@
 // This executable should be eventually removed once SwiftPM provides a way to express those requirements.
 
 import CartonCore
-import CartonHelpers
 import Foundation
 import SwiftToolchain
 
@@ -134,13 +133,12 @@ func pluginSubcommand(subcommand: String, argv0: String, arguments: [String]) as
   }
 
   let terminal = InteractiveWriter.stdout
-  let toolchainSystem = try ToolchainSystem(fileSystem: localFileSystem)
+  let toolchainSystem = try ToolchainSystem(fileSystem: .default)
   let swiftPath = try await toolchainSystem.inferSwiftPath(terminal)
   let extraArguments = arguments
 
-  let swiftExec = URL(fileURLWithPath: swiftPath.swift.pathString)
   let pluginArguments = try derivePackageCommandArguments(
-    swiftExec: swiftExec,
+    swiftExec: swiftPath.swift,
     subcommand: subcommand,
     scratchPath: scratchPath.path,
     extraArguments: extraArguments
@@ -148,17 +146,19 @@ func pluginSubcommand(subcommand: String, argv0: String, arguments: [String]) as
 
   var env: [String: String] = ProcessInfo.processInfo.environment
   if ToolchainSystem.isSnapshotVersion(swiftPath.version),
-     swiftPath.toolchain.extension == "xctoolchain"
+     swiftPath.toolchain.pathExtension == "xctoolchain"
   {
-    env["DYLD_LIBRARY_PATH"] = swiftPath.toolchain.appending(
-      components: ["usr", "lib", "swift", "macosx"]
-    ).pathString
+    env["DYLD_LIBRARY_PATH"] = swiftPath.toolchain
+      .appendingPathComponent("usr")
+      .appendingPathComponent("lib")
+      .appendingPathComponent("swift")
+      .appendingPathComponent("macosx")
+      .path
   }
 
   try Foundation.Process.checkRun(
-    swiftExec, 
+    swiftPath.swift,
     arguments: pluginArguments,
-    environment: env,
     forwardExit: true
   )
 }
@@ -185,11 +185,11 @@ public func main(arguments: [String]) async throws {
       subcommand: subcommand, argv0: argv0, arguments: Array(arguments.dropFirst()))
   case "package":
     let terminal = InteractiveWriter.stdout
-    let toolchainSystem = try ToolchainSystem(fileSystem: localFileSystem)
+    let toolchainSystem = try ToolchainSystem(fileSystem: .default)
     let swiftPath = try await toolchainSystem.inferSwiftPath(terminal)
 
     try Foundation.Process.checkRun(
-      URL(fileURLWithPath: swiftPath.swift.pathString),
+      swiftPath.swift,
       arguments: ["package"] + arguments.dropFirst(),
       forwardExit: true
     )

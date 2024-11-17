@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import CartonHelpers
+import CartonCore
 import Foundation
 
 #if canImport(FoundationNetworking)
@@ -47,15 +47,48 @@ private struct Release: Decodable {
   let assets: [Asset]
 }
 
+enum ToolchainError: Error, CustomStringConvertible {
+  case directoryDoesNotExist(URL)
+  case invalidInstallationArchive(URL)
+  case invalidVersion(version: String)
+  case notHTTPURLResponse(url: String)
+  case invalidResponse(url: String, status: Int, body: Data)
+  case unsupportedOperatingSystem
+  case noInstallationDirectory(path: String)
+
+  var description: String {
+    switch self {
+    case let .directoryDoesNotExist(path):
+      return "Directory at path \(path.path) does not exist and could not be created"
+    case let .invalidInstallationArchive(path):
+      return "Invalid toolchain/SDK archive was installed at path \(path)"
+    case let .invalidVersion(version):
+      return "Invalid version \(version)"
+    case let .notHTTPURLResponse(url: url):
+      return "Response from \(url) is not HTTPURLResponse"
+    case let .invalidResponse(url: url, status: status, body: body):
+      var t = "Response from \(url) had invalid status \(status) with a body of \(body.count) bytes: "
+      t += String(decoding: body, as: UTF8.self)
+      return t
+    case .unsupportedOperatingSystem:
+      return "This version of the operating system is not supported"
+    case let .noInstallationDirectory(path):
+      return """
+        Failed to infer toolchain installation directory. Please make sure that \(path) exists.
+        """
+    }
+  }
+}
+
 public class ToolchainSystem {
-  let fileSystem: FileSystem
+  let fileSystem: FileManager
   let userXCToolchainResolver: XCToolchainResolver?
   let cartonToolchainResolver: CartonToolchainResolver
   let resolvers: [ToolchainResolver]
   let githubToken: String?
 
   public init(
-    fileSystem: FileSystem,
+    fileSystem: FileManager,
     githubToken: String? = nil
   ) throws {
     self.fileSystem = fileSystem
@@ -71,11 +104,11 @@ public class ToolchainSystem {
       .localDomainMask,
       true
     ).first
-    userXCToolchainResolver = try userLibraryPath.flatMap {
-      XCToolchainResolver(libraryPath: try AbsolutePath(validating: $0), fileSystem: fileSystem)
+    userXCToolchainResolver = userLibraryPath.flatMap {
+      XCToolchainResolver(libraryPath: URL(fileURLWithPath: $0), fileSystem: fileSystem)
     }
-    let rootXCToolchainResolver = try rootLibraryPath.flatMap {
-      XCToolchainResolver(libraryPath: try AbsolutePath(validating: $0), fileSystem: fileSystem)
+    let rootXCToolchainResolver = rootLibraryPath.flatMap {
+      XCToolchainResolver(libraryPath: URL(fileURLWithPath: $0), fileSystem: fileSystem)
     }
     let xctoolchainResolvers: [ToolchainResolver] = [
       userXCToolchainResolver, rootXCToolchainResolver,
@@ -89,29 +122,9 @@ public class ToolchainSystem {
       ] + xctoolchainResolvers
   }
 
-  private var libraryPaths: [AbsolutePath] {
-    get throws {
-      try NSSearchPathForDirectoriesInDomains(
-        .libraryDirectory, [.localDomainMask], true
-      ).map { try AbsolutePath(validating: $0) }
-    }
-  }
-
-  public var swiftVersionPath: AbsolutePath {
-    guard let cwd = fileSystem.currentWorkingDirectory else {
-      fatalError()
-    }
-
-    return cwd.appending(component: ".swift-version")
-  }
-
-  private func getDirectoryPaths(_ directoryPath: AbsolutePath) throws -> [AbsolutePath] {
-    if fileSystem.isDirectory(directoryPath) {
-      return try fileSystem.getDirectoryContents(directoryPath)
-        .map { directoryPath.appending(component: $0) }
-    } else {
-      return []
-    }
+  public var swiftVersionPath: URL {
+    let cwd = URL(fileURLWithPath: fileSystem.currentDirectoryPath)
+    return cwd.appendingPathComponent(".swift-version")
   }
 
   func inferSwiftVersion(
@@ -138,17 +151,20 @@ public class ToolchainSystem {
   }
 
   private func checkAndLog(
-    installationPath: AbsolutePath,
+    installationPath: URL,
     _ terminal: InteractiveWriter
-  ) throws -> AbsolutePath? {
-    let swiftPath = installationPath.appending(components: "usr", "bin", "swift")
+  ) throws -> URL? {
+    let swiftPath = installationPath
+      .appendingPathComponent("usr")
+      .appendingPathComponent("bin")
+      .appendingPathComponent("swift")
 
-    terminal.logLookup("- checking Swift compiler path: ", swiftPath)
-    guard fileSystem.exists(swiftPath, followSymlink: true) else { return nil }
+    terminal.logLookup("- checking Swift compiler path: ", swiftPath.path)
+    guard fileSystem.fileExists(atPath: swiftPath.path) else { return nil }
 
     terminal.write("Inferring basic settings...\n", inColor: .yellow)
-    terminal.logLookup("- swift executable: ", swiftPath)
-    if let output = try processStringOutput([swiftPath.pathString, "--version"]) {
+    terminal.logLookup("- swift executable: ", swiftPath.path)
+    if let output = try processStringOutput([swiftPath.path, "--version"]) {
       terminal.write(output)
     }
 
@@ -214,14 +230,14 @@ public class ToolchainSystem {
   private func inferLinuxDistributionSuffix() throws -> String {
     guard
       let releaseFile = [
-        AbsolutePath.root.appending(components: "etc", "lsb-release"),
-        AbsolutePath.root.appending(components: "etc", "os-release"),
+        URL(fileURLWithPath: "/etc/lsb-release"),
+        URL(fileURLWithPath: "/etc/os-release"),
       ].first(where: fileSystem.isFile)
     else {
       throw ToolchainError.unsupportedOperatingSystem
     }
 
-    let releaseData = try fileSystem.readFileContents(releaseFile).description
+    let releaseData = try String(contentsOf: releaseFile)
     if releaseData.contains("DISTRIB_RELEASE=18.04") {
       return "ubuntu18.04"
     } else if releaseData.contains("DISTRIB_RELEASE=20.04") {
@@ -237,8 +253,8 @@ public class ToolchainSystem {
 
   public struct SwiftPath {
     public var version: String
-    public var swift: AbsolutePath
-    public var toolchain: AbsolutePath
+    public var swift: URL
+    public var toolchain: URL
   }
 
   /** Infer `swift` binary path matching a given version if any is present, or infer the
@@ -300,17 +316,16 @@ public class ToolchainSystem {
 
   public func fetchAllSwiftVersions() throws -> [String] {
     resolvers.flatMap { (try? $0.fetchVersions()) ?? [] }
-      .filter { fileSystem.isDirectory($0.path) }
+      .filter { fileSystem.isDirectory(at: $0.path) }
       .map(\.version)
       .sorted()
   }
 
   public func fetchLocalSwiftVersion() throws -> String? {
     guard fileSystem.isFile(swiftVersionPath),
-      let version = try fileSystem.readFileContents(swiftVersionPath)
-        .validDescription?
-        // get the first line of the file
-        .components(separatedBy: CharacterSet.newlines).first
+          let version = try String(contentsOf: swiftVersionPath)
+            // get the first line of the file
+      .components(separatedBy: CharacterSet.newlines).first
     else { return nil }
 
     return version
