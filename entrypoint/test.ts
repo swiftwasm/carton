@@ -14,7 +14,7 @@
 
 import ReconnectingWebSocket from "reconnecting-websocket";
 import { WASIProcExit } from "@bjorn3/browser_wasi_shim";
-import { WasmRunner } from "./common.js";
+import { instantiate } from "./intrinsics.js";
 import type { SwiftRuntimeConstructor } from "./JavaScriptKit_JavaScriptKit.resources/Runtime";
 
 const socket = new ReconnectingWebSocket(`ws://${location.host}/watcher`);
@@ -27,7 +27,6 @@ socket.addEventListener("message", (message) => {
 const startWasiTask = async () => {
   // Fetch our Wasm File
   const response = await fetch("/main.wasm");
-  const responseArrayBuffer = await response.arrayBuffer();
 
   let runtimeConstructor: SwiftRuntimeConstructor | undefined = undefined;
   try {
@@ -46,22 +45,6 @@ const startWasiTask = async () => {
   const config = await fetch("/process-info.json").then((response) => response.json());
 
   let testRunOutput = "";
-  const wasmRunner = WasmRunner(
-    {
-      env: config.env,
-      onStdoutLine: (line) => {
-        console.log(line);
-        testRunOutput += line + "\n";
-      },
-      onStderrLine: (line) => {
-        console.error(line);
-      },
-    },
-    runtimeConstructor
-  );
-
-  // Instantiate the WebAssembly file
-  const wasmBytes = new Uint8Array(responseArrayBuffer).buffer;
 
   // There are 6 cases to exit test
   // 1. Successfully finished XCTest with `exit(0)` synchronously
@@ -97,7 +80,21 @@ const startWasiTask = async () => {
   });
   // Start the WebAssembly WASI instance
   try {
-    await wasmRunner.run(wasmBytes);
+    // Instantiate the WebAssembly file
+    await instantiate(
+      {
+        module: await WebAssembly.compileStreaming(response),
+        env: config.env,
+        onStdoutLine: (line) => {
+          console.log(line);
+          testRunOutput += line + "\n";
+        },
+        onStderrLine: (line) => {
+          console.error(line);
+        },
+        SwiftRuntime: runtimeConstructor,
+      }
+    );
   } catch (error) {
     // Handle synchronous exits (case 1, 2, 5)
     handleExitOrError(error)

@@ -14,7 +14,7 @@
 
 import fs from "fs/promises";
 import path from "path";
-import { WasmRunner } from "./common.js";
+import { instantiate } from "./intrinsics.js";
 import type { SwiftRuntimeConstructor } from "./JavaScriptKit_JavaScriptKit.resources/Runtime";
 
 const args = [...process.argv];
@@ -55,16 +55,6 @@ const startWasiTask = async () => {
     }
   }
 
-  const wasmRunner = WasmRunner({
-    args: testArgs,
-    env,
-    onStdoutLine: (line) => {
-      console.log(line);
-    },
-    onStderrLine: (line) => {
-      console.error(line);
-    },
-  }, runtimeConstructor);
   let procExitCalled = false;
 
   process.on("beforeExit", () => {
@@ -74,16 +64,30 @@ This usually means there are some dangling continuations, which are awaited but 
     }
   });
 
-  await wasmRunner.run(wasmBytes, {
-    "wasi_snapshot_preview1": {
-      // @bjorn3/browser_wasi_shim raises an exception when
-      // the process exits, but we just want to exit the process itself.
-      proc_exit: (code: number) => {
-        procExitCalled = true;
-        process.exit(code);
+  await instantiate(
+    {
+      module: await WebAssembly.compile(wasmBytes),
+      args: testArgs,
+      env,
+      onStdoutLine: (line) => {
+        console.log(line);
       },
+      onStderrLine: (line) => {
+        console.error(line);
+      },
+      SwiftRuntime: runtimeConstructor,
+    },
+    {
+      "wasi_snapshot_preview1": {
+        // @bjorn3/browser_wasi_shim raises an exception when
+        // the process exits, but we just want to exit the process itself.
+        proc_exit: (code: number) => {
+          procExitCalled = true;
+          process.exit(code);
+        },
+      }
     }
-  });
+  );
 };
 
 startWasiTask().catch((e) => {
