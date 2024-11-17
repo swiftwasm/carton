@@ -47,7 +47,7 @@ jobs:
       - name: Install dependencies for macOS
         run: brew bundle
 
-      - run: npm install
+      - run: npm install && npx playwright install chromium
 
       - name: Build the project
         run: swift build --build-tests
@@ -91,7 +91,7 @@ jobs:
           sudo apt-get update && sudo apt-get install -y
           wabt binaryen
 
-      - run: npm install
+      - run: npm install && npx playwright install chromium
 
       - name: Install WebAssembly runtime
         uses: bytecodealliance/actions/wasmtime/setup@v1

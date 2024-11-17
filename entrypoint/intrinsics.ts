@@ -218,7 +218,11 @@ export async function testBrowser(instantiate: Instantiate, wasmFileName: string
       return await import("playwright")
     } catch {
       // Playwright is not available in the current environment
-      console.error("Playwright is not available in the current environment. Please install it by running `npm install playwright`.");
+      console.error(`Playwright is not available in the current environment.
+Please run the following command to install it:
+
+    $ npm install playwright && npx playwright install chromium
+`);
       process.exit(1);
     }
   })();
