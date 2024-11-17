@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { WASI, File, OpenFile, ConsoleStdout, PreopenDirectory, WASIProcExit } from "@bjorn3/browser_wasi_shim";
+import { WASI, File, OpenFile, ConsoleStdout, PreopenDirectory, WASIProcExit, Inode, Directory } from "@bjorn3/browser_wasi_shim";
 import type { SwiftRuntime, SwiftRuntimeConstructor } from "./JavaScriptKit_JavaScriptKit.resources/Runtime/index";
 import { polyfill as polyfillWebAssemblyTypeReflection } from "wasm-imports-parser/polyfill";
 import type { ImportEntry } from "wasm-imports-parser";
@@ -48,6 +48,7 @@ export type InstantiationOptions = {
   module: WebAssembly.Module;
   args?: string[];
   env?: Record<string, string>;
+  rootFs?: Map<string, Inode>;
   onStdout?: (chunk: Uint8Array) => void;
   onStdoutLine?: (line: string) => void;
   onStderr?: (chunk: Uint8Array) => void;
@@ -58,6 +59,7 @@ export type InstantiationOptions = {
 
 export async function instantiate(rawOptions: InstantiationOptions, extraWasmImports?: WebAssembly.Imports): Promise<{
   instance: WebAssembly.Instance;
+  rootFs: Map<string, Inode>;
 }> {
   const options: InstantiationOptions = defaultInstantiationOptions(rawOptions);
 
@@ -85,11 +87,12 @@ export async function instantiate(rawOptions: InstantiationOptions, extraWasmImp
   });
 
   const args = options.args || [];
+  const rootFs = options.rootFs || new Map<string, Inode>();
   const fds = [
     new OpenFile(new File([])), // stdin
     stdout,
     stderr,
-    new PreopenDirectory("/", new Map()),
+    new PreopenDirectory("/", rootFs),
   ];
 
   // Convert env Record to array of "key=value" strings
@@ -177,7 +180,7 @@ export async function instantiate(rawOptions: InstantiationOptions, extraWasmImp
     }
   }
 
-  return { instance };
+  return { instance, rootFs };
 }
 
 function defaultInstantiationOptions(options: InstantiationOptions): InstantiationOptions {
@@ -206,7 +209,38 @@ function defaultInstantiationOptions(options: InstantiationOptions): Instantiati
 
 type Instantiate = (options: Omit<InstantiationOptions, "module">, extraWasmImports?: WebAssembly.Imports) => Promise<{
   instance: WebAssembly.Instance;
+  rootFs: Map<string, Inode>;
 }>;
+
+async function extractAndSaveFile(rootFs: Map<string, Inode>, path: string): Promise<boolean> {
+  const getFile = (parent: Map<string, Inode>, components: string[], index: number): Inode | undefined => {
+    const name = components[index];
+    const entry = parent.get(name);
+    if (entry === undefined) {
+      return undefined;
+    }
+    if (index === components.length - 1) {
+      return entry;
+    }
+    if (entry instanceof Directory) {
+      return getFile(entry.contents, components, index + 1);
+    }
+    throw new Error(`Expected directory at ${components.slice(0, index).join("/")}`);
+  }
+
+  const components = path.split("/");
+  const file = getFile(rootFs, components, 0);
+  if (file === undefined) {
+    return false;
+  }
+  if (file instanceof File) {
+    const fs = await import("node:fs/promises");
+    console.log(`Saved ${path} to ${process.cwd()}`);
+    await fs.writeFile(path, file.data);
+    return true;
+  }
+  return false;
+}
 
 export async function testBrowser(instantiate: Instantiate, wasmFileName: string, args: string[], indexJsUrl: string, inPage: boolean) {
   if (inPage) {
@@ -221,8 +255,8 @@ export async function testBrowser(instantiate: Instantiate, wasmFileName: string
       console.error(`Playwright is not available in the current environment.
 Please run the following command to install it:
 
-    $ npm install playwright && npx playwright install chromium
-`);
+      $ npm install playwright && npx playwright install chromium
+      `);
       process.exit(1);
     }
   })();
@@ -275,9 +309,9 @@ async function testBrowserInPage(instantiate: Instantiate, wasmFileName: string,
 
   // There are 6 cases to exit test
   // 1. Successfully finished XCTest with `exit(0)` synchronously
-  // 2. Unsuccessfully finished XCTest with `exit(non-zero)` synchronously
+  // 2. Unsuccessfully finished XCTest with `exit(non - zero)` synchronously
   // 3. Successfully finished XCTest with `exit(0)` asynchronously
-  // 4. Unsuccessfully finished XCTest with `exit(non-zero)` asynchronously
+  // 4. Unsuccessfully finished XCTest with `exit(non - zero)` asynchronously
   // 5. Crash by throwing JS exception synchronously
   // 6. Crash by throwing JS exception asynchronously
 
@@ -359,14 +393,42 @@ This usually means there are some dangling continuations, which are awaited but 
     }
   });
 
-  await instantiate({ env, args: [wasmFileName].concat(args) }, {
-    "wasi_snapshot_preview1": {
-      // @bjorn3/browser_wasi_shim raises an exception when
-      // the process exits, but we just want to exit the process itself.
-      proc_exit: (code: number) => {
-        procExitCalled = true;
-        process.exit(code);
-      },
+  process.on("unhandledRejection", (error) => {
+    if (error instanceof WASIProcExit && error.code == 0) {
+      return;
+    }
+    throw error;
+  })
+
+  const rootFs = new Map<string, Inode>();
+  const onExit = new Promise<number>(async (resolve) => {
+    try {
+      await instantiate({ env, args: [wasmFileName].concat(args), rootFs }, {
+        "wasi_snapshot_preview1": {
+          // @bjorn3/browser_wasi_shim raises an exception when
+          // the process exits, but we just want to exit the process itself.
+          proc_exit: (code: number) => {
+            procExitCalled = true;
+            resolve(code);
+            throw new WASIProcExit(code);
+          },
+        }
+      });
+    } catch (error) {
+      if (error instanceof WASIProcExit) {
+        resolve(error.code);
+      } else {
+        throw error;
+      }
     }
   });
+  let code = 1;
+  try {
+    code = await onExit;
+  } finally {
+    for (const path of ["default.profraw"]) {
+      await extractAndSaveFile(rootFs, path);
+    }
+    process.exit(code);
+  }
 }
