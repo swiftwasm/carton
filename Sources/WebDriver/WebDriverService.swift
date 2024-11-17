@@ -1,4 +1,5 @@
 import CartonHelpers
+import CartonCore
 import Foundation
 
 public protocol WebDriverService {

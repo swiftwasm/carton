@@ -1,32 +1,34 @@
-import CartonHelpers
+import Foundation
 
 protocol ToolchainResolver {
-  func fetchVersions() throws -> [(version: String, path: AbsolutePath)]
-  func toolchain(for version: String) -> AbsolutePath
+  func fetchVersions() throws -> [(version: String, path: URL)]
+  func toolchain(for version: String) -> URL
 }
 
 final class XCToolchainResolver: ToolchainResolver {
-  let toolchainsPath: AbsolutePath
-  let fileSystem: FileSystem
+  let toolchainsPath: URL
+  let fileSystem: FileManager
 
-  init?(libraryPath: AbsolutePath, fileSystem: FileSystem) {
-    toolchainsPath = libraryPath.appending(components: "Developer", "Toolchains")
+  init?(libraryPath: URL, fileSystem: FileManager) {
+    toolchainsPath = libraryPath
+      .appendingPathComponent("Developer")
+      .appendingPathComponent("Toolchains")
     self.fileSystem = fileSystem
-    guard fileSystem.isDirectory(libraryPath) else {
+    guard fileSystem.isDirectory(at: libraryPath) else {
       return nil
     }
   }
 
-  func fetchVersions() throws -> [(version: String, path: AbsolutePath)] {
-    let xctoolchains = try fileSystem.getDirectoryContents(toolchainsPath)
+  func fetchVersions() throws -> [(version: String, path: URL)] {
+    let xctoolchains = try fileSystem.contentsOfDirectory(atPath: toolchainsPath.path)
     return xctoolchains.compactMap {
       guard let name = Self.toolchainName(fromXCToolchain: $0) else { return nil }
-      return (version: name, path: toolchainsPath.appending(component: $0))
+      return (version: name, path: toolchainsPath.appendingPathComponent($0))
     }
   }
 
-  func toolchain(for version: String) -> AbsolutePath {
-    toolchainsPath.appending(component: Self.xctoolchainName(fromVersion: version))
+  func toolchain(for version: String) -> URL {
+    toolchainsPath.appendingPathComponent(Self.xctoolchainName(fromVersion: version))
   }
 
   private static func toolchainName(fromXCToolchain xctoolchain: String) -> String? {
@@ -44,43 +46,47 @@ final class XCToolchainResolver: ToolchainResolver {
 }
 
 final class SwiftEnvToolchainResolver: ToolchainResolver {
-  let versionsPath: AbsolutePath
-  let fileSystem: FileSystem
+  let versionsPath: URL
+  let fileSystem: FileManager
 
-  init(fileSystem: FileSystem) throws {
-    versionsPath = try fileSystem.homeDirectory.appending(components: ".swiftenv", "versions")
+  init(fileSystem: FileManager) throws {
+    versionsPath = fileSystem.homeDirectoryForCurrentUser
+      .appendingPathComponent(".swiftenv")
+      .appendingPathComponent("versions")
     self.fileSystem = fileSystem
   }
 
-  func fetchVersions() throws -> [(version: String, path: AbsolutePath)] {
-    let versions = try fileSystem.getDirectoryContents(versionsPath)
+  func fetchVersions() throws -> [(version: String, path: URL)] {
+    let versions = try fileSystem.contentsOfDirectory(atPath: versionsPath.path)
     return versions.map {
-      (version: $0, path: versionsPath.appending(component: $0))
+      (version: $0, path: versionsPath.appendingPathComponent($0))
     }
   }
 
-  func toolchain(for version: String) -> AbsolutePath {
-    versionsPath.appending(component: version)
+  func toolchain(for version: String) -> URL {
+    versionsPath.appendingPathComponent(version)
   }
 }
 
 final class CartonToolchainResolver: ToolchainResolver {
-  let cartonSDKPath: AbsolutePath
-  let fileSystem: FileSystem
+  let cartonSDKPath: URL
+  let fileSystem: FileManager
 
-  init(fileSystem: FileSystem) throws {
-    cartonSDKPath = try fileSystem.homeDirectory.appending(components: ".carton", "sdk")
+  init(fileSystem: FileManager) throws {
+    cartonSDKPath = fileSystem.homeDirectoryForCurrentUser
+      .appendingPathComponent(".carton")
+      .appendingPathComponent("sdk")
     self.fileSystem = fileSystem
   }
 
-  func fetchVersions() throws -> [(version: String, path: AbsolutePath)] {
-    let versions = try fileSystem.getDirectoryContents(cartonSDKPath)
+  func fetchVersions() throws -> [(version: String, path: URL)] {
+    let versions = try fileSystem.contentsOfDirectory(atPath: cartonSDKPath.path)
     return versions.map {
-      (version: $0, path: cartonSDKPath.appending(component: $0))
+      (version: $0, path: cartonSDKPath.appendingPathComponent($0))
     }
   }
 
-  func toolchain(for version: String) -> AbsolutePath {
-    cartonSDKPath.appending(component: version)
+  func toolchain(for version: String) -> URL {
+    cartonSDKPath.appendingPathComponent(version)
   }
 }

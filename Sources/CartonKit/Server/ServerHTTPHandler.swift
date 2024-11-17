@@ -148,7 +148,7 @@ final class ServerHTTPHandler: ChannelInboundHandler, RemovableChannelHandler {
     var responders: [(_ context: ChannelHandlerContext, _ uri: String) throws -> StaticResponse?] = []
 
     let buildDirectory = configuration.mainWasmPath.parentDirectory
-    for directoryName in try localFileSystem.resourcesDirectoryNames(relativeTo: buildDirectory) {
+    for directoryName in try FileManager.default.resourcesDirectoryNames(relativeTo: buildDirectory.asURL) {
       responders.append { context, uri in
         let parts = uri.split(separator: "/")
         guard let firstPart = parts.first,

@@ -62,7 +62,7 @@ public final class TerminalController {
   }
 
   /// Pointer to output stream to operate on.
-  private var stream: WritableByteStream
+  private var stream: _LocalFileOutputByteStream
 
   /// Width of the terminal.
   public var width: Int {
@@ -84,13 +84,9 @@ public final class TerminalController {
   private let boldString = "\u{001B}[1m"
 
   /// Constructs the instance if the stream is a tty.
-  public init?(stream: WritableByteStream) {
-    let realStream = (stream as? ThreadSafeOutputByteStream)?.stream ?? stream
-
+  public init?(stream: _LocalFileOutputByteStream) {
     // Make sure it is a file stream and it is tty.
-    guard let fileStream = realStream as? LocalFileOutputByteStream,
-      TerminalController.isTTY(fileStream)
-    else {
+    guard TerminalController.isTTY(stream) else {
       return nil
     }
 
@@ -109,14 +105,14 @@ public final class TerminalController {
   }
 
   /// Checks if passed file stream is tty.
-  public static func isTTY(_ stream: LocalFileOutputByteStream) -> Bool {
+  public static func isTTY(_ stream: _LocalFileOutputByteStream) -> Bool {
     return terminalType(stream) == .tty
   }
 
   /// Computes the terminal type of the stream.
-  public static func terminalType(_ stream: LocalFileOutputByteStream) -> TerminalType {
+  public static func terminalType(_ stream: _LocalFileOutputByteStream) -> TerminalType {
     #if !os(Windows)
-      if ProcessEnv.block["TERM"] == "dumb" {
+      if ProcessInfo.processInfo.environment["TERM"] == "dumb" {
         return .dumb
       }
     #endif
@@ -138,7 +134,7 @@ public final class TerminalController {
       return Int(csbi.srWindow.Right - csbi.srWindow.Left) + 1
     #else
       // Try to get from environment.
-      if let columns = ProcessEnv.block["COLUMNS"], let width = Int(columns) {
+      if let columns = ProcessInfo.processInfo.environment["COLUMNS"], let width = Int(columns) {
         return width
       }
 
@@ -181,7 +177,7 @@ public final class TerminalController {
 
   /// Writes a string to the stream.
   public func write(_ string: String, inColor color: Color = .noColor, bold: Bool = false) {
-    writeWrapped(string, inColor: color, bold: bold, stream: stream)
+    stream.send(writeWrapped(string, inColor: color, bold: bold))
     flush()
   }
 
@@ -193,19 +189,16 @@ public final class TerminalController {
 
   /// Wraps the string into the color mentioned.
   public func wrap(_ string: String, inColor color: Color, bold: Bool = false) -> String {
-    let stream = BufferedOutputByteStream()
-    writeWrapped(string, inColor: color, bold: bold, stream: stream)
-    return stream.bytes.description
+    return writeWrapped(string, inColor: color, bold: bold)
   }
 
   private func writeWrapped(
-    _ string: String, inColor color: Color, bold: Bool = false, stream: WritableByteStream
-  ) {
+    _ string: String, inColor color: Color, bold: Bool = false
+  ) -> String {
     // Don't wrap if string is empty or color is no color.
     guard !string.isEmpty && color != .noColor else {
-      stream.send(string)
-      return
+      return string
     }
-    stream.send(color.string).send(bold ? boldString : "").send(string).send(resetString)
+    return color.string + (bold ? boldString : "") + string + resetString
   }
 }

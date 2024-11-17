@@ -1,4 +1,5 @@
 import CartonHelpers
+import CartonCore
 import Foundation
 import NIOCore
 import NIOPosix
@@ -28,7 +29,7 @@ public struct CommandWebDriverService: WebDriverService {
   }
 
   public static func findFromEnvironment(
-    terminal: CartonHelpers.InteractiveWriter
+    terminal: InteractiveWriter
   ) async throws -> CommandWebDriverService? {
     terminal.logLookup("- checking WebDriver executable: ", "WEBDRIVER_PATH")
     guard let executable = ProcessInfo.processInfo.environment["WEBDRIVER_PATH"] else {
@@ -41,7 +42,7 @@ public struct CommandWebDriverService: WebDriverService {
   }
 
   public static func findFromPath(
-    terminal: CartonHelpers.InteractiveWriter
+    terminal: InteractiveWriter
   ) async throws -> CommandWebDriverService? {
     let driverCandidates = [
       "chromedriver", "geckodriver", "safaridriver", "msedgedriver",
@@ -49,18 +50,18 @@ public struct CommandWebDriverService: WebDriverService {
     terminal.logLookup(
       "- checking WebDriver executable in PATH: ", driverCandidates.joined(separator: ", "))
     guard let found = driverCandidates.lazy
-      .compactMap({ CartonHelpers.Process.findExecutable($0) }).first else
+      .compactMap({ try? Foundation.Process.which($0) }).first else
     {
       return nil
     }
     let (endpoint, process) = try await launchDriver(
-      terminal: terminal, executablePath: found.pathString
+      terminal: terminal, executablePath: found.path
     )
     return CommandWebDriverService(endpoint: endpoint, process: process)
   }
 
   public static func find(
-    terminal: CartonHelpers.InteractiveWriter
+    terminal: InteractiveWriter
   ) async throws -> CommandWebDriverService? {
     if let driver = try await findFromEnvironment(terminal: terminal) {
       return driver

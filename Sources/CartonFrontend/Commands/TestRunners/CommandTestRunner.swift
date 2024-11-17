@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import CartonHelpers
+import CartonCore
 import CartonKit
 import Foundation
 
@@ -58,9 +59,9 @@ struct CommandTestRunner: TestRunner {
 
   func defaultWASIRuntime() throws -> String {
     let candidates = ["wasmtime", "wasmer"]
-    guard let found = candidates.lazy.compactMap({ Process.findExecutable($0) }).first else {
+    guard let found = candidates.lazy.compactMap({ try? Foundation.Process.which($0) }).first else {
       throw CommandTestRunnerError("No WASI runtime found. Please install one of the following: \(candidates.joined(separator: ", "))")
     }
-    return found.pathString
+    return found.path
   }
 }

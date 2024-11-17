@@ -14,6 +14,7 @@
 
 import Dispatch
 import Foundation
+import CartonCore
 
 struct ProcessError: Error {
   let stderr: String?
@@ -34,7 +35,7 @@ extension ProcessError: CustomStringConvertible {
   }
 }
 
-extension Process {
+extension Foundation.Process {
   // swiftlint:disable:next function_body_length
   public static func run(
     _ arguments: [String],
@@ -50,8 +51,7 @@ extension Process {
       terminal.write(environment.map { "\($0)=\($1)" }.joined(separator: " ") + " ")
     }
 
-    let processName =
-      arguments[0].first == "/" ? try AbsolutePath(validating: arguments[0]).basename : arguments[0]
+    let processName = URL(fileURLWithPath: arguments[0]).lastPathComponent
 
     do {
       try await withCheckedThrowingContinuation {

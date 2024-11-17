@@ -89,11 +89,11 @@ final class FrontendDevServerTests: XCTestCase {
     try fs.changeCurrentWorkingDirectory(to: projectDir)
 
     if !fs.exists(wasmFile) {
-      let tools = try ToolchainSystem(fileSystem: fs)
+      let tools = try ToolchainSystem(fileSystem: .default)
       let builderSwift = try await tools.inferSwiftPath(terminal)
 
       var args: [String] = [
-        builderSwift.swift.pathString, "build", "--triple", "wasm32-unknown-wasi"
+        builderSwift.swift.path, "build", "--triple", "wasm32-unknown-wasi"
       ]
       args += Environment.browser.buildParameters().asBuildArguments()
 

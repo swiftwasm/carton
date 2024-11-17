@@ -530,10 +530,9 @@ public func openInSystemBrowser(url: URL) throws {
   #else
     throw Server.Error.noOpenBrowserPlatform
   #endif
-  let process = Process(
-    arguments: [openCommand, url.absoluteString],
-    outputRedirection: .none,
-    startNewProcessGroup: true
+  let openExecutable = try Foundation.Process.which(openCommand)
+  try Foundation.Process.checkRun(
+    openExecutable,
+    arguments: [url.absoluteString]
   )
-  try process.launch()
 }

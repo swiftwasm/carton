@@ -146,7 +146,6 @@ func fetchWebContent(at url: URL, timeout: Duration) async throws -> (response: 
 }
 
 func fetchHead(at url: URL, timeout: Duration) async throws -> HTTPURLResponse {
-  let session = URLSession.shared
   var request = URLRequest(url: url)
   request.httpMethod = "HEAD"
   let (_, response) = try await URLSession.shared.data(for: request)

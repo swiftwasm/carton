@@ -1,4 +1,4 @@
 import ArgumentParser
 import CartonCore
 
-extension Environment: ExpressibleByArgument {}
+extension Environment: ArgumentParser.ExpressibleByArgument {}

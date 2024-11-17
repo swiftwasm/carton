@@ -852,7 +852,7 @@ public final class Process {
     public func waitUntilExit() async throws -> ProcessResult {
         try await withCheckedThrowingContinuation { continuation in
             DispatchQueue.processConcurrent.async {
-                self.waitUntilExit(continuation.resume(with:))
+                self.waitUntilExit { continuation.resume(with: $0) }
             }
         }
     }
