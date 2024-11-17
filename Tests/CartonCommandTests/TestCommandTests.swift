@@ -46,7 +46,15 @@ final class TestCommandTests: XCTestCase {
       try result.checkNonZeroExit()
       let stdout = try result.utf8Output()
       let stderr = try result.utf8stderrOutput()
-      let expectedContent = "Test Suite 'All tests' passed"
+      let expectedTestSuiteCount = 1
+      let expectedTestsCount = 1
+      let expectedContent =
+          """
+          Test Suites: \(ControlCode.CSI)32m\(expectedTestSuiteCount) passed\(ControlCode
+          .CSI)0m, \(expectedTestSuiteCount) total
+          Tests:       \(ControlCode.CSI)32m\(expectedTestsCount) passed\(ControlCode
+          .CSI)0m, \(expectedTestsCount) total
+          """
       // SwiftPM changed the output destination of SwiftPM Plugin in 6.0
       XCTAssertTrue(stdout.contains(expectedContent) || stderr.contains(expectedContent))
     }

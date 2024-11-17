@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import CartonCore
 import Dispatch
 import Foundation
-import CartonCore
 
 struct ProcessError: Error {
   let stderr: String?
@@ -137,12 +137,6 @@ extension Foundation.Process {
             terminal.write(stdout)
           }
         }
-      } else {
-        terminal.write(
-          "\nProcess failed and produced following output: \n",
-          inColor: .red
-        )
-        print(error)
       }
 
       throw error

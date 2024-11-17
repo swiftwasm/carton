@@ -26,6 +26,7 @@ public struct CartonFrontendSlimCommand: AsyncParsableCommand {
     version: cartonVersion,
     subcommands: [
       CartonFrontendBundleCommand.self,
+      CartonFrontendTestCommand.self,
     ]
   )
 

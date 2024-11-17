@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { WASI, File, OpenFile, ConsoleStdout, PreopenDirectory } from "@bjorn3/browser_wasi_shim";
-import type { SwiftRuntime, SwiftRuntimeConstructor } from "./JavaScriptKit_JavaScriptKit.resources/Runtime";
+import { WASI, File, OpenFile, ConsoleStdout, PreopenDirectory, WASIProcExit } from "@bjorn3/browser_wasi_shim";
+import type { SwiftRuntime, SwiftRuntimeConstructor } from "./JavaScriptKit_JavaScriptKit.resources/Runtime/index";
 import { polyfill as polyfillWebAssemblyTypeReflection } from "wasm-imports-parser/polyfill";
 import type { ImportEntry } from "wasm-imports-parser";
 
 // Apply polyfill for WebAssembly Type Reflection JS API to inspect imported memory info.
 // https://github.com/WebAssembly/js-types/blob/main/proposals/js-types/Overview.md
-const WebAssembly = polyfillWebAssemblyTypeReflection(globalThis.WebAssembly);
+export const WebAssembly = polyfillWebAssemblyTypeReflection(globalThis.WebAssembly);
 
 class LineDecoder {
   constructor(onLine: (line: string) => void) {
@@ -202,4 +202,171 @@ function defaultInstantiationOptions(options: InstantiationOptions): Instantiati
     }
   }
   return options;
+}
+
+type Instantiate = (options: Omit<InstantiationOptions, "module">, extraWasmImports?: WebAssembly.Imports) => Promise<{
+  instance: WebAssembly.Instance;
+}>;
+
+export async function testBrowser(instantiate: Instantiate, wasmFileName: string, args: string[], indexJsUrl: string, inPage: boolean) {
+  if (inPage) {
+    return await testBrowserInPage(instantiate, wasmFileName, args);
+  }
+  const playwright = await (async () => {
+    try {
+      // @ts-ignore
+      return await import("playwright")
+    } catch {
+      // Playwright is not available in the current environment
+      console.error(`Playwright is not available in the current environment.
+Please run the following command to install it:
+
+    $ npm install playwright && npx playwright install chromium
+`);
+      process.exit(1);
+    }
+  })();
+  const browser = await playwright.chromium.launch();
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  const { fileURLToPath } = await import("node:url");
+  const path = await import("node:path");
+  const indexJsPath = fileURLToPath(indexJsUrl);
+  const webRoot = path.dirname(indexJsPath);
+
+  // Forward console messages in the page to the Node.js console
+  page.on("console", (message: any) => {
+    console.log(message.text());
+  });
+
+  await page.route("http://example.com/**/*", async (route: any) => {
+    const url = route.request().url();
+    const urlPath = new URL(url).pathname;
+    if (urlPath === "/process-info.json") {
+      route.fulfill({ body: JSON.stringify({ env: process.env }) });
+      return;
+    }
+    route.fulfill({ path: path.join(webRoot, urlPath.slice(1)) });
+  });
+  const onExit = new Promise<number>((resolve) => {
+    page.exposeFunction("exitTest", resolve);
+  });
+  await page.goto("http://example.com/test.browser.html");
+  const exitCode = await onExit;
+  await browser.close();
+  process.exit(exitCode);
+}
+
+async function testBrowserInPage(instantiate: Instantiate, wasmFileName: string, args: string[]) {
+  const logElement = document.createElement("pre");
+  document.body.appendChild(logElement);
+
+  const exitTest = (code: number) => {
+    const fn = (window as any).exitTest;
+    if (fn) { fn(code); }
+  }
+
+  const config = await fetch("/process-info.json").then((response) => response.json());
+
+  const handleError = (error: any) => {
+    console.error(error);
+    exitTest(1);
+  };
+
+  // There are 6 cases to exit test
+  // 1. Successfully finished XCTest with `exit(0)` synchronously
+  // 2. Unsuccessfully finished XCTest with `exit(non-zero)` synchronously
+  // 3. Successfully finished XCTest with `exit(0)` asynchronously
+  // 4. Unsuccessfully finished XCTest with `exit(non-zero)` asynchronously
+  // 5. Crash by throwing JS exception synchronously
+  // 6. Crash by throwing JS exception asynchronously
+
+  const handleExitOrError = (error: any) => {
+    // XCTest always calls `exit` at the end when no crash
+    if (error instanceof WASIProcExit) {
+      // pass the output to the server in any case
+      if (error.code === 0) {
+        exitTest(0);
+      } else {
+        handleError(error) // test failed
+      }
+    } else {
+      handleError(error) // something wrong happens during test
+    }
+  }
+
+  // Handle asynchronous exits (case 3, 4, 6)
+  window.addEventListener("unhandledrejection", event => {
+    event.preventDefault();
+    const error = event.reason;
+    handleExitOrError(error);
+  });
+
+  try {
+    // Instantiate the WebAssembly file
+    await instantiate(
+      {
+        env: config.env,
+        args: [wasmFileName].concat(args),
+        onStdoutLine(line) {
+          console.log(line);
+          logElement.textContent += line + "\n";
+        },
+        onStderrLine(line) {
+          console.warn(line);
+          logElement.textContent += line + "\n";
+        },
+      },
+      {
+        "wasi_snapshot_preview1": {
+          proc_exit: (code: number) => {
+            exitTest(code);
+            throw new WASIProcExit(code);
+          },
+        }
+      }
+    );
+  } catch (error) {
+    // Handle synchronous exits (case 1, 2, 5)
+    handleExitOrError(error);
+  }
+  // When JavaScriptEventLoop executor is still running,
+  // reachable here without catch (case 3, 4, 6)
+}
+
+export async function testNode(instantiate: Instantiate, wasmFileName: string, args: string[]) {
+  const env: Record<string, string> = {};
+  for (const key in process.env) {
+    const value = process.env[key];
+    if (value) {
+      env[key] = value;
+    }
+  }
+
+  let procExitCalled = false;
+
+  // Make `require` function available in the Swift environment. By default it's only available in the local scope,
+  // but not on the `global` object.
+  // @ts-ignore
+  const { createRequire } = await import("node:module");
+  const require = createRequire(import.meta.url);
+  globalThis.require = require;
+
+  process.on("beforeExit", () => {
+    if (!procExitCalled) {
+      throw new Error(`Test harness process exited before test process.
+This usually means there are some dangling continuations, which are awaited but never resumed.`);
+    }
+  });
+
+  await instantiate({ env, args: [wasmFileName].concat(args) }, {
+    "wasi_snapshot_preview1": {
+      // @bjorn3/browser_wasi_shim raises an exception when
+      // the process exits, but we just want to exit the process itself.
+      proc_exit: (code: number) => {
+        procExitCalled = true;
+        process.exit(code);
+      },
+    }
+  });
 }
