@@ -26,6 +26,7 @@ struct NodeTestRunner: TestRunner {
   let testFilePath: AbsolutePath
   let listTestCases: Bool
   let testCases: [String]
+  let nodeArguments: [String]
   let terminal: InteractiveWriter
 
   func run(options: TestRunnerOptions) async throws {
@@ -57,7 +58,8 @@ struct NodeTestRunner: TestRunner {
       )
     }
 
-    var nodeArguments = ["node", entrypointPath.pathString, testFilePath.pathString]
+    var nodeArguments =
+      ["node"] + nodeArguments + [entrypointPath.pathString, testFilePath.pathString]
     if listTestCases {
       nodeArguments.append(contentsOf: ["--", "-l"])
     } else if !testCases.isEmpty {
