@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import ReconnectingWebSocket from "reconnecting-websocket";
-import { WasmRunner } from "./common";
+import { instantiate } from "./intrinsics";
 import type { SwiftRuntimeConstructor } from "./JavaScriptKit_JavaScriptKit.resources/Runtime";
 
 const socket = new ReconnectingWebSocket(`ws://${location.host}/watcher`);
@@ -27,7 +27,6 @@ socket.addEventListener("message", (message) => {
 const startWasiTask = async () => {
   // Fetch our Wasm File
   const response = await fetch("/main.wasm");
-  const responseArrayBuffer = await response.arrayBuffer();
 
   let runtimeConstructor: SwiftRuntimeConstructor | undefined = undefined;
   try {
@@ -42,8 +41,10 @@ const startWasiTask = async () => {
     );
   }
 
-  const wasmRunner = WasmRunner(
+  // Instantiate the WebAssembly file
+  await instantiate(
     {
+      module: await WebAssembly.compileStreaming(response),
       onStdout(chunk) {
         const kindBuffer = new ArrayBuffer(2);
         new DataView(kindBuffer).setUint16(0, 1001, true);
@@ -69,14 +70,10 @@ const startWasiTask = async () => {
       },
       onStderrLine(line) {
         console.error(line);
-      }
-    },
-    runtimeConstructor
+      },
+      SwiftRuntime: runtimeConstructor,
+    }
   );
-
-  // Instantiate the WebAssembly file
-  const wasmBytes = new Uint8Array(responseArrayBuffer).buffer;
-  await wasmRunner.run(wasmBytes);
 };
 
 function handleError(e: any) {

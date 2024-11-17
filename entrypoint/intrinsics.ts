@@ -21,7 +21,7 @@ import type { ImportEntry } from "wasm-imports-parser";
 // https://github.com/WebAssembly/js-types/blob/main/proposals/js-types/Overview.md
 const WebAssembly = polyfillWebAssemblyTypeReflection(globalThis.WebAssembly);
 
-export class LineDecoder {
+class LineDecoder {
   constructor(onLine: (line: string) => void) {
     this.decoder = new TextDecoder("utf-8", { fatal: false });
     this.buffer = "";
@@ -44,25 +44,26 @@ export class LineDecoder {
   }
 }
 
-export type Options = {
+export type InstantiationOptions = {
+  module: WebAssembly.Module;
   args?: string[];
   env?: Record<string, string>;
   onStdout?: (chunk: Uint8Array) => void;
   onStdoutLine?: (line: string) => void;
   onStderr?: (chunk: Uint8Array) => void;
   onStderrLine?: (line: string) => void;
+  swift?: SwiftRuntime;
+  SwiftRuntime?: SwiftRuntimeConstructor;
 };
 
-export type WasmRunner = {
-  run(wasmBytes: ArrayBufferLike, extraWasmImports?: WebAssembly.Imports): Promise<void>
-};
+export async function instantiate(rawOptions: InstantiationOptions, extraWasmImports?: WebAssembly.Imports): Promise<{
+  instance: WebAssembly.Instance;
+}> {
+  const options: InstantiationOptions = defaultInstantiationOptions(rawOptions);
 
-export const WasmRunner = (rawOptions: Options, SwiftRuntime: SwiftRuntimeConstructor | undefined): WasmRunner => {
-  const options: Options = defaultRunnerOptions(rawOptions);
-
-  let swift: SwiftRuntime;
-  if (SwiftRuntime) {
-    swift = new SwiftRuntime();
+  let swift: SwiftRuntime | undefined = options.swift;
+  if (!swift && options.SwiftRuntime) {
+    swift = new options.SwiftRuntime();
   }
 
   let stdoutLine: LineDecoder | undefined = undefined;
@@ -99,7 +100,7 @@ export const WasmRunner = (rawOptions: Options, SwiftRuntime: SwiftRuntimeConstr
   });
 
   const createWasmImportObject = (
-    extraWasmImports: WebAssembly.Imports,
+    extraWasmImports: WebAssembly.Imports | undefined,
     module: WebAssembly.Module,
   ): WebAssembly.Imports => {
     const importObject: WebAssembly.Imports = {
@@ -149,50 +150,56 @@ export const WasmRunner = (rawOptions: Options, SwiftRuntime: SwiftRuntimeConstr
     return importObject;
   };
 
-  return {
-    async run(wasmBytes: ArrayBufferLike, extraWasmImports?: WebAssembly.Imports) {
-      if (!extraWasmImports) {
-        extraWasmImports = {};
-      }
-      extraWasmImports.__stack_sanitizer = {
-        report_stack_overflow: () => {
-          throw new Error("Detected stack buffer overflow.");
-        },
-      };
-      const module = await WebAssembly.compile(wasmBytes);
-      const importObject = createWasmImportObject(extraWasmImports, module);
-      const instance = await WebAssembly.instantiate(module, importObject);
+  const importObject = createWasmImportObject(extraWasmImports, options.module);
+  const instance = await WebAssembly.instantiate(options.module, importObject);
 
-      if (swift && instance.exports.swjs_library_version) {
-        swift.setInstance(instance);
-      }
+  if (swift && instance.exports.swjs_library_version) {
+    swift.setInstance(instance);
+  }
 
-      if (typeof instance.exports._start === "function") {
-        // Start the WebAssembly WASI instance
-        wasi.start(instance as any);
-      } else if (typeof instance.exports._initialize == "function") {
-        // Initialize and start Reactor
-        wasi.initialize(instance as any);
-        if (swift && swift.main) {
-          // Use JavaScriptKit's entry point if it's available
-          swift.main();
-        } else {
-          // For older versions of JavaScriptKit, we need to handle it manually
-          if (typeof instance.exports.main === "function") {
-            instance.exports.main();
-          } else if (typeof instance.exports.__main_argc_argv === "function") {
-            // Swift 6.0 and later use `__main_argc_argv` instead of `main`.
-            instance.exports.__main_argc_argv(0, 0);
-          }
-        }
+  if (typeof instance.exports._start === "function") {
+    // Start the WebAssembly WASI instance
+    wasi.start(instance as any);
+  } else if (typeof instance.exports._initialize == "function") {
+    // Initialize and start Reactor
+    wasi.initialize(instance as any);
+    if (swift && swift.main) {
+      // Use JavaScriptKit's entry point if it's available
+      swift.main();
+    } else {
+      // For older versions of JavaScriptKit, we need to handle it manually
+      if (typeof instance.exports.main === "function") {
+        instance.exports.main();
+      } else if (typeof instance.exports.__main_argc_argv === "function") {
+        // Swift 6.0 and later use `__main_argc_argv` instead of `main`.
+        instance.exports.__main_argc_argv(0, 0);
       }
-    },
-  };
-};
+    }
+  }
 
-const defaultRunnerOptions = (options: Options): Options => {
+  return { instance };
+}
+
+function defaultInstantiationOptions(options: InstantiationOptions): InstantiationOptions {
   if (options.args == null) {
     options.args = ["main.wasm"];
   }
+  const isNodeJs = (typeof process !== 'undefined') && (process.release.name === 'node');
+  const isWebBrowser = (typeof window !== 'undefined');
+  if (isNodeJs) {
+    if (!options.onStdout) {
+      options.onStdout = (chunk) => process.stdout.write(chunk);
+    }
+    if (!options.onStderr) {
+      options.onStderr = (chunk) => process.stderr.write(chunk);
+    }
+  } else if (isWebBrowser) {
+    if (!options.onStdoutLine) {
+      options.onStdoutLine = (line) => console.log(line);
+    }
+    if (!options.onStderrLine) {
+      options.onStderrLine = (line) => console.warn(line);
+    }
+  }
   return options;
-};
+}

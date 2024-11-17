@@ -39,13 +39,13 @@ struct HashArchive: AsyncParsableCommand {
     let staticPath = try AbsolutePath(validating: "static", relativeTo: cwd)
 
     var fileContent = """
-    import Foundation
+      import Foundation
 
-    public enum StaticResource {
+      public enum StaticResource {
 
-    """
+      """
 
-    for entrypoint in ["dev", "bundle", "test", "testNode"] {
+    for entrypoint in ["dev", "bundle", "test", "testNode", "intrinsics"] {
       let tsFilename = "\(entrypoint).ts"
       let filename = "\(entrypoint).js"
       var arguments = [
@@ -75,15 +75,15 @@ struct HashArchive: AsyncParsableCommand {
         $0.base64EncodedString()
       }
       fileContent += """
-        public static let \(entrypoint): Data = Data(base64Encoded: \"\(base64Content)\")!
+          public static let \(entrypoint): Data = Data(base64Encoded: \"\(base64Content)\")!
 
-      """
+        """
     }
 
     fileContent += """
 
-    }
-    """
+      }
+      """
 
     try localFileSystem.writeFileContents(
       AbsolutePath(
