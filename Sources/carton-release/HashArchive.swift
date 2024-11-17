@@ -50,7 +50,8 @@ struct HashArchive: AsyncParsableCommand {
       let arguments = [
         "esbuild", "--bundle", "entrypoint/\(tsFilename)", "--outfile=static/\(filename)",
         "--external:node:url", "--external:node:path",
-        "--external:node:module", "--external:playwright",
+        "--external:node:module", "--external:node:fs/promises",
+        "--external:playwright",
         "--format=esm",
         "--external:./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs",
       ]
