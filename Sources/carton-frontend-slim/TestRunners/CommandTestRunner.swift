@@ -49,7 +49,7 @@ struct CommandTestRunner: TestRunner {
     }
 
     arguments += [testFilePath.pathString] + xctestArgs
-    try await Process.run(arguments, parser: TestsParser(), terminal)
+    try await runTestProcess(arguments, parser: options.testsParser, terminal)
   }
 
   func defaultWASIRuntime() throws -> String {

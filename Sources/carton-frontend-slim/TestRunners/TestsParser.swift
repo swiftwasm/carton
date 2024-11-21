@@ -16,6 +16,23 @@ import CartonCore
 import CartonHelpers
 import Foundation
 
+protocol TestsParser {
+  /// Parse the output of a test process, format it, then output in the `InteractiveWriter`.
+  func parse<Lines>(
+    _ lines: Lines, _ terminal: InteractiveWriter
+  ) async throws where Lines: AsyncSequence, Lines.Element == String
+}
+
+struct RawTestsParser: TestsParser {
+  func parse<Lines>(
+    _ lines: Lines, _ terminal: InteractiveWriter
+  ) async throws where Lines: AsyncSequence, Lines.Element == String {
+    for try await line in lines {
+      terminal.write(line + "\n")
+    }
+  }
+}
+
 /// Parses and re-formats diagnostics output by the Swift compiler.
 ///
 /// The compiler output often repeats itself, and the diagnostics can sometimes be
@@ -44,7 +61,7 @@ struct DiagnosticsParser {
 }
 
 extension String.StringInterpolation {
-  fileprivate mutating func appendInterpolation(_ regexLabel: TestsParser.Regex.Label) {
+  fileprivate mutating func appendInterpolation(_ regexLabel: FancyTestsParser.Regex.Label) {
     appendInterpolation("<\(regexLabel.rawValue)>")
   }
 }
@@ -52,12 +69,14 @@ extension String.StringInterpolation {
 extension StringProtocol {
   fileprivate func range(
     of regex: NSRegularExpression,
-    labelled label: TestsParser.Regex.Label
+    labelled label: FancyTestsParser.Regex.Label
   ) -> Range<String.Index>? {
     range(of: regex, named: label.rawValue)
   }
 
-  fileprivate func match(of regex: NSRegularExpression, labelled label: TestsParser.Regex.Label)
+  fileprivate func match(
+    of regex: NSRegularExpression, labelled label: FancyTestsParser.Regex.Label
+  )
     -> String
     .SubSequence?
   {
@@ -66,8 +85,8 @@ extension StringProtocol {
 
   fileprivate func match(
     of regex: NSRegularExpression,
-    labelled labelA: TestsParser.Regex.Label,
-    _ labelB: TestsParser.Regex.Label
+    labelled labelA: FancyTestsParser.Regex.Label,
+    _ labelB: FancyTestsParser.Regex.Label
   ) -> (String.SubSequence, String.SubSequence)? {
     guard let a = match(of: regex, named: labelA.rawValue),
       let b = match(of: regex, named: labelB.rawValue)
@@ -78,7 +97,7 @@ extension StringProtocol {
   }
 }
 
-public struct TestsParser: ProcessOutputParser {
+public struct FancyTestsParser: TestsParser {
   public init() {}
 
   public let parsingConditions: ParsingCondition = [.success, .failure]
@@ -199,9 +218,9 @@ public struct TestsParser: ProcessOutputParser {
     }
   }
 
-  public func parse(_ output: String, _ terminal: InteractiveWriter) {
-    let lines = output.split(separator: "\n")
-
+  public func parse<Lines>(
+    _ lines: Lines, _ terminal: InteractiveWriter
+  ) async throws where Lines: AsyncSequence, Lines.Element == String {
     var suites = [Suite]()
     var unmappedProblems = [
       (
@@ -211,8 +230,11 @@ public struct TestsParser: ProcessOutputParser {
       )
     ]()
 
-    for line in lines {
+    for try await line in lines {
       if let suite = line.match(of: Regex.suiteStarted, labelled: .suite) {
+        if let lastSuite = suites.last {
+          flushSingleSuite(lastSuite, terminal)
+        }
         suites.append(.init(name: suite, cases: []))
       } else if let testCase = line.match(of: Regex.caseFinished, labelled: .testCase),
         let suite = line.match(of: Regex.caseFinished, labelled: .suite),
@@ -255,75 +277,73 @@ public struct TestsParser: ProcessOutputParser {
       }
     }
 
-    flushSuites(suites, terminal)
+    if let lastSuite = suites.last {
+      flushSingleSuite(lastSuite, terminal)
+    }
+
     terminal.write("\n")
     flushSummary(of: suites, terminal)
   }
 
-  func flushSuites(_ suites: [Suite], _ terminal: InteractiveWriter) {
-    let suitesWithCases = suites.filter { $0.cases.count > 0 }
-
+  func flushSingleSuite(_ suite: Suite, _ terminal: InteractiveWriter) {
     // Keep track of files we already opened and store their contents
     struct FileBuf: Hashable {
       let path: String
       let contents: String
     }
     var fileBufs = Set<FileBuf>()
-
-    for suite in suitesWithCases {
-      // bold, white fg, green/red bg
-      terminal
-        .write(
-          """
-          \n\(" \(suite.passed ? "PASSED" : "FAILED") ",
+    // bold, white fg, green/red bg
+    terminal
+      .write(
+        """
+        \n\(" \(suite.passed ? "PASSED" : "FAILED") ",
               color: "[1m", "[97m", suite.passed ? "[42m" : "[101m"
           )
-          """
-        )
-      terminal.write(" \(suite.name)\n")
-      for testCase in suite.cases {
-        if testCase.passed {
-          terminal.write("  \("✓", color: "[92m") ")  // green
-        } else {
-          terminal.write("  \("✕", color: "[91m") ")  // red
-        }
-        terminal
-          .write(
-            "\(testCase.name) \("(\(Int(Double(testCase.duration)! * 1000))ms)", color: "[90m")\n"
-          )  // gray
-        for problem in testCase.problems {
-          terminal.write("\n    \(problem.file, color: "[90m"):\(problem.line)\n")
-          terminal.write("    \(problem.message)\n\n")
-          // Format XCTAssert functions
-          for assertion in Regex.Assertion.allCases {
-            if let (expected, received) = problem.message.match(
-              of: Regex.xctAssert(assertion),
-              labelled: .expected, .received
-            ) {
-              terminal.write("    Expected: \("\(assertion.symbol)\(expected)", color: "[92m")\n")
-              terminal.write("    Received: \(received, color: "[91m")\n")
-            }
+        """
+      )
+    terminal.write(" \(suite.name)\n")
+    for testCase in suite.cases {
+      if testCase.passed {
+        terminal.write("  \("✓", color: "[92m") ")  // green
+      } else {
+        terminal.write("  \("✕", color: "[91m") ")  // red
+      }
+      terminal
+        .write(
+          "\(testCase.name) \("(\(Int(Double(testCase.duration)! * 1000))ms)", color: "[90m")\n"
+        )  // gray
+      for problem in testCase.problems {
+        terminal.write("\n    \(problem.file, color: "[90m"):\(problem.line)\n")
+        terminal.write("    \(problem.message)\n\n")
+        // Format XCTAssert functions
+        for assertion in Regex.Assertion.allCases {
+          if let (expected, received) = problem.message.match(
+            of: Regex.xctAssert(assertion),
+            labelled: .expected, .received
+          ) {
+            terminal.write("    Expected: \("\(assertion.symbol)\(expected)", color: "[92m")\n")
+            terminal.write("    Received: \(received, color: "[91m")\n")
           }
-          // Get the line of code from the file and output it for context.
-          if let lineNum = Int(problem.line),
-            lineNum > 0
-          {
-            var fileContents: String?
-            if let fileBuf = fileBufs.first(where: { $0.path == problem.file })?.contents {
-              fileContents = fileBuf
-            } else if let fileBuf = try? String(
-              contentsOf: URL(fileURLWithPath: problem.file),
-              encoding: .utf8
-            ) {
-              fileContents = fileBuf
-              fileBufs.insert(.init(path: problem.file, contents: fileBuf))
-            }
-            if let fileContents = fileContents {
-              let fileLines = fileContents.components(separatedBy: .newlines)
-              guard fileLines.count >= lineNum else { break }
-              let codeLine = String(fileLines[lineNum - 1])
-              terminal.write("    \("\(problem.line) | ", color: "[36m")\(codeLine)\n")
-            }
+        }
+        // Get the line of code from the file and output it for context.
+        if let lineNum = Int(problem.line),
+          lineNum > 0
+        {
+          var fileContents: String?
+          if let fileBuf = fileBufs.first(where: { $0.path == problem.file })?.contents {
+            fileContents = fileBuf
+          } else if let fileBuf = try? String(
+            contentsOf: URL(fileURLWithPath: problem.file),
+            encoding: .utf8
+          ) {
+            fileContents = fileBuf
+            fileBufs.insert(.init(path: problem.file, contents: fileBuf))
+          }
+          if let fileContents = fileContents {
+            let fileLines = fileContents.components(separatedBy: .newlines)
+            guard fileLines.count >= lineNum else { break }
+            let codeLine = String(fileLines[lineNum - 1])
+            terminal.write("    \("\(problem.line) | ", color: "[36m")\(codeLine)\n")
           }
         }
       }
@@ -360,6 +380,19 @@ public struct TestsParser: ProcessOutputParser {
 
     if suites.contains(where: { $0.name == "All tests" }) {
       terminal.write("\("Ran all test suites.", color: "[90m")\n")  // gray
+    }
+
+    if suites.contains(where: { !$0.passed }) {
+      terminal.write("\n\("Failed test cases:", color: "[31m")\n")
+      for suite in suites.filter({ !$0.passed }) {
+        for testCase in suite.cases.filter({ !$0.passed }) {
+          terminal.write("  \("✕", color: "[91m") \(suite.name).\(testCase.name)\n")
+        }
+      }
+
+      terminal.write(
+        "\n\("Some tests failed. Use --verbose for raw test output.", color: "[33m")\n"
+      )
     }
   }
 }

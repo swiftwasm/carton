@@ -58,6 +58,7 @@ struct JavaScriptTestRunner: TestRunner {
     var arguments =
       ["node"] + nodeArguments + [pluginWorkDirectory.appending(component: testHarness).pathString]
     options.applyXCTestArguments(to: &arguments)
-    try await Process.run(arguments, environment: options.env, parser: TestsParser(), terminal)
+    try await runTestProcess(
+      arguments, environment: options.env, parser: options.testsParser, terminal)
   }
 }

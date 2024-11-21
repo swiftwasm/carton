@@ -17,21 +17,12 @@ import Dispatch
 import Foundation
 
 struct ProcessError: Error {
-  let stderr: String?
-  let stdout: String?
+  let exitCode: Int32
 }
 
 extension ProcessError: CustomStringConvertible {
   var description: String {
-    var result = "Process failed with non-zero exit status"
-    if let stdout = stdout {
-      result += " and following output:\n\(stdout)"
-    }
-
-    if let stderr = stderr {
-      result += " and following error output:\n\(stderr)"
-    }
-    return result
+    return "Process failed with exit code \(exitCode)"
   }
 }
 
@@ -41,11 +32,10 @@ extension Foundation.Process {
     _ arguments: [String],
     environment: [String: String] = [:],
     loadingMessage: String = "Running...",
-    parser: ProcessOutputParser? = nil,
     _ terminal: InteractiveWriter
   ) async throws {
     terminal.clearLine()
-    terminal.write("\(loadingMessage)\n", inColor: .yellow)
+    terminal.write("Running \(arguments.joined(separator: " "))\n")
 
     if !environment.isEmpty {
       terminal.write(environment.map { "\($0)=\($1)" }.joined(separator: " ") + " ")
@@ -54,91 +44,26 @@ extension Foundation.Process {
     let processName = URL(fileURLWithPath: arguments[0]).lastPathComponent
 
     do {
-      try await withCheckedThrowingContinuation {
-        (continuation: CheckedContinuation<(), Swift.Error>) in
-        DispatchQueue.global().async {
-          var stdoutBuffer = ""
-
-          let stdout: Process.OutputClosure = {
-            guard let string = String(data: Data($0), encoding: .utf8) else { return }
-            if parser != nil {
-              // Aggregate this for formatting later
-              stdoutBuffer += string
-            } else {
-              terminal.write(string)
-            }
-          }
-
-          var stderrBuffer = [UInt8]()
-
-          let stderr: Process.OutputClosure = {
-            stderrBuffer.append(contentsOf: $0)
-          }
-
-          let process = Process(
-            arguments: arguments,
-            environmentBlock: ProcessEnvironmentBlock(
-              ProcessInfo.processInfo.environment.merging(environment) { _, new in new }
-            ),
-            outputRedirection: .stream(stdout: stdout, stderr: stderr),
-            startNewProcessGroup: true,
-            loggingHandler: {
-              terminal.write($0 + "\n")
-            }
-          )
-
-          let result = Result<ProcessResult, Swift.Error> {
-            try process.launch()
-            return try process.waitUntilExit()
-          }
-
-          switch result.map(\.exitStatus) {
-          case .success(.terminated(code: EXIT_SUCCESS)):
-            if let parser = parser {
-              if parser.parsingConditions.contains(.success) {
-                parser.parse(stdoutBuffer, terminal)
-              }
-            } else {
-              terminal.write(stdoutBuffer)
-            }
-            terminal.write(
-              "`\(processName)` process finished successfully\n",
-              inColor: .green,
-              bold: false
-            )
-            continuation.resume()
-
-          case let .failure(error):
-            continuation.resume(throwing: error)
-          default:
-            continuation.resume(
-              throwing: ProcessError(
-                stderr: String(data: Data(stderrBuffer), encoding: .utf8) ?? "",
-                stdout: stdoutBuffer
-              )
-            )
-          }
+      try await Process.checkNonZeroExit(
+        arguments: arguments,
+        environmentBlock: ProcessEnvironmentBlock(
+          ProcessInfo.processInfo.environment.merging(environment) { _, new in new }
+        ),
+        loggingHandler: {
+          terminal.write($0 + "\n")
         }
-      }
+      )
+      terminal.write(
+        "`\(processName)` process finished successfully\n",
+        inColor: .green,
+        bold: false
+      )
     } catch {
-      let errorString = String(describing: error)
-      if errorString.isEmpty {
-        terminal.clearLine()
-        terminal.write(
-          "\(processName) process failed.\n\n",
-          inColor: .red
-        )
-        if let error = error as? ProcessError, let stdout = error.stdout {
-          if let parser = parser {
-            if parser.parsingConditions.contains(.failure) {
-              parser.parse(stdout, terminal)
-            }
-          } else {
-            terminal.write(stdout)
-          }
-        }
-      }
-
+      terminal.clearLine()
+      terminal.write(
+        "\(processName) process failed.\n\n",
+        inColor: .red
+      )
       throw error
     }
   }
