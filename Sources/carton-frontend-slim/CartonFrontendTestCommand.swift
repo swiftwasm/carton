@@ -75,6 +75,9 @@ struct CartonFrontendTestCommand: AsyncParsableCommand {
   @Flag(help: "When running browser tests, run the browser in headless mode")
   var headless: Bool = false
 
+  @Flag(help: "Enable verbose output")
+  var verbose: Bool = false
+
   @Option(help: "Turn on runtime checks for various behavior.")
   private var sanitize: SanitizeVariant?
 
@@ -195,6 +198,8 @@ struct CartonFrontendTestCommand: AsyncParsableCommand {
         env[key] = parentEnv[key]
       }
     }
-    return TestRunnerOptions(env: env, listTestCases: list, testCases: testCases)
+    return TestRunnerOptions(
+      env: env, listTestCases: list, testCases: testCases,
+      testsParser: verbose ? RawTestsParser() : FancyTestsParser())
   }
 }
