@@ -16,6 +16,7 @@ import { WASI, File, OpenFile, ConsoleStdout, PreopenDirectory, WASIProcExit, In
 import type { SwiftRuntime, SwiftRuntimeConstructor } from "./JavaScriptKit_JavaScriptKit.resources/Runtime/index";
 import { polyfill as polyfillWebAssemblyTypeReflection } from "wasm-imports-parser/polyfill";
 import type { ImportEntry } from "wasm-imports-parser";
+import { AddressInfo } from "node:net";
 
 // Apply polyfill for WebAssembly Type Reflection JS API to inspect imported memory info.
 // https://github.com/WebAssembly/js-types/blob/main/proposals/js-types/Overview.md
@@ -65,7 +66,14 @@ export async function instantiate(rawOptions: InstantiationOptions, extraWasmImp
 
   let swift: SwiftRuntime | undefined = options.swift;
   if (!swift && options.SwiftRuntime) {
-    swift = new options.SwiftRuntime();
+    let sharedMemory = false;
+    for (const importEntry of WebAssembly.Module.imports(options.module)) {
+        if (importEntry.module === "env" && importEntry.name === "memory" && importEntry.kind === "memory") {
+            sharedMemory = true;
+            break;
+        }
+    }
+    swift = new options.SwiftRuntime({ sharedMemory });
   }
 
   let stdoutLine: LineDecoder | undefined = undefined;
@@ -242,10 +250,54 @@ async function extractAndSaveFile(rootFs: Map<string, Inode>, path: string): Pro
   return false;
 }
 
-export async function testBrowser(instantiate: Instantiate, wasmFileName: string, args: string[], indexJsUrl: string, inPage: boolean) {
+export async function testBrowser(
+  instantiate: Instantiate,
+  wasmFileName: string,
+  args: string[],
+  indexJsUrl: string,
+  options: { contentTypes?: (fileName: string) => string } = {},
+  inPage: boolean = false
+) {
   if (inPage) {
     return await testBrowserInPage(instantiate, wasmFileName, args);
   }
+
+  const { fileURLToPath } = await import("node:url");
+  const path = await import("node:path");
+  const fs = await import("node:fs/promises");
+  const { existsSync } = await import("node:fs");
+  const indexJsPath = fileURLToPath(indexJsUrl);
+  const webRoot = path.dirname(indexJsPath);
+
+  const http = await import("node:http");
+  const defaultContentTypes: Record<string, string> = {
+    ".html": "text/html",
+    ".js": "text/javascript",
+    ".mjs": "text/javascript",
+    ".wasm": "application/wasm",
+  };
+  const server = http.createServer(async (req, res) => {
+    const url = new URL(req.url!, `http://${req.headers.host}`);
+    const pathname = url.pathname;
+    const filePath = path.join(webRoot, pathname);
+    if (existsSync(filePath) && (await fs.stat(filePath)).isFile()) {
+      const data = await fs.readFile(filePath);
+      const ext = pathname.slice(pathname.lastIndexOf("."));
+      const contentType = options.contentTypes?.(pathname) || defaultContentTypes[ext] || "text/plain";
+      res.writeHead(200, { "Content-Type": contentType });
+      res.end(data);
+    } else if (pathname === "/process-info.json") {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ env: process.env }));
+    } else {
+      res.writeHead(404);
+      res.end();
+    }
+  });
+
+  await new Promise<void>((resolve) => server.listen({ host: "localhost", port: 0 }, () => resolve()));
+  const address = server.address() as AddressInfo;
+
   const playwright = await (async () => {
     try {
       // @ts-ignore
@@ -263,29 +315,16 @@ Please run the following command to install it:
   const browser = await playwright.chromium.launch();
   const context = await browser.newContext();
   const page = await context.newPage();
-  const { fileURLToPath } = await import("node:url");
-  const path = await import("node:path");
-  const indexJsPath = fileURLToPath(indexJsUrl);
-  const webRoot = path.dirname(indexJsPath);
 
   // Forward console messages in the page to the Node.js console
   page.on("console", (message: any) => {
     console.log(message.text());
   });
 
-  await page.route("http://example.com/**/*", async (route: any) => {
-    const url = route.request().url();
-    const urlPath = new URL(url).pathname;
-    if (urlPath === "/process-info.json") {
-      route.fulfill({ body: JSON.stringify({ env: process.env }) });
-      return;
-    }
-    route.fulfill({ path: path.join(webRoot, urlPath.slice(1)) });
-  });
   const onExit = new Promise<number>((resolve) => {
     page.exposeFunction("exitTest", resolve);
   });
-  await page.goto("http://example.com/test.browser.html");
+  await page.goto(`http://localhost:${address.port}/test.browser.html`);
   const exitCode = await onExit;
   await browser.close();
   process.exit(exitCode);

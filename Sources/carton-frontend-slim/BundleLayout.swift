@@ -81,7 +81,7 @@ struct BundleLayout {
       <body>
           <script type="module">
               import { testBrowser } from "./index.js";
-              testBrowser([], true);
+              testBrowser([], {}, true);
           </script>
       </body>
 
@@ -209,8 +209,8 @@ struct BundleLayout {
         return internalInstantiate(options, imports);
       }
 
-      export async function testBrowser(args, inPage = false) {
-        await internalTestBrowser(instantiate, wasmFileName, args, import.meta.url, inPage);
+      export async function testBrowser(args, options, inPage = false) {
+        await internalTestBrowser(instantiate, wasmFileName, args, import.meta.url, options, inPage);
       }
 
       export async function testNode(args) {
