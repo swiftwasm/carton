@@ -100,8 +100,6 @@ extension StringProtocol {
 public struct FancyTestsParser: TestsParser {
   public init() {}
 
-  public let parsingConditions: ParsingCondition = [.success, .failure]
-
   // swiftlint:disable force_try
   // swiftlint:disable line_length
   enum Regex {
