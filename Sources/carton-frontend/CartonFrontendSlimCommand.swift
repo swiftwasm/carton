@@ -15,13 +15,19 @@
 import ArgumentParser
 import CartonCore
 
-public struct CartonFrontendCommand: AsyncParsableCommand {
+/// A slimed-down version of the `carton-frontend` command.
+/// This command does not depend on HTTP server functionality to avoid the need for
+/// building large dependencies.
+@main
+public struct CartonFrontendSlimCommand: AsyncParsableCommand {
   public static let configuration = CommandConfiguration(
     commandName: "carton-frontend",
     abstract: "📦 Watcher, bundler, and test runner for your SwiftWasm apps.",
     version: cartonVersion,
     subcommands: [
-      CartonFrontendDevCommand.self
+      CartonFrontendBundleCommand.self,
+      CartonFrontendTestCommand.self,
+      CartonFrontendDevCommand.self,
     ]
   )
 

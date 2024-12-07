@@ -23,7 +23,6 @@ let package = Package(
       url: "https://github.com/apple/swift-argument-parser.git",
       .upToNextMinor(from: "1.3.0")
     ),
-    .package(url: "https://github.com/apple/swift-nio.git", from: "2.34.0"),
     .package(
       url: "https://github.com/swiftwasm/WasmTransformer",
       .upToNextMinor(from: "0.5.0")
@@ -45,12 +44,6 @@ let package = Package(
     .executableTarget(
       name: "carton-frontend",
       dependencies: [
-        "CartonFrontend"
-      ]
-    ),
-    .executableTarget(
-      name: "carton-frontend-slim",
-      dependencies: [
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
         "CartonHelpers",
         "WasmTransformer",
@@ -64,7 +57,7 @@ let package = Package(
           description: "Produces an optimized app bundle for distribution."
         )
       ),
-      dependencies: ["carton-frontend-slim"],
+      dependencies: ["carton-frontend"],
       exclude: [
         "CartonCore/README.md",
         "CartonPluginShared/README.md",
@@ -78,7 +71,7 @@ let package = Package(
           description: "Run the tests in a WASI environment."
         )
       ),
-      dependencies: ["carton-frontend-slim"],
+      dependencies: ["carton-frontend"],
       exclude: [
         "CartonCore/README.md",
         "CartonPluginShared/README.md",
@@ -99,27 +92,6 @@ let package = Package(
       ]
     ),
     .executableTarget(name: "carton-plugin-helper"),
-    .target(
-      name: "CartonFrontend",
-      dependencies: [
-        "CartonKit"
-      ]
-    ),
-    .target(
-      name: "CartonKit",
-      dependencies: [
-        .product(name: "NIOWebSocket", package: "swift-nio"),
-        .product(name: "NIOHTTP1", package: "swift-nio"),
-        .product(name: "NIO", package: "swift-nio"),
-        .product(name: "ArgumentParser", package: "swift-argument-parser"),
-        "CartonHelpers",
-        "WasmTransformer",
-      ],
-      exclude: ["Utilities/README.md"],
-      swiftSettings: [
-        .enableUpcomingFeature("BareSlashRegexLiterals")
-      ]
-    ),
     .target(
       name: "SwiftToolchain",
       dependencies: [
@@ -151,13 +123,6 @@ let package = Package(
       name: "CartonCore",
       exclude: ["README.md"]
     ),
-    .target(
-      name: "WebDriver",
-      dependencies: [
-        .product(name: "NIO", package: "swift-nio"),
-        "CartonHelpers",
-      ]
-    ),
     // This target is used only for release automation tasks and
     // should not be installed by `carton` users.
     .executableTarget(
@@ -171,7 +136,7 @@ let package = Package(
     .testTarget(
       name: "CartonTests",
       dependencies: [
-        "CartonFrontend",
+        "carton",
         "CartonHelpers",
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
       ]
@@ -179,12 +144,10 @@ let package = Package(
     .testTarget(
       name: "CartonCommandTests",
       dependencies: [
-        "CartonFrontend",
         "SwiftToolchain",
-        "WebDriver",
+        "CartonHelpers",
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
       ]
     ),
-    .testTarget(name: "WebDriverTests", dependencies: ["WebDriver"]),
   ]
 )

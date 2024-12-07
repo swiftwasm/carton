@@ -19,8 +19,6 @@ import CartonHelpers
 import CartonCore
 import XCTest
 
-@testable import CartonFrontend
-
 final class BundleCommandTests: XCTestCase {
   func testWithNoArguments() async throws {
     let fs = localFileSystem
