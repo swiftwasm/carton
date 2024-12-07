@@ -18,8 +18,6 @@
 import CartonHelpers
 import XCTest
 
-@testable import CartonFrontend
-
 private enum Constants {
   static let testAppPackageName = "TestApp"
   static let nodeJSKitPackageName = "NodeJSKitTest"

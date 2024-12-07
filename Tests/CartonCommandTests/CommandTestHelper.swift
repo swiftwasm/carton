@@ -15,7 +15,6 @@
 import ArgumentParser
 import XCTest
 import CartonHelpers
-import CartonKit
 
 #if canImport(FoundationNetworking)
   import FoundationNetworking
@@ -154,19 +153,4 @@ func fetchHead(at url: URL, timeout: Duration) async throws -> HTTPURLResponse {
   }
 
   return httpResponse
-}
-
-func checkServerNameField(response: HTTPURLResponse, expectedPID: Int32) throws {
-  guard let string = response.value(forHTTPHeaderField: "Server") else {
-    throw CommandTestError("no Server header")
-  }
-  let field = try Server.ServerNameField.parse(string)
-
-  guard field.name == Server.serverName else {
-    throw CommandTestError("invalid server name: \(field)")
-  }
-
-  guard field.pid == expectedPID else {
-    throw CommandTestError("Expected PID \(expectedPID) but got PID \(field.pid).")
-  }
 }

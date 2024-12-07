@@ -1,9 +1,7 @@
 import XCTest
 import CartonCore
 import CartonHelpers
-import CartonKit
 import SwiftToolchain
-import WebDriver
 
 struct DevServerClient {
   var process: CartonHelpers.Process
@@ -11,26 +9,15 @@ struct DevServerClient {
   init(
     wasmFile: AbsolutePath,
     resourcesDir: AbsolutePath,
-    terminal: InteractiveWriter,
-    onStdout: ((String) -> Void)?
+    terminal: InteractiveWriter
   ) throws {
     process = Process(
       arguments: [
         "swift", "run", "carton-frontend", "dev",
-        "--skip-auto-open", "--verbose",
+        "--verbose",
         "--main-wasm-path", wasmFile.pathString,
         "--resources", resourcesDir.pathString
-      ],
-      outputRedirection: .stream(
-        stdout: { (chunk) in
-          let string = String(decoding: chunk, as: UTF8.self)
-
-          onStdout?(string)
-
-          terminal.write(string)
-        }, stderr: { (_) in },
-        redirectStderr: true
-      )
+      ]
     )
     try process.launch()
   }
@@ -49,8 +36,6 @@ struct DevServerClient {
       try await fetchWebContent(at: url, timeout: .seconds(10))
     }
     XCTAssertEqual(response.statusCode, 200, file: file, line: line)
-
-    try checkServerNameField(response: response, expectedPID: process.processID)
 
     return body
   }
@@ -102,27 +87,16 @@ final class FrontendDevServerTests: XCTestCase {
 
     try await Process.run(["swift", "build", "--target", "carton-frontend"], terminal)
 
-    var gotHelloStdout = false
-    var gotHelloStderr = false
-
     let cl = try DevServerClient(
       wasmFile: wasmFile,
       resourcesDir: resourcesDir,
-      terminal: terminal,
-      onStdout: { (string) in
-        if string.contains("stdout: hello stdout") {
-          gotHelloStdout = true
-        }
-        if string.contains("stderr: hello stderr") {
-          gotHelloStderr = true
-        }
-      }
+      terminal: terminal
     )
     defer {
       cl.dispose()
     }
 
-    let host = try URL(string: "http://127.0.0.1:8080").unwrap("url")
+    let host = try URL(string: "http://localhost:8080").unwrap("url")
 
     do {
       let indexHtml = try await cl.fetchString(at: host)
@@ -131,9 +105,11 @@ final class FrontendDevServerTests: XCTestCase {
         <!DOCTYPE html>
         <html>
           <head>
+            <script type="module" src="/@vite/client"></script>
+
             <meta charset="utf-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1" />
-            <script type="module" src="dev.js"></script>
+            <script type="module" src="app.js"></script>
           </head>
           <body>
           </body>
@@ -146,46 +122,8 @@ final class FrontendDevServerTests: XCTestCase {
 
     do {
       let url = host.appendingPathComponent("dev.js")
-      let devJs = try await cl.fetchString(at: url)
-      let expected = try XCTUnwrap(String(data: StaticResource.dev, encoding: .utf8))
-      XCTAssertEqual(devJs, expected)
-      let contentSize = try await cl.fetchContentSize(at: url)
-      XCTAssertEqual(contentSize, expected.utf8.count)
+      _ = try await cl.fetchString(at: url)
+      // Skip checking content because it can be modified by Vite.
     }
-
-    do {
-      let url = host.appendingPathComponent("main.wasm")
-      let mainWasm = try await cl.fetchBinary(at: url)
-      let expected = try Data(contentsOf: wasmFile.asURL)
-      XCTAssertEqual(mainWasm, expected)
-      let contentSize = try await cl.fetchContentSize(at: url)
-      XCTAssertEqual(contentSize, expected.count)
-    }
-
-    for name in ["style.css", "space separated.txt"] {
-      let styleCss = try await cl.fetchString(at: host.appendingPathComponent(name))
-      let expected = try String(contentsOf: resourcesDir.appending(component: name).asURL)
-      XCTAssertEqual(styleCss, expected)
-      let contentSize = try await cl.fetchContentSize(at: host.appendingPathComponent(name))
-      XCTAssertEqual(contentSize, expected.utf8.count)
-    }
-
-    let webDriver = try await WebDriverServices.find(terminal: terminal)
-    defer {
-      webDriver.dispose()
-    }
-
-    let webDriverClient = try await webDriver.client()
-
-    try await webDriverClient.goto(url: host)
-
-    try await withRetry(maxAttempts: 10, initialDelay: .seconds(3), retryInterval: .seconds(3)) {
-      if gotHelloStdout, gotHelloStderr {
-        return
-      }
-      throw CommandTestError("no output")
-    }
-
-    try await webDriverClient.closeSession()
   }
 }

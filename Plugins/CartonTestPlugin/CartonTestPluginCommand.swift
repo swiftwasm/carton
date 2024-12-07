@@ -38,7 +38,7 @@ struct CartonTestPluginCommand: CommandPlugin {
   func performCommand(context: PluginContext, arguments: [String]) async throws {
     try checkSwiftVersion()
     try checkHelpFlag(
-      arguments, frontend: "carton-frontend-slim", subcommand: "test", context: context)
+      arguments, subcommand: "test", context: context)
 
     let productName = "\(context.package.displayName)PackageTests"
 
@@ -116,7 +116,7 @@ struct CartonTestPluginCommand: CommandPlugin {
     }
     args += extractor.remainingArguments
     let frontend = try makeCartonFrontendProcess(
-      context: context, frontend: "carton-frontend-slim", arguments: args)
+      context: context, arguments: args)
     try frontend.checkRun(printsLoadingMessage: false, forwardExit: true)
   }
 

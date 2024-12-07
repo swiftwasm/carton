@@ -90,6 +90,7 @@ struct CartonDevPluginCommand: CommandPlugin {
     var args: [String] = [
       "dev",
       "--main-wasm-path", productArtifact.path.string,
+      "--plugin-work-directory", context.pluginWorkDirectory.string,
       "--build-request", buildRequestPipe,
       "--build-response", buildResponsePipe
     ]
@@ -100,7 +101,11 @@ struct CartonDevPluginCommand: CommandPlugin {
     args += extractor.remainingArguments
 
     let frontend = try makeCartonFrontendProcess(context: context, arguments: args)
-    frontend.forwardTerminationSignals()
+    let signalSources = frontend.forwardTerminationSignals()
+    defer { signalSources.forEach { $0.cancel() } }
+    frontend.terminationHandler = { _ in
+      frontend.forwardExit()
+    }
 
     try frontend.run()
 
