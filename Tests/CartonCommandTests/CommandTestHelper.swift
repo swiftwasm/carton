@@ -15,6 +15,7 @@
 import ArgumentParser
 import XCTest
 import CartonHelpers
+import SwiftToolchain
 
 #if canImport(FoundationNetworking)
   import FoundationNetworking
