@@ -19,7 +19,7 @@ public struct CartonCoreError: Error & CustomStringConvertible {
   public  var description: String
 }
 
-public let cartonVersion = "1.1.2"
+public let cartonVersion = "1.1.3"
 
 #if compiler(>=6.0)
 public let defaultToolchainVersion = "wasm-6.0.2-RELEASE"

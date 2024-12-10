@@ -2,7 +2,7 @@
 
 To bump up package version, please follow the below steps:
 
-1. Bump version in `Sources/CartonHelpers/Version.swift`
+1. Bump version in `Sources/CartonCore/Misc.swift`
 2. Update `CHANGELOG.md`
 3. `git commit`
 4. `git tag <version>`

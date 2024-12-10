@@ -1,3 +1,13 @@
+# 1.1.3 (10 Dec 2024)
+
+* Inherit all env-var from host and add `--env` option to `carton-test`
+* Add `-Xnode` option to `carton test`
+* Expose `instantiate` API from bundled package
+* Save `default.profraw` after test completed
+* Update default toolchain for 6.0 channel
+* Reduced the number of dependencies and improved the build time
+* Fix test output parser to be incremental and show failed tests
+
 # 1.1.2 (24 Jun 2024)
 
 This release includes several bug fixes.
