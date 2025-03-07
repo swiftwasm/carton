@@ -65,12 +65,10 @@ struct CartonTestPluginCommand: CommandPlugin {
     let options = try Options.parse(from: &extractor)
     let buildDirectory = try self.buildDirectory(context: context)
 
-    let testProductArtifactPath: String
+    var testProductArtifactPath: String
     if let prebuiltTestBundlePath = options.prebuiltTestBundlePath {
       testProductArtifactPath = prebuiltTestBundlePath
     } else {
-      let wasmFileName = "\(productName).wasm"
-      testProductArtifactPath = buildDirectory.appending(subpath: wasmFileName).string
       #if compiler(>=5.10)
         var buildParameters = PackageManager.BuildParameters()
         options.environment.applyBuildParameters(&buildParameters)
@@ -80,10 +78,23 @@ struct CartonTestPluginCommand: CommandPlugin {
         guard build.succeeded else {
           throw Error("Failed to build test product: \(build.logText)")
         }
-        guard FileManager.default.fileExists(atPath: testProductArtifactPath) else {
+        var foundArtifactPath: String?
+        for fileExtension in ["xctest", "wasm"] {
+          let wasmFileName = "\(productName).\(fileExtension)"
+          testProductArtifactPath = buildDirectory.appending(subpath: wasmFileName).string
+          guard FileManager.default.fileExists(atPath: testProductArtifactPath) else {
+            continue
+          }
+          foundArtifactPath = testProductArtifactPath
+          break
+        }
+        guard let artifactPath = foundArtifactPath else {
           throw Error("Product \(productName) did not produce \(buildDirectory)!?")
         }
+        testProductArtifactPath = artifactPath
       #else
+        let wasmFileName = "\(productName).wasm"
+        testProductArtifactPath = buildDirectory.appending(subpath: wasmFileName).string
         // NOTE: Old SwiftPM does not allow to build *only tests* from plugin, so we expect
         // the test product to be built already by external wrapper command.
         guard FileManager.default.fileExists(atPath: testProductArtifactPath) else {
