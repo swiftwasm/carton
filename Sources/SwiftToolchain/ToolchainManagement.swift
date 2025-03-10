@@ -213,7 +213,7 @@ public class ToolchainSystem {
     #if os(macOS)
       let platformSuffixes = ["osx", "catalina", "macos"]
     #elseif os(Linux)
-      let platformSuffixes = ["linux", try self.inferLinuxDistributionSuffix()]
+      let platformSuffixes = ["linux", try self.inferLinuxAssetSuffix()]
     #endif
 
     terminal.logLookup(
@@ -227,7 +227,7 @@ public class ToolchainSystem {
     }.first
   }
 
-  private func inferLinuxDistributionSuffix() throws -> String {
+  private func inferLinuxAssetSuffix() throws -> String {
     guard
       let releaseFile = [
         URL(fileURLWithPath: "/etc/lsb-release"),
@@ -237,18 +237,32 @@ public class ToolchainSystem {
       throw ToolchainError.unsupportedOperatingSystem
     }
 
-    let releaseData = try String(contentsOf: releaseFile)
-    if releaseData.contains("DISTRIB_RELEASE=18.04") {
-      return "ubuntu18.04"
-    } else if releaseData.contains("DISTRIB_RELEASE=20.04") {
-      return "ubuntu20.04"
-    } else if releaseData.contains("DISTRIB_RELEASE=22.04") {
-      return "ubuntu22.04"
-    } else if releaseData.contains(#"PRETTY_NAME="Amazon Linux 2""#) {
+    let releaseData = try String(contentsOf: releaseFile).split(whereSeparator: \.isNewline)
+    if releaseData.contains(#"PRETTY_NAME="Amazon Linux 2""#) {
       return "amazonlinux2"
-    } else {
+    } else if releaseData.contains("DISTRIB_ID=Ubuntu") {
+      for line in releaseData {
+        if let equals = line.firstIndex(of: "="),
+          case "DISTRIB_RELEASE" = line[..<equals]
+        {
+          let number = line[line.index(after: equals)...]
+          switch number {
+          case "18.04":
+            return "ubuntu18.04"
+          case "20.04":
+            return "ubuntu20.04"
+          case "22.04":
+            return "ubuntu22.04"
+          case "24.04":
+            return "ubuntu22.04"
+          default:
       throw ToolchainError.unsupportedOperatingSystem
+          }
+        }
+      }
     }
+
+    throw ToolchainError.unsupportedOperatingSystem
   }
 
   public struct SwiftPath {
