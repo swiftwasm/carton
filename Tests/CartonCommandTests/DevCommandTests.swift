@@ -19,8 +19,6 @@ import Foundation
 import XCTest
 import CartonHelpers
 
-@testable import CartonFrontend
-
 #if canImport(FoundationNetworking)
   import FoundationNetworking
 #endif
@@ -31,11 +29,11 @@ final class DevCommandTests: XCTestCase {
       // FIXME: Don't assume a specific port is available since it can be used by others or tests
       try await withFixture("EchoExecutable") { packageDirectory in
         let process = try swiftRunProcess(
-          ["carton", "dev", "--verbose", "--skip-auto-open"],
+          ["carton", "dev", "--verbose"],
           packageDirectory: packageDirectory.asURL
         )
 
-        try await checkForExpectedContent(process: process, at: "http://127.0.0.1:8080")
+        try await checkForExpectedContent(process: process, at: "http://localhost:8080")
       }
     }
 
@@ -43,11 +41,11 @@ final class DevCommandTests: XCTestCase {
       // FIXME: Don't assume a specific port is available since it can be used by others or tests
       try await withFixture("EchoExecutable") { packageDirectory in
         let process = try swiftRunProcess(
-          ["carton", "dev", "--verbose", "--port", "8080", "--skip-auto-open"],
+          ["carton", "dev", "--verbose", "--port", "8080"],
           packageDirectory: packageDirectory.asURL
         )
 
-        try await checkForExpectedContent(process: process, at: "http://127.0.0.1:8080")
+        try await checkForExpectedContent(process: process, at: "http://localhost:8080")
       }
     }
   #endif
@@ -82,15 +80,16 @@ final class DevCommandTests: XCTestCase {
 
     let (response, data) = try await fetchDevServerWithRetry(at: try URL(string: url).unwrap("url"))
     XCTAssertEqual(response.statusCode, 200, "Response was not ok")
-    try checkServerNameField(response: response, expectedPID: process.process.processID)
 
     let expectedHtml = """
       <!DOCTYPE html>
       <html>
         <head>
+          <script type="module" src="/@vite/client"></script>
+
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <script type="module" src="dev.js"></script>
+          <script type="module" src="app.js"></script>
         </head>
         <body>
         </body>

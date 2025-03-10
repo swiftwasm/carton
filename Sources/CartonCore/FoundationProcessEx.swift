@@ -2,7 +2,7 @@ import Foundation
 
 extension Foundation.Process {
   // Monitor termination/interrruption signals to forward them to child process
-  public func setSignalForwarding(_ signalNo: Int32) {
+  public func setSignalForwarding(_ signalNo: Int32) -> DispatchSourceSignal {
     signal(signalNo, SIG_IGN)
     let signalSource = DispatchSource.makeSignalSource(signal: signalNo)
     signalSource.setEventHandler { [self] in
@@ -10,11 +10,14 @@ extension Foundation.Process {
       kill(processIdentifier, signalNo)
     }
     signalSource.resume()
+    return signalSource
   }
 
-  public func forwardTerminationSignals() {
-    setSignalForwarding(SIGINT)
-    setSignalForwarding(SIGTERM)
+  public func forwardTerminationSignals() -> [DispatchSourceSignal] {
+    return [
+      setSignalForwarding(SIGINT),
+      setSignalForwarding(SIGTERM),
+    ]
   }
 
   public var commandLine: String {
@@ -44,8 +47,14 @@ extension Foundation.Process {
       print("Running \(try commandLine)")
     }
 
+    let signalSources = forwardTerminationSignals()
+    defer {
+      for signalSource in signalSources {
+        signalSource.cancel()
+      }
+    }
+
     try run()
-    forwardTerminationSignals()
     waitUntilExit()
 
     if forwardExit {

@@ -21,9 +21,12 @@ const startWasiTask = async () => {
 
   let runtimeConstructor: SwiftRuntimeConstructor | undefined = undefined;
   try {
+    // NOTE: We need to provide the path via a variable to make Vite happy as it
+    // doesn't understand @vite-ignore comments with dynamic imports with string literals.
+    const modulePath = "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs";
     const { SwiftRuntime } = await import(
       // @ts-ignore
-      "./JavaScriptKit_JavaScriptKit.resources/Runtime/index.mjs"
+      /* @vite-ignore */ modulePath
     );
     runtimeConstructor = SwiftRuntime;
   } catch {
