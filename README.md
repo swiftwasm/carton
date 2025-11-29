@@ -1,6 +1,9 @@
 > [!IMPORTANT]
 > carton is now deprecated and no longer maintained. Use the new SwiftPM Plugin from [JavaScriptKit](https://github.com/swiftwasm/JavaScriptKit) instead.
-> See https://swiftpackageindex.com/swiftwasm/javascriptkit/tutorials/javascriptkit/hello-world 
+>
+> See [JavaScriptKit's tutorial](https://swiftpackageindex.com/swiftwasm/javascriptkit/tutorials/javascriptkit/hello-world) for the new way.
+>
+> If you’re interested in the background and details, see [our forum post](https://forums.swift.org/t/deprecating-swiftwasm-carton-in-favor-of-javascriptkits-swiftpm-plugin/83460)
 
 # carton 📦
 
