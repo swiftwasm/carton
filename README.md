@@ -151,10 +151,6 @@ appreciated and helps in maintaining the project.
 
 [Become a gold or platinum sponsor](https://github.com/sponsors/swiftwasm/) and contact maintainers to add your logo on our README on GitHub with a link to your site.
 
-<a href="https://www.emergetools.com/">
-  <img src="https://github.com/swiftwasm/swift/raw/swiftwasm-distribution/assets/sponsors/emergetools.png" width="30%">
-</a>
-
 ### Coding Style
 
 This project uses [SwiftFormat](https://github.com/nicklockwood/SwiftFormat)
