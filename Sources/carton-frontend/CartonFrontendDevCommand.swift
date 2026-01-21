@@ -15,7 +15,6 @@
 import ArgumentParser
 import CartonCore
 import CartonHelpers
-import CartonKit
 import Foundation
 
 enum DevCommandError: Error & CustomStringConvertible {
@@ -41,7 +40,6 @@ enum DevCommandError: Error & CustomStringConvertible {
 }
 
 struct CartonFrontendDevCommand: AsyncParsableCommand {
-  static let entrypoint = Entrypoint(fileName: "dev.js", content: StaticResource.dev)
 
   @Option(help: "Specify name of an executable product in development.")
   var product: String?
@@ -74,9 +72,6 @@ struct CartonFrontendDevCommand: AsyncParsableCommand {
       """
   )
   var host: String?
-
-  @Flag(name: .long, help: "Skip automatically opening app in system browser.")
-  var skipAutoOpen = false
 
   @Option(
     name: .customLong("watch-path"),
@@ -119,40 +114,17 @@ struct CartonFrontendDevCommand: AsyncParsableCommand {
 
   @Option(name: .long, help: .hidden) var pid: Int32?
 
+  @Option(
+    name: .long,
+    help: ArgumentHelp(
+      "Internal: Path to writable directory", visibility: .private
+    ))
+  var pluginWorkDirectory: String = "./"
+
   static let configuration = CommandConfiguration(
     commandName: "dev",
     abstract: "Watch the current directory, host the app, rebuild on change."
   )
-
-  private func makeBuilderIfNeed() throws -> SwiftPMPluginBuilder? {
-    guard !watchPaths.isEmpty else {
-      return nil
-    }
-
-    guard let buildRequest else {
-      throw DevCommandError.noBuildRequestOption
-    }
-    guard let buildResponse else {
-      throw DevCommandError.noBuildResponseOption
-    }
-
-    let pathsToWatch = try watchPaths.map {
-      try AbsolutePath(validating: $0, relativeTo: localFileSystem.currentWorkingDirectory!)
-    }
-
-    guard let buildRequest = FileHandle(forWritingAtPath: buildRequest) else {
-      throw DevCommandError.failedToOpenBuildRequestPipe
-    }
-    guard let buildResponse = FileHandle(forReadingAtPath: buildResponse) else {
-      throw DevCommandError.failedToOpenBuildResponsePipe
-    }
-
-    return SwiftPMPluginBuilder(
-      pathsToWatch: pathsToWatch,
-      buildRequest: buildRequest,
-      buildResponse: buildResponse
-    )
-  }
 
   func run() async throws {
     let terminal = InteractiveWriter.stdout
@@ -161,38 +133,116 @@ struct CartonFrontendDevCommand: AsyncParsableCommand {
       terminal.revertCursorAndClear()
     }
 
-    let server = try await Server(
-      .init(
-        builder: try makeBuilderIfNeed(),
-        mainWasmPath: AbsolutePath(
-          validating: mainWasmPath, relativeTo: localFileSystem.currentWorkingDirectory!),
-        verbose: verbose,
-        bindingAddress: bind,
-        port: port,
-        host: Server.Configuration.host(bindOption: bind, hostOption: host),
-        customIndexPath: customIndexPage.map {
-          try AbsolutePath(validating: $0, relativeTo: localFileSystem.currentWorkingDirectory!)
-        },
-        resourcesPaths: resources,
-        entrypoint: Self.entrypoint,
-        pid: pid,
-        terminal: terminal
-      )
+    let cwd = localFileSystem.currentWorkingDirectory!
+    let mainWasmPath = try AbsolutePath(validating: mainWasmPath, relativeTo: cwd)
+    let bundleDirectory = try AbsolutePath(
+      validating: pluginWorkDirectory,
+      relativeTo: cwd
+    ).appending(component: "Bundle")
+
+    let layout = BundleLayout(
+      mainModuleBaseName: mainWasmPath.basenameWithoutExt,
+      wasmSourcePath: mainWasmPath,
+      buildDirectory: mainWasmPath.parentDirectory,
+      bundleDirectory: bundleDirectory,
+      topLevelResourcePaths: resources
     )
-    let localURL = try await server.start()
-    if !skipAutoOpen {
-      do {
-        try openInSystemBrowser(url: localURL)
-      } catch {
-        terminal.write("open browser failed: \(error)", inColor: .red)
+    try build(layout: layout, terminal: terminal)
+
+    try Foundation.Process.checkRun(Foundation.Process.which("npm"), arguments: [
+      "--prefix", bundleDirectory.pathString, "install",
+    ])
+
+    try watch(cwd: cwd, layout: layout, terminal: terminal)
+
+    var viteArguments = [bundleDirectory.pathString, "--clearScreen", "false"]
+    if let host = host {
+      viteArguments += ["--host", host]
+    }
+    viteArguments += ["--port", "\(port)"]
+    let viteProcess = Foundation.Process()
+    viteProcess.executableURL = bundleDirectory.asURL
+      .appendingPathComponent("node_modules")
+      .appendingPathComponent(".bin")
+      .appendingPathComponent("vite")
+    viteProcess.arguments = viteArguments
+    let signalSources = viteProcess.forwardTerminationSignals()
+    defer {
+      for signalSource in signalSources {
+        signalSource.cancel()
       }
     }
-    try await server.waitUntilStop()
+    try viteProcess.run()
+
+    let _: () = try await withCheckedThrowingContinuation { continuation in
+      viteProcess.terminationHandler = { process in
+        if process.terminationStatus != 0 {
+          continuation.resume(
+            throwing: CartonCoreError("Vite process exited with status \(process.terminationStatus)")
+          )
+        } else {
+          continuation.resume()
+        }
+      }
+    }
+  }
+
+  private func build(layout: BundleLayout, terminal: InteractiveWriter) throws {
+    try localFileSystem.createDirectory(layout.bundleDirectory, recursive: false)
+
+    try layout.copyAppEntrypoint(
+      customIndexPage: customIndexPage,
+      contentHash: false,
+      terminal: terminal
+    )
+  }
+
+  private func watch(cwd: AbsolutePath, layout: BundleLayout, terminal: InteractiveWriter) throws {
+    guard !watchPaths.isEmpty else {
+      return
+    }
+
+    let pathsToWatch = try watchPaths.map {
+      try AbsolutePath(validating: $0, relativeTo: cwd)
+    }
+    guard let buildRequest else {
+      throw DevCommandError.noBuildRequestOption
+    }
+    guard let buildResponse else {
+      throw DevCommandError.noBuildResponseOption
+    }
+    guard let buildRequest = FileHandle(forWritingAtPath: buildRequest) else {
+      throw DevCommandError.failedToOpenBuildRequestPipe
+    }
+    guard let buildResponse = FileHandle(forReadingAtPath: buildResponse) else {
+      throw DevCommandError.failedToOpenBuildResponsePipe
+    }
+
+    let builder = SwiftPMPluginBuilder(
+      pathsToWatch: pathsToWatch,
+      buildRequest: buildRequest,
+      buildResponse: buildResponse
+    )
+
+    let watcher = FSWatch(
+      paths: pathsToWatch,
+      latency: 0.1
+    ) { changes in
+      guard !changes.isEmpty else { return }
+      do {
+        try builder.run()
+        try build(layout: layout, terminal: terminal)
+      } catch {
+        terminal.write("\(error)", inColor: .red)
+      }
+    }
+    try watcher.start()
   }
 }
 
 /// Builder for communicating with the SwiftPM Plugin process by IPC.
-struct SwiftPMPluginBuilder: BuilderProtocol {
+struct SwiftPMPluginBuilder {
+  struct BuilderProtocolSimpleBuildFailedError: Error {}
   let pathsToWatch: [AbsolutePath]
   let buildRequest: FileHandle
   let buildResponse: FileHandle
@@ -203,7 +253,7 @@ struct SwiftPMPluginBuilder: BuilderProtocol {
     self.buildResponse = buildResponse
   }
 
-  func run() async throws {
+  func run() throws {
     // We expect single response per request
     try buildRequest.write(contentsOf: Data([1]))
     guard let responseMessage = try buildResponse.read(upToCount: 1) else {

@@ -8,7 +8,6 @@
  See http://swift.org/CONTRIBUTORS.txt for Swift project authors
 */
 
-import CartonHelpers
 import Dispatch
 import Foundation
 

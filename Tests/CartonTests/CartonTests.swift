@@ -18,7 +18,6 @@ import XCTest
 
 import class Foundation.Bundle
 
-@testable import CartonKit
 @testable import SwiftToolchain
 
 final class CartonTests: XCTestCase {
@@ -60,61 +59,5 @@ final class CartonTests: XCTestCase {
     let output = String(data: data, encoding: .utf8)
 
     XCTAssertEqual(output?.trimmingCharacters(in: .whitespacesAndNewlines), cartonVersion)
-  }
-
-  final class TestOutputStream: OutputByteStream {
-    var bytes: [UInt8] = []
-    var currentOutput: String {
-      String(bytes: bytes, encoding: .utf8)!
-    }
-
-    var position: Int = 0
-
-    init() {}
-
-    func flush() {}
-
-    func write(_ byte: UInt8) {
-      bytes.append(byte)
-    }
-
-    func write<C>(_ bytes: C) where C: Collection, C.Element == UInt8 {
-      self.bytes.append(contentsOf: bytes)
-    }
-  }
-
-  func testDestinationEnvironment() {
-    XCTAssertEqual(
-      DestinationEnvironment(
-        userAgent:
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:93.0) Gecko/20100101 Firefox/93.0"
-      ),
-      .firefox
-    )
-    XCTAssertEqual(
-      DestinationEnvironment(
-        userAgent:
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36 Edg/94.0.992.38"
-      ),
-      .edge
-    )
-    XCTAssertEqual(
-      DestinationEnvironment(
-        userAgent:
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36"
-      ),
-      .chrome
-    )
-    XCTAssertEqual(
-      DestinationEnvironment(
-        userAgent:
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Safari/605.1.15"
-      ),
-      .safari
-    )
-    XCTAssertEqual(
-      DestinationEnvironment(userAgent: "Opera/9.30 (Nintendo Wii; U; ; 3642; en)"),
-      nil
-    )
   }
 }

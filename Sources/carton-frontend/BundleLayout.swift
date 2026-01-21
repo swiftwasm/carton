@@ -29,7 +29,8 @@ struct BundleLayout {
   {
     let wasmDestinationPath = try computeWasmDestinationPath(contentHash: contentHash)
     if wasmSourcePath != wasmDestinationPath {
-      try localFileSystem.move(from: wasmSourcePath, to: wasmDestinationPath)
+      try localFileSystem.removeFileTree(wasmDestinationPath)
+      try localFileSystem.copy(from: wasmSourcePath, to: wasmDestinationPath)
     }
     try copyResources(wasmDestinationPath: wasmDestinationPath, terminal: terminal)
     // Copy the bundle entrypoint, point to the binary, and give it a cachebuster name.
@@ -46,13 +47,12 @@ struct BundleLayout {
       bytes: entrypoint
     )
 
-    try localFileSystem.writeFileContents(
+    try writeFileIfChanged(
       AbsolutePath(validating: "index.html", relativeTo: bundleDirectory),
-      bytes: ByteString(
-        encodingAsUTF8: HTML.indexPage(
-          customContent: HTML.readCustomIndexPage(at: customIndexPage, on: localFileSystem),
-          entrypointName: entrypointName
-        ))
+      contents: HTML.indexPage(
+        customContent: HTML.readCustomIndexPage(at: customIndexPage, on: localFileSystem),
+        entrypointName: entrypointName
+      ).utf8
     )
   }
 
@@ -97,14 +97,44 @@ struct BundleLayout {
     }
   }
 
-  func computeWasmDestinationPath(contentHash: Bool) throws -> AbsolutePath {
+  @discardableResult
+  private func copyFileIfChanged(
+    from sourcePath: AbsolutePath,
+    to destinationPath: AbsolutePath
+  ) throws -> Bool {
+    if localFileSystem.exists(destinationPath) {
+      let sourceContent = try localFileSystem.readFileContents(sourcePath)
+      let destinationContent = try localFileSystem.readFileContents(destinationPath)
+      if sourceContent == destinationContent {
+        return false
+      }
+      try localFileSystem.removeFileTree(destinationPath)
+    }
+    try localFileSystem.copy(from: sourcePath, to: destinationPath)
+    return true
+  }
+
+  private func writeFileIfChanged<S: Sequence>(
+    _ path: AbsolutePath, contents: S
+  ) throws where S.Element == UInt8 {
+    let bytes = ByteString(contents)
+    if localFileSystem.exists(path) {
+      let existingContents = try localFileSystem.readFileContents(path)
+      if existingContents == bytes {
+        return
+      }
+    }
+    try localFileSystem.writeFileContents(path, bytes: bytes)
+  }
+
+  private func computeWasmDestinationPath(contentHash: Bool) throws -> AbsolutePath {
     let wasmFileHash = try localFileSystem.readFileContents(wasmSourcePath).hexChecksum
     // Rename the final binary to use a part of its hash to bust browsers and CDN caches.
     let mainModuleName = contentHash ? "\(mainModuleBaseName).\(wasmFileHash).wasm" : "\(mainModuleBaseName).wasm"
     return try AbsolutePath(validating: mainModuleName, relativeTo: bundleDirectory)
   }
 
-  func copyResources(wasmDestinationPath: AbsolutePath, terminal: InteractiveWriter) throws {
+  private func copyResources(wasmDestinationPath: AbsolutePath, terminal: InteractiveWriter) throws {
     try localFileSystem.writeFileContents(
       AbsolutePath(validating: "intrinsics.js", relativeTo: bundleDirectory),
       bytes: ByteString(StaticResource.intrinsics)
@@ -129,7 +159,10 @@ struct BundleLayout {
         encodingAsUTF8: """
           {
             "type": "module",
-            "main": "./index.js"
+            "main": "./index.js",
+            "devDependencies": {
+              "vite": "^6.0.3"
+            }
           }
           """
       )
@@ -141,6 +174,7 @@ struct BundleLayout {
 
       guard localFileSystem.exists(resourcesPath, followSymlink: true) else { continue }
       terminal.logLookup("Copying resources to ", targetDirectory)
+      try localFileSystem.removeFileTree(targetDirectory)
       try localFileSystem.copy(from: resourcesPath, to: targetDirectory)
     }
 
